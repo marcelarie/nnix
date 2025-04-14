@@ -11,8 +11,13 @@
     git
     neovim
     zsh
+    fish
+    gh
     tmux
     htop
+    wl-clipboard
+    nodejs_22
+    pnpm
   ];
 
   programs.bash.enable = true;
@@ -21,7 +26,7 @@
     EDITOR = "nvim";
   };
 
-  home.file.".vimrc".source = ./dotfiles/vimrc;
-  home.file.".gitconfig".source = ./dotfiles/gitconfig;
+  # home.file.".vimrc".source = ./dotfiles/vimrc;
+  # home.file.".gitconfig".source = ./dotfiles/gitconfig;
 }
 
