@@ -1,26 +1,27 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs, ... }:
-
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  config,
+  pkgs,
+  ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    /etc/nixos/hardware-configuration.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = ["nix-command" "flakes"];
 
   networking.hostName = "nixos"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = true;
-  services.blueman.enable = true;
+  hardware = {
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+      settings.General.Experimental = true;
+    };
+  };
   services.mullvad-vpn.enable = true;
 
   # Configure network proxy if necessary
@@ -88,29 +89,26 @@
   users.users.marcel = {
     isNormalUser = true;
     description = "marcel";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = ["networkmanager" "wheel"];
     packages = with pkgs; [
       kitty
       # kdePackages.kate
-    #  thunderbird
+      #  thunderbird
     ];
   };
 
-  # Enable automatic login for the user.
-  # Display manager configuration
   services.displayManager = {
     sddm = {
       enable = true;
       wayland.enable = true;
-      theme = "breeze"; # Optional: KDE theme
+      theme = "breeze";
     };
-    defaultSession = "hyprland"; # This sets Hyprland as default
+    defaultSession = "hyprland";
     autoLogin = {
-      enable = true;
+      enable = false;
       user = "marcel";
     };
   };
-
 
   # Install firefox.
   programs.firefox.enable = true;
@@ -121,14 +119,18 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-   neovim
-   wget
-   stremio
-   mullvad-vpn
-   mullvad
-   git
-   usbutils
+    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    neovim
+    wget
+    stremio
+    mullvad-vpn
+    mullvad
+    git
+    gnumake
+    usbutils
+    networkmanagerapplet
+    glib
+    gnupg
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -157,5 +159,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
-
 }
