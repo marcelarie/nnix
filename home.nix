@@ -65,6 +65,9 @@ in {
     _1password-gui
     sendme
     cliphist
+    zeroad
+    home-manager
+    difftastic
   ];
 
   home.sessionVariables = {

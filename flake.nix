@@ -34,6 +34,13 @@
         export EDITOR=nvim
       '';
     };
+    # TODO: Setup this so it does not appear like unkown
+    # homeConfigurations = {
+    #   ${username} = home-manager.lib.homeManagerConfiguration {
+    #     pkgs = pkgs;
+    #     modules = [./home.nix];
+    #   };
+    # };
     nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
       inherit system;
       modules = [
