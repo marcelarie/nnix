@@ -4,6 +4,7 @@
   ...
 }: let
   link = config.lib.file.mkOutOfStoreSymlink;
+  pstore = "/home/marcel/clones/own/password-store";
   dots = "/home/marcel/clones/own/dots";
   nvim = "/home/marcel/clones/own/nvim";
 in {
@@ -52,6 +53,15 @@ in {
     fd
     ripgrep
     python313Packages.python-lsp-server
+    starship
+    direnv
+    # fnm # Nix does not need version managers
+    blueman
+    pyenv
+    _1password-cli
+    _1password-gui
+    sendme
+    cliphist
   ];
 
   home.sessionVariables = {
@@ -77,10 +87,17 @@ in {
     ".config/hypr/workspaces.conf".source = link "${dots}/.config/hypr/workspaces.conf";
     ".config/kanshi/config".source = link "${dots}/.config/kanshi/config";
     ".config/foot/foot.ini".source = link "${dots}/.config/foot/foot.ini";
+    ".config/tofi/config".source = link "${dots}/.config/tofi/config";
+    ".config/starship.toml".source = link "${dots}/.config/starship.toml";
 
     # directories (need recursive = true)
     "scripts" = {
       source = link "${dots}/scripts";
+      recursive = true;
+    };
+
+    ".password-store" = {
+      source = link "${pstore}/";
       recursive = true;
     };
 
