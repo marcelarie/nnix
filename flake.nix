@@ -34,7 +34,7 @@
         export EDITOR=nvim
       '';
     };
-    # TODO: Setup this so it does not appear like unkown
+    # TODO: Setup this so it does not appear like unknown
     # homeConfigurations = {
     #   ${username} = home-manager.lib.homeManagerConfiguration {
     #     pkgs = pkgs;
