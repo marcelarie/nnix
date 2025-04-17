@@ -12,6 +12,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   nix.settings = {
+    auto-optimise-store = true;
     experimental-features = [
       "nix-command"
       "flakes"
@@ -134,6 +135,12 @@
       enable = true;
       wayland.enable = true;
       theme = "breeze";
+      settings = {
+        General = {
+          background = "/etc/sddm/black.png";
+          type = "image";
+        };
+      };
     };
     defaultSession = "hyprland";
     autoLogin = {
@@ -162,6 +169,7 @@
     usbutils
     networkmanagerapplet
     glib
+    gcc
     gnupg
     cachix
   ];

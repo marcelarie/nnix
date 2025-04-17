@@ -39,6 +39,8 @@ in {
     mako
     foot
     nerd-fonts.blex-mono
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.iosevka-term
     font-awesome
     swayosd
     tofi
@@ -68,6 +70,33 @@ in {
     zeroad
     home-manager
     difftastic
+    eww
+    killall
+    typos
+    bat
+    gimp
+    pavucontrol
+    typos-lsp
+    neofetch
+    fastfetch
+    onefetch
+    pfetch
+    helix
+    htop
+    bottom
+    tree
+    ollama
+    uv
+    xan
+    mako
+    speedtest-cli
+    nushell
+    fzf
+    glow
+    ungoogled-chromium
+    asciinema
+    auto-cpufreq
+    neovide
   ];
 
   home.sessionVariables = {
@@ -117,6 +146,10 @@ in {
       recursive = true;
     };
 
+    ".config/eww" = {
+      source = link "${dots}/.config/eww";
+      recursive = true;
+    };
     ".config/nvim" = {
       source = link nvim;
       recursive = true;
