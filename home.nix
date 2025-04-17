@@ -57,6 +57,9 @@ in {
     direnv
     # fnm # Nix does not need version managers
     blueman
+    jq
+    jaq
+    sqlite
     pyenv
     _1password-cli
     _1password-gui

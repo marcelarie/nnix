@@ -11,7 +11,36 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  nix.settings.experimental-features = ["nix-command" "flakes"];
+  nix.settings = {
+    experimental-features = ["nix-command" "flakes"];
+    substituters = [
+      "https://hyprland.cachix.org"
+      "https://marcelarie.cachix.org"
+      "https://cache.nixos.org"
+    ];
+    trusted-public-keys = [
+      "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
+    ];
+    trusted-users = ["root" "marcel"];
+  };
+
+  # TODO: Learn how to setup cachix auto push
+  # Option 1:
+  # services.cachix-agent = {
+  #   enable = true;
+  #   cache = "marcelarie";
+  # };
+  # Option 2:
+  # services.cachix‑watch‑store = {
+  #   enable           = true;
+  #   cacheName        = "marcelarie";
+  #   cachixTokenFile  = "/home/marcel/.config/cachix/cachix.dhall";
+  #   # optional settings:
+  #   # compressionLevel = 3;
+  #   # jobs             = 4;
+  #   # host             = "https://marcelarie.cachix.org";  # rarely needed
+  #   # verbose          = true;
+  # };
 
   networking.hostName = "nixos"; # Define your hostname.
 
@@ -131,6 +160,7 @@
     networkmanagerapplet
     glib
     gnupg
+    cachix
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
