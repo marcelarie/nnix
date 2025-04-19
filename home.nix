@@ -15,88 +15,93 @@ in {
   programs.home-manager.enable = true;
 
   home.packages = with pkgs; [
-    git
-    neovim
-    zsh
-    fish
-    gh
-    tmux
-    htop
-    wl-clipboard
-    nodejs_22
-    pnpm
-    pass
-    carapace
-    atuin
-    zoxide
-    eza
+    # fnm # Nix does not need version managers
+    _1password-cli
+    _1password-gui
     alejandra
-    nil
-    kanshi
-    waybar
-    ydotool
-    hyprpaper
-    mako
+    asciinema
+    atuin
+    auto-cpufreq
+    bacon
+    bash
+    bat
+    blueman
+    bottom
+    brightnessctl
+    carapace
+    cliphist
+    difftastic
+    direnv
+    eww
+    eza
+    fastfetch
+    fd
+    fish
+    font-awesome
     foot
+    fzf
+    fzy
+    gh
+    gimp
+    git
+    glow
+    helix
+    home-manager
+    htop
+    htop
+    hyprpaper
+    jaq
+    jq
+    kanshi
+    killall
+    mako
+    mako
+    neofetch
+    neovide
+    neovim
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
-    font-awesome
-    swayosd
-    tofi
-    bash
-    fzy
-    nnn
-    unzip
-    nix-search-cli
-    ruby
-    solargraph
     nil
-    fd
-    ripgrep
-    python313Packages.python-lsp-server
-    starship
-    direnv
-    # fnm # Nix does not need version managers
-    blueman
-    jq
-    jaq
-    sqlite
-    pyenv
-    _1password-cli
-    _1password-gui
-    sendme
-    cliphist
-    zeroad
-    home-manager
-    difftastic
-    eww
-    killall
-    typos
-    bat
-    gimp
-    pavucontrol
-    typos-lsp
-    neofetch
-    fastfetch
-    onefetch
-    pfetch
-    helix
-    htop
-    bottom
-    tree
-    ollama
-    uv
-    xan
-    mako
-    speedtest-cli
+    nil
+    nix-search-cli
+    nnn
+    nodejs_22
     nushell
-    fzf
-    glow
+    ollama
+    onefetch
+    pamixer
+    pass
+    pavucontrol
+    pfetch
+    pnpm
+    pyenv
+    python313Packages.python-lsp-server
+    ripgrep
+    ruby
+    sendme
+    solargraph
+    speedtest-cli
+    speedtest-rs
+    sqlite
+    starship
+    swayosd
+    tmex
+    tmux
+    tofi
+    tree
+    typos
+    typos-lsp
     ungoogled-chromium
-    asciinema
-    auto-cpufreq
-    neovide
+    unzip
+    uv
+    waybar
+    wl-clipboard
+    xan
+    ydotool
+    zeroad
+    zoxide
+    zsh
   ];
 
   home.sessionVariables = {
@@ -123,6 +128,7 @@ in {
     ".config/kanshi/config".source = link "${dots}/.config/kanshi/config";
     ".config/foot/foot.ini".source = link "${dots}/.config/foot/foot.ini";
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
+    ".config/mako/config".source = link "${dots}/.config/mako/config";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
 
     # directories (need recursive = true)

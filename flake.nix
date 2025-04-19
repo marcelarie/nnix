@@ -3,6 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    tmex = {
+      url = "github:marcelarie/tmex";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -13,14 +17,21 @@
     self,
     nixpkgs,
     home-manager,
+    tmex,
     ...
   } @ inputs: let
     system = "x86_64-linux";
     username = "marcel";
     hostname = "nixos";
+    tmexPkg = tmex.packages.${system}.tmex;
     pkgs = import nixpkgs {
       inherit system;
       config.allowUnfree = true;
+      overlays = [
+        (final: prev: {
+          tmex = tmexPkg;
+        })
+      ];
     };
   in {
     devShells.${system}.default = pkgs.mkShell {
@@ -34,15 +45,9 @@
         export EDITOR=nvim
       '';
     };
-    # TODO: Setup this so it does not appear like unknown
-    # homeConfigurations = {
-    #   ${username} = home-manager.lib.homeManagerConfiguration {
-    #     pkgs = pkgs;
-    #     modules = [./home.nix];
-    #   };
-    # };
+    homeManagerModules.home = import ./home.nix;
     nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
-      inherit system;
+      inherit system pkgs;
       modules = [
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
