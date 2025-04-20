@@ -29,6 +29,7 @@ in {
     bottom
     brightnessctl
     carapace
+    cargo
     cliphist
     difftastic
     direnv
@@ -106,6 +107,7 @@ in {
 
   home.sessionVariables = {
     EDITOR = "nvim";
+    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
   };
 
   home.file = {
@@ -149,6 +151,11 @@ in {
 
     ".config/waybar" = {
       source = link "${dots}/.config/waybar";
+      recursive = true;
+    };
+
+    ".config/tmux" = {
+      source = link "${dots}/.config/tmux";
       recursive = true;
     };
 

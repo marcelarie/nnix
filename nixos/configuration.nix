@@ -150,7 +150,22 @@
   };
 
   # Install firefox.
-  programs.firefox.enable = true;
+  programs.firefox = {
+    enable = true;
+
+    policies = {
+      Preferences = {
+        "extensions.pocket.enabled" = {
+          Value = false;
+          Status = "locked";
+        };
+        "ui.key.menuAccessKeyFocuses" = {
+          Value = false;
+          Status = "locked";
+        };
+      };
+    };
+  };
 
   # Allow unfree packages
   # nixpkgs.config.allowUnfree = true;
