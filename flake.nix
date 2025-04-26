@@ -2,13 +2,14 @@
   description = "NixOS and Home Manager configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgsUnstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     tmex = {
       url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -16,6 +17,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgsUnstable,
     home-manager,
     tmex,
     ...
@@ -33,6 +35,10 @@
         })
       ];
     };
+    pkgsUnstable = import nixpkgsUnstable {
+      inherit system;
+      config.allowUnfree = true;
+    };
   in {
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [
@@ -45,7 +51,6 @@
         export EDITOR=nvim
       '';
     };
-    homeManagerModules.home = import ./home.nix;
     nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
       inherit system pkgs;
       modules = [
@@ -58,6 +63,9 @@
             useUserPackages = true;
             users.${username} = import ./home.nix;
             backupFileExtension = "backup";
+            extraSpecialArgs = {
+              inherit pkgsUnstable;
+            };
           };
         }
       ];

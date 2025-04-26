@@ -30,6 +30,7 @@
 
   # TODO: Learn how to setup cachix auto push
   # Option 1:
+  services.cachix-agent.enable = true;
   # services.cachix-agent = {
   #   enable = true;
   #   cache = "marcelarie";
@@ -46,7 +47,7 @@
   #   # verbose          = true;
   # };
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "nixos";
 
   hardware = {
     bluetooth = {
@@ -56,6 +57,7 @@
     };
   };
   services.mullvad-vpn.enable = true;
+  services.flatpak.enable = true;
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -100,7 +102,7 @@
   services.printing.enable = true;
 
   # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
+  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -135,12 +137,6 @@
       enable = true;
       wayland.enable = true;
       theme = "breeze";
-      settings = {
-        General = {
-          background = "/etc/sddm/black.png";
-          type = "image";
-        };
-      };
     };
     defaultSession = "hyprland";
     autoLogin = {
@@ -167,13 +163,8 @@
     };
   };
 
-  # Allow unfree packages
-  # nixpkgs.config.allowUnfree = true;
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    vim
     neovim
     wget
     stremio
@@ -188,6 +179,10 @@
     gnupg
     cachix
     openssl
+    (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
+      [General]
+      background=/etc/sddm/black.png
+    '')
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

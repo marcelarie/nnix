@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  pkgsUnstable,
   ...
 }: let
   link = config.lib.file.mkOutOfStoreSymlink;
@@ -43,13 +44,14 @@ in {
     fzf
     fzy
     gh
-    gimp
+    pkgsUnstable.gimp3
     git
     glow
     helix
     home-manager
     htop
     htop
+    hyprlock
     hyprpaper
     jaq
     jq
@@ -59,10 +61,10 @@ in {
     mako
     neofetch
     neovide
-    neovim
-    nerd-fonts.blex-mono
-    nerd-fonts.droid-sans-mono
-    nerd-fonts.iosevka-term
+    pkgsUnstable.neovim
+    pkgsUnstable.nerd-fonts.blex-mono
+    pkgsUnstable.nerd-fonts.droid-sans-mono
+    pkgsUnstable.nerd-fonts.iosevka-term
     nil
     nil
     nix-search-cli
@@ -77,7 +79,7 @@ in {
     pfetch
     pnpm
     pyenv
-    python313Packages.python-lsp-server
+    # python313Packages.python-lsp-server
     ripgrep
     ruby
     sendme
@@ -87,6 +89,8 @@ in {
     sqlite
     starship
     swayosd
+    stylua
+    taplo
     tmex
     tmux
     tofi
@@ -98,7 +102,7 @@ in {
     uv
     waybar
     wl-clipboard
-    xan
+    pkgsUnstable.xan
     ydotool
     zeroad
     zoxide
@@ -132,6 +136,7 @@ in {
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/mako/config".source = link "${dots}/.config/mako/config";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
+    ".config/direnv/direnv.toml".source = link "${dots}/.config/direnv/direnv.toml";
 
     # directories (need recursive = true)
     "scripts" = {
@@ -146,6 +151,11 @@ in {
 
     ".config/fish" = {
       source = link "${dots}/.config/fish";
+      recursive = true;
+    };
+
+    ".config/nushell" = {
+      source = link "${dots}/.config/nushell";
       recursive = true;
     };
 
