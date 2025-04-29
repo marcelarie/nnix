@@ -1,13 +1,10 @@
 {
   config,
   pkgs,
-  pkgsUnstable,
+  pkgsStable,
   ...
 }: let
-  link = config.lib.file.mkOutOfStoreSymlink;
   pstore = "/home/marcel/clones/own/password-store";
-  dots = "/home/marcel/clones/own/dots";
-  nvim = "/home/marcel/clones/own/nvim";
 in {
   home.username = "marcel";
   home.homeDirectory = "/home/marcel";
@@ -44,7 +41,7 @@ in {
     fzf
     fzy
     gh
-    pkgsUnstable.gimp3
+    gimp3
     git
     glow
     helix
@@ -61,10 +58,10 @@ in {
     mako
     neofetch
     neovide
-    pkgsUnstable.neovim
-    pkgsUnstable.nerd-fonts.blex-mono
-    pkgsUnstable.nerd-fonts.droid-sans-mono
-    pkgsUnstable.nerd-fonts.iosevka-term
+    neovim
+    nerd-fonts.blex-mono
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.iosevka-term
     nil
     nil
     nix-search-cli
@@ -79,7 +76,7 @@ in {
     pfetch
     pnpm
     pyenv
-    # python313Packages.python-lsp-server
+    python313Packages.python-lsp-server
     ripgrep
     ruby
     sendme
@@ -102,11 +99,13 @@ in {
     uv
     waybar
     wl-clipboard
-    pkgsUnstable.xan
+    xan
     ydotool
     zeroad
     zoxide
     zsh
+    stremio
+    telegram-desktop
   ];
 
   home.sessionVariables = {
@@ -114,7 +113,11 @@ in {
     PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
   };
 
-  home.file = {
+  home.file = let
+    link = config.lib.file.mkOutOfStoreSymlink;
+    dots = "/home/marcel/clones/own/dots";
+    nvim = "/home/marcel/clones/own/nvim";
+  in {
     # plain files
     ".vimrc".source = link "${dots}/.vimrc";
     ".gitconfig".source = link "${dots}/.gitconfig";
