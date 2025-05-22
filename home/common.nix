@@ -42,7 +42,6 @@
     git
     glow
     helix
-    home-manager
     htop
     hyprlock
     hyprpaper
