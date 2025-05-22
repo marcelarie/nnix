@@ -51,6 +51,7 @@
         export EDITOR=nvim
       '';
     };
+
     nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
       inherit system pkgs;
       modules = [
@@ -61,7 +62,7 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            users.${username} = import ./home.nix;
+            users.${username} = import ./home/marcel.nix;
             backupFileExtension = "backup";
             extraSpecialArgs = {
               inherit pkgsStable;
@@ -69,6 +70,21 @@
           };
         }
       ];
+    };
+
+    homeConfigurations = {
+      work = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [
+          ./home/common.nix
+          ./hosts/work/default.nix
+          {
+            home.username = "mmanzanares";
+            home.homeDirectory = "/home/mmanzanares";
+            targets.genericLinux.enable = true;
+          }
+        ];
+      };
     };
   };
 }

@@ -8,110 +8,11 @@
 in {
   home.username = "marcel";
   home.homeDirectory = "/home/marcel";
-  home.stateVersion = "24.11";
-
-  programs.home-manager.enable = true;
 
   home.packages = with pkgs; [
-    # fnm # Nix does not need version managers
-    _1password-cli
-    _1password-gui
-    alejandra
-    asciinema
-    atuin
-    auto-cpufreq
-    bacon
-    bash
-    bat
-    blueman
-    bottom
-    brightnessctl
-    carapace
-    cargo
-    cliphist
-    difftastic
-    direnv
-    eww
-    eza
-    fastfetch
-    fd
-    fish
-    font-awesome
-    foot
-    fzf
-    fzy
-    gh
-    gimp3
-    git
-    glow
-    helix
-    home-manager
-    htop
-    htop
-    hyprlock
-    hyprpaper
-    jaq
-    jq
-    kanshi
-    killall
-    mako
-    mako
-    neofetch
-    neovide
-    neovim
-    nerd-fonts.blex-mono
-    nerd-fonts.droid-sans-mono
-    nerd-fonts.iosevka-term
-    nil
-    nil
-    nix-search-cli
-    nnn
-    nodejs_22
-    nushell
-    ollama
-    onefetch
-    pamixer
-    pass
-    pavucontrol
-    pfetch
-    pnpm
-    pyenv
-    python313Packages.python-lsp-server
-    ripgrep
-    ruby
-    sendme
-    solargraph
-    speedtest-cli
-    speedtest-rs
-    sqlite
-    starship
-    swayosd
-    stylua
-    taplo
-    tmex
-    tmux
-    tofi
-    tree
-    typos
-    typos-lsp
-    ungoogled-chromium
-    unzip
-    uv
-    waybar
-    wl-clipboard
-    xan
-    ydotool
-    zeroad
-    zoxide
-    zsh
     stremio
     telegram-desktop
   ];
-
-  home.sessionVariables = {
-    EDITOR = "nvim";
-    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-  };
 
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
