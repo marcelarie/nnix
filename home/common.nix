@@ -4,7 +4,8 @@
   pkgsStable,
   ...
 }: let
-  pstore = "/home/marcel/clones/own/password-store";
+  homeDir = config.home.homeDirectory;
+  pstore = "${homeDir}/clones/own/password-store";
 in {
   home.stateVersion = "24.11";
   programs.home-manager.enable = true;
@@ -105,8 +106,8 @@ in {
 
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
-    dots = "/home/marcel/clones/own/dots";
-    nvim = "/home/marcel/clones/own/nvim";
+    dots = "${homeDir}/clones/own/dots";
+    nvim = "${homeDir}/clones/own/nvim";
   in {
     # plain files
     ".vimrc".source = link "${dots}/.vimrc";
