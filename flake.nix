@@ -62,7 +62,7 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            users.${username} = import ./home/marcel.nix;
+            users.${username} = import ./hosts/home/default.nix;
             backupFileExtension = "backup";
             extraSpecialArgs = {
               inherit pkgsStable;

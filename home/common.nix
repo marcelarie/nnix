@@ -13,6 +13,7 @@
   };
 
   home.packages = with pkgs; [
+    _1password-cli
     alejandra
     asciinema
     atuin
@@ -97,7 +98,6 @@
     wl-clipboard
     xan
     ydotool
-    zeroad
     zoxide
     zsh
   ];
