@@ -17,6 +17,7 @@ in {
 
   home.packages = with pkgs; [
     _1password-cli
+    gnumake
     alejandra
     asciinema
     atuin
@@ -32,6 +33,8 @@ in {
     difftastic
     direnv
     eww
+    firefox
+    satty
     eza
     fastfetch
     fd
@@ -46,7 +49,6 @@ in {
     glow
     helix
     htop
-    hyprlock
     hyprpaper
     jaq
     jq
@@ -61,6 +63,7 @@ in {
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
     nil
+    nixfmt-classic
     qbittorrent
     tldr
     nix-search-cli
@@ -85,6 +88,7 @@ in {
     sqlite
     starship
     swayosd
+    sway
     stylua
     taplo
     tmex
