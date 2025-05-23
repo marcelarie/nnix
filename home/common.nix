@@ -29,7 +29,6 @@ in {
     difftastic
     direnv
     eww
-    firefox
     satty
     eza
     fastfetch
@@ -93,7 +92,6 @@ in {
     tree
     typos
     typos-lsp
-    ungoogled-chromium
     unzip
     uv
     waybar
