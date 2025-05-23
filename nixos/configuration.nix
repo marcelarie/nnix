@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{ config, pkgs, ... }: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -14,10 +10,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   nix.settings = {
     auto-optimise-store = true;
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+    experimental-features = [ "nix-command" "flakes" ];
     substituters = [
       "https://hyprland.cachix.org"
       "https://marcelarie.cachix.org"
@@ -26,7 +19,7 @@
     trusted-public-keys = [
       "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
     ];
-    trusted-users = ["root" "marcel"];
+    trusted-users = [ "root" "marcel" ];
   };
 
   # TODO: Learn how to setup cachix auto push
@@ -141,12 +134,13 @@
   users.users.marcel = {
     isNormalUser = true;
     description = "marcel";
-    extraGroups = ["networkmanager" "wheel"];
-    packages = with pkgs; [
-      kitty
-      # kdePackages.kate
-      #  thunderbird
-    ];
+    extraGroups = [ "networkmanager" "wheel" ];
+    packages = with pkgs;
+      [
+        kitty
+        # kdePackages.kate
+        #  thunderbird
+      ];
   };
 
   services.displayManager = {
