@@ -60,6 +60,17 @@ in {
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
+    noto-fonts
+    noto-fonts-color-emoji
+    noto-fonts-extra
+    liberation_ttf
+    dejavu_fonts
+    fira-sans
+    roboto
+    roboto-mono
+    roboto-serif
+    ubuntu-sans-mono
+    ubuntu-sans-mono
     nil
     qbittorrent
     tldr

@@ -18,6 +18,7 @@
       "nix-command"
       "flakes"
     ];
+    warn-dirty = false;
     substituters = [
       "https://hyprland.cachix.org"
       "https://marcelarie.cachix.org"
