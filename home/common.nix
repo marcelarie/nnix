@@ -1,9 +1,5 @@
-{
-  config,
-  pkgs,
-  pkgsStable,
-  ...
-}: let
+{ config, pkgs, pkgsStable, ... }:
+let
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
@@ -17,6 +13,7 @@ in {
 
   home.packages = with pkgs; [
     _1password-cli
+    gnumake
     alejandra
     asciinema
     atuin
@@ -32,6 +29,7 @@ in {
     difftastic
     direnv
     eww
+    satty
     eza
     fastfetch
     fd
@@ -46,7 +44,6 @@ in {
     glow
     helix
     htop
-    hyprlock
     hyprpaper
     jaq
     jq
@@ -72,6 +69,7 @@ in {
     ubuntu-sans-mono
     ubuntu-sans-mono
     nil
+    nixfmt-classic
     qbittorrent
     tldr
     nix-search-cli
@@ -96,6 +94,7 @@ in {
     sqlite
     starship
     swayosd
+    sway
     stylua
     taplo
     tmex
@@ -104,7 +103,6 @@ in {
     tree
     typos
     typos-lsp
-    ungoogled-chromium
     unzip
     uv
     waybar
@@ -117,8 +115,10 @@ in {
 
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
-    dots = "${homeDir}/clones/own/dots";
-    nvim = "${homeDir}/clones/own/nvim";
+    clonesOwn = "${homeDir}/clones/own";
+    dots = "${clonesOwn}/dots";
+    nvim = "${clonesOwn}/nvim";
+    notes = "${clonesOwn}/notes";
   in {
     # plain files
     ".vimrc".source = link "${dots}/.vimrc";
@@ -128,20 +128,29 @@ in {
     ".bash_aliases".source = link "${dots}/.bash_aliases";
 
     # single files
-    ".config/hypr/hyprland.conf".source = link "${dots}/.config/hypr/hyprland.conf";
-    ".config/hypr/hypridle.conf".source = link "${dots}/.config/hypr/hypridle.conf";
-    ".config/hypr/hyprlock.conf".source = link "${dots}/.config/hypr/hyprlock.conf";
-    ".config/hypr/hyprpaper.conf".source = link "${dots}/.config/hypr/hyprpaper.conf";
-    ".config/hypr/keybinds.conf".source = link "${dots}/.config/hypr/keybinds.conf";
-    ".config/hypr/monitors.conf".source = link "${dots}/.config/hypr/monitors.conf";
-    ".config/hypr/pyprland.toml".source = link "${dots}/.config/hypr/pyprland.toml";
-    ".config/hypr/workspaces.conf".source = link "${dots}/.config/hypr/workspaces.conf";
+    ".config/hypr/hyprland.conf".source =
+      link "${dots}/.config/hypr/hyprland.conf";
+    ".config/hypr/hypridle.conf".source =
+      link "${dots}/.config/hypr/hypridle.conf";
+    ".config/hypr/hyprlock.conf".source =
+      link "${dots}/.config/hypr/hyprlock.conf";
+    ".config/hypr/hyprpaper.conf".source =
+      link "${dots}/.config/hypr/hyprpaper.conf";
+    ".config/hypr/keybinds.conf".source =
+      link "${dots}/.config/hypr/keybinds.conf";
+    ".config/hypr/monitors.conf".source =
+      link "${dots}/.config/hypr/monitors.conf";
+    ".config/hypr/pyprland.toml".source =
+      link "${dots}/.config/hypr/pyprland.toml";
+    ".config/hypr/workspaces.conf".source =
+      link "${dots}/.config/hypr/workspaces.conf";
     ".config/kanshi/config".source = link "${dots}/.config/kanshi/config";
     ".config/foot/foot.ini".source = link "${dots}/.config/foot/foot.ini";
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/mako/config".source = link "${dots}/.config/mako/config";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
-    ".config/direnv/direnv.toml".source = link "${dots}/.config/direnv/direnv.toml";
+    ".config/direnv/direnv.toml".source =
+      link "${dots}/.config/direnv/direnv.toml";
 
     # directories (need recursive = true)
     "scripts" = {
@@ -180,6 +189,10 @@ in {
     };
     ".config/nvim" = {
       source = link nvim;
+      recursive = true;
+    };
+    "notes" = {
+      source = link notes;
       recursive = true;
     };
   };
