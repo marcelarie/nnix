@@ -1,4 +1,4 @@
-This iss my Nix setup, and it manages two configurations: nixos and work.
+This is my Nix setup, and it manages two configurations: nixos and work.
 Both share a common home/common.nix to keep things consistent across environments.
 
 - NixOS documentation [here](https://nixos.org/manual/nixos/unstable/)
