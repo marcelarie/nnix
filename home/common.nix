@@ -1,9 +1,9 @@
-{ config, pkgs, pkgsStable, ... }:
+{ config, pkgs, inputs, pkgsStable, ... }:
 let
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
   programs.home-manager.enable = true;
 
   home.sessionVariables = {
@@ -12,6 +12,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    inputs.mq.packages.${pkgs.system}.mq
     _1password-cli
     gnumake
     alejandra
@@ -30,6 +31,7 @@ in {
     direnv
     eww
     satty
+    black
     eza
     fastfetch
     fd
@@ -45,6 +47,9 @@ in {
     helix
     htop
     hyprpaper
+    pyprland
+    imv
+    swayimg
     jaq
     jq
     kanshi
@@ -71,10 +76,8 @@ in {
     pass
     pavucontrol
     pfetch
-    pnpm
-    pyenv
-    python313Packages.python-lsp-server
     ripgrep
+    sysz
     ruby
     sendme
     solargraph

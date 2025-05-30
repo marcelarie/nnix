@@ -3,7 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
+    mq.url = "github:harehare/mq";
     tmex = {
       url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -50,7 +51,7 @@
               useUserPackages = true;
               users.${username} = import ./hosts/home/default.nix;
               backupFileExtension = "backup";
-              extraSpecialArgs = { inherit pkgsStable; };
+              extraSpecialArgs = { inherit inputs pkgsStable; };
             };
           }
         ];
@@ -68,6 +69,7 @@
               targets.genericLinux.enable = true;
             }
           ];
+          extraSpecialArgs = { inherit inputs pkgsStable; };
         };
       };
     };
