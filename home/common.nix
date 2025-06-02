@@ -172,6 +172,9 @@ in {
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/mako/config".source = link "${dots}/.config/mako/config";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
+    ".cargo/env".source = link "${dots}/.cargo/env";
+    ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
+    ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".inputrc".source = link "${dots}/.inputrc";
     ".config/direnv/direnv.toml".source =
       link "${dots}/.config/direnv/direnv.toml";
@@ -217,10 +220,6 @@ in {
     };
     "notes" = {
       source = link notes;
-      recursive = true;
-    };
-    ".cargo" = {
-      source = link "${dots}/.cargo";
       recursive = true;
     };
   };

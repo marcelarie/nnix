@@ -41,6 +41,7 @@
 
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
         inherit system pkgs;
+        specialArgs = { inherit inputs pkgsStable; };
         modules = [
           ./nixos/configuration.nix
           ./nixos/hardware-configuration.nix
