@@ -25,7 +25,6 @@ in {
     bottom
     brightnessctl
     carapace
-    cargo
     cliphist
     difftastic
     direnv
@@ -69,6 +68,8 @@ in {
     dejavu_fonts
     fira-sans
     roboto
+    rustup
+    gcc
     roboto-mono
     roboto-serif
     ubuntu-sans-mono
@@ -196,6 +197,10 @@ in {
     };
     "notes" = {
       source = link notes;
+      recursive = true;
+    };
+    ".cargo" = {
+      source = link "${dots}/.cargo";
       recursive = true;
     };
   };
