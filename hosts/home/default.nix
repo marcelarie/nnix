@@ -5,6 +5,7 @@
 
   home.packages = with pkgs; [
     hyprlock
+    hyprland-qtutils
     stremio
     zeroad
     telegram-desktop

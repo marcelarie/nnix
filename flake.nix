@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
-    mq.url = "github:harehare/mq";
+    mq.url = "github:marcelarie/mq";
     tmex = {
       url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";

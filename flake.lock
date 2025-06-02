@@ -25,11 +25,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1748830238,
-        "narHash": "sha256-EB+LzYHK0D5aqxZiYoPeoZoOzSAs8eqBDxm3R+6wMKU=",
+        "lastModified": 1748610552,
+        "narHash": "sha256-bCBPjZ3ukUbAaCIDzGmvA+ZcMNk4+YIWLM8cks0jiic=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "c7fdb7e90bff1a51b79c1eed458fb39e6649a82a",
+        "rev": "482c306ef70785f53d9d90839b6b5643521ac031",
         "type": "github"
       },
       "original": {
@@ -44,15 +44,15 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1748749659,
-        "narHash": "sha256-V5amqmBiCxaqUO93e10LryjZ7IT9s6+fMr0GdE2ZGI8=",
-        "owner": "harehare",
+        "lastModified": 1748611585,
+        "narHash": "sha256-CsJWN+jLeuwrXuXf+V85ZfrF8e0tH3axb99SUOvyps4=",
+        "owner": "marcelarie",
         "repo": "mq",
-        "rev": "3deb9721daf33c53b6e4b0f67aef7a82b01b6baf",
+        "rev": "0901553532ed25e453f232a994f4e0d5842a751c",
         "type": "github"
       },
       "original": {
-        "owner": "harehare",
+        "owner": "marcelarie",
         "repo": "mq",
         "type": "github"
       }

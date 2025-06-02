@@ -12,28 +12,29 @@ in {
   };
 
   home.packages = with pkgs; [
-    inputs.mq.packages.${pkgs.system}.mq
     _1password-cli
-    gnumake
     alejandra
     asciinema
     atuin
     bacon
     bash
     bat
+    black
+    blesh
     blueman
     bottom
     brightnessctl
     carapace
     cliphist
+    dejavu_fonts
     difftastic
     direnv
     eww
-    satty
-    black
     eza
+    eslint_d
     fastfetch
     fd
+    fira-sans
     fish
     font-awesome
     foot
@@ -43,16 +44,17 @@ in {
     gimp3
     git
     glow
+    gnumake
     helix
     htop
     hyprpaper
-    pyprland
     imv
-    swayimg
+    inputs.mq.packages.${pkgs.system}.mq
     jaq
     jq
     kanshi
     killall
+    liberation_ttf
     mako
     mako
     neofetch
@@ -61,6 +63,11 @@ in {
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
+    nil
+    nix-search-cli
+    nixfmt-classic
+    nnn
+    nodejs_22
     noto-fonts
     noto-fonts-color-emoji
     noto-fonts-extra
@@ -88,28 +95,40 @@ in {
     pass
     pavucontrol
     pfetch
+    prettierd
+    pyprland
+    qbittorrent
     ripgrep
-    sysz
+    roboto
+    roboto-mono
+    roboto-serif
     ruby
+    satty
     sendme
     solargraph
     speedtest-cli
     speedtest-rs
     sqlite
     starship
-    swayosd
-    sway
     stylua
+    sway
+    swayimg
+    swayosd
+    sysz
     taplo
+    tldr
     tmex
     tmux
     tofi
     tree
     typos
     typos-lsp
+    ubuntu-sans-mono
+    ubuntu-sans-mono
     unzip
     uv
     waybar
+    wf-recorder
     wl-clipboard
     xan
     ydotool
@@ -153,6 +172,7 @@ in {
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/mako/config".source = link "${dots}/.config/mako/config";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
+    ".inputrc".source = link "${dots}/.inputrc";
     ".config/direnv/direnv.toml".source =
       link "${dots}/.config/direnv/direnv.toml";
 
