@@ -20,5 +20,8 @@ in {
     dots = "${clonesOwn}/dots";
   in {
     ".config/kanshi/config".source = link "${dots}/.config/kanshi/config-work";
+    ".cargo/env".source = link "${dots}/.cargo/env";
+    ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
+    ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
   };
 }
