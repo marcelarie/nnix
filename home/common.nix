@@ -1,5 +1,10 @@
-{ config, pkgs, inputs, pkgsStable, ... }:
-let
+{
+  config,
+  pkgs,
+  inputs,
+  pkgsStable,
+  ...
+}: let
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
@@ -167,7 +172,6 @@ in {
       link "${dots}/.config/hypr/pyprland.toml";
     ".config/hypr/workspaces.conf".source =
       link "${dots}/.config/hypr/workspaces.conf";
-    ".config/kanshi/config".source = link "${dots}/.config/kanshi/config";
     ".config/foot/foot.ini".source = link "${dots}/.config/foot/foot.ini";
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/mako/config".source = link "${dots}/.config/mako/config";

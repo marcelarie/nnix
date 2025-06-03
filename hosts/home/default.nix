@@ -1,7 +1,14 @@
-{ config, pkgs, pkgsStable, ... }: {
+{
+  config,
+  pkgs,
+  pkgsStable,
+  ...
+}: let
+  homeDir = "/home/marcel";
+in {
   home.username = "marcel";
-  home.homeDirectory = "/home/marcel";
-  imports = [ ../../home/common.nix ];
+  home.homeDirectory = homeDir;
+  imports = [../../home/common.nix];
 
   home.packages = with pkgs; [
     hyprlock
@@ -12,4 +19,12 @@
     ungoogled-chromium
     firefox
   ];
+
+  home.file = let
+    link = config.lib.file.mkOutOfStoreSymlink;
+    clonesOwn = "${homeDir}/clones/own";
+    dots = "${clonesOwn}/dots";
+  in {
+    ".config/kanshi/config".source = link "${dots}/.config/kanshi/config";
+  };
 }
