@@ -18,6 +18,11 @@ in {
 
   home.packages = with pkgs; [
     _1password-cli
+    rabbitmqadmin-ng
+    erdtree
+    zathura
+    cbfmt
+    mdformat
     alejandra
     asciinema
     atuin
@@ -25,6 +30,8 @@ in {
     bash
     bat
     black
+    bash-language-server
+    poppler-utils
     blesh
     blueman
     bottom
@@ -176,6 +183,7 @@ in {
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/mako/config".source = link "${dots}/.config/mako/config";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
+    ".config/shellcheckrc".source = link "${dots}/.config/shellcheckrc";
     ".cargo/env".source = link "${dots}/.cargo/env";
     ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
@@ -186,6 +194,11 @@ in {
     # directories (need recursive = true)
     "scripts" = {
       source = link "${dots}/scripts";
+      recursive = true;
+    };
+
+    ".config/erdtree" = {
+      source = link "${dots}/.config/erdtree";
       recursive = true;
     };
 
@@ -213,7 +226,10 @@ in {
       source = link "${dots}/.config/tmux";
       recursive = true;
     };
-
+    ".config/cbfmt" = {
+      source = link "${dots}/.config/cbfmt";
+      recursive = true;
+    };
     ".config/eww" = {
       source = link "${dots}/.config/eww";
       recursive = true;
