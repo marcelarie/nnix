@@ -9,9 +9,10 @@ in {
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui
-    pyenv
     pnpm
     python313Packages.python-lsp-server
+    (config.lib.nixGL.wrap alacritty)
+    (config.lib.nixGL.wrap neovide)
   ];
 
   home.file = let

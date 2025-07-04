@@ -13,14 +13,45 @@ in {
 
   home.sessionVariables = {
     EDITOR = "nvim";
+    VISUAL = "nvim";
     PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+  };
+
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "text/plain" = ["nvim-terminal.desktop"];
+      "text/markdown" = ["nvim-terminal.desktop"];
+      "text/html" = ["nvim-terminal.desktop"];
+      "application/json" = ["nvim-terminal.desktop"];
+    };
+
+    associations = {
+      added = {
+        "text/plain" = ["nvim-terminal.desktop"];
+        "text/markdown" = ["nvim-terminal.desktop"];
+        "text/json" = ["nvim-terminal.desktop"];
+        "application/json" = ["nvim-terminal.desktop"];
+      };
+      removed = {
+        "image/png" = ["chromium-browser.desktop"];
+      };
+    };
   };
 
   home.packages = with pkgs; [
     _1password-cli
+    java-language-server
     rabbitmqadmin-ng
+    way-displays
+    wlr-layout-ui
     erdtree
     zathura
+    shfmt
+    hyprshot
+    grimblast
+    dmenu-wayland
+    nwg-look
     cbfmt
     mdformat
     alejandra
@@ -70,7 +101,6 @@ in {
     mako
     mako
     neofetch
-    neovide
     neovim
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono
@@ -109,6 +139,7 @@ in {
     pfetch
     prettierd
     pyprland
+    wofi-emoji
     qbittorrent
     ripgrep
     roboto
