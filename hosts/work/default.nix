@@ -10,9 +10,10 @@ in {
     _1password-cli
     _1password-gui
     pnpm
-    python313Packages.python-lsp-server
+    # python313Packages.python-lsp-server
     (config.lib.nixGL.wrap alacritty)
     (config.lib.nixGL.wrap neovide)
+    (config.lib.nixGL.wrap imv)
   ];
 
   home.file = let

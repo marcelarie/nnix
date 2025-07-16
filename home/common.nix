@@ -24,14 +24,15 @@ in {
       "text/markdown" = ["nvim-terminal.desktop"];
       "text/html" = ["nvim-terminal.desktop"];
       "application/json" = ["nvim-terminal.desktop"];
+      "image/png" = ["swayimg.desktop" "imv.desktop"];
     };
-
     associations = {
       added = {
         "text/plain" = ["nvim-terminal.desktop"];
         "text/markdown" = ["nvim-terminal.desktop"];
         "text/json" = ["nvim-terminal.desktop"];
         "application/json" = ["nvim-terminal.desktop"];
+        "image/png" = ["swayimg.desktop" "imv.desktop"];
       };
       removed = {
         "image/png" = ["chromium-browser.desktop"];
@@ -40,114 +41,112 @@ in {
   };
 
   home.packages = with pkgs; [
+    # inputs.mq.packages.${pkgs.system}.mq
     _1password-cli
-    java-language-server
-    rabbitmqadmin-ng
-    way-displays
-    wlr-layout-ui
-    erdtree
-    zathura
-    shfmt
-    hyprshot
-    grimblast
-    dmenu-wayland
-    nwg-look
-    cbfmt
-    mdformat
     alejandra
-    asciinema
     atuin
     bacon
     bash
+    bash-language-server
     bat
     black
-    bash-language-server
-    poppler-utils
     blesh
     blueman
     bottom
     brightnessctl
     carapace
+    cbfmt
     cliphist
+    dejavu_fonts
     dejavu_fonts
     difftastic
     direnv
+    dmenu-wayland
+    dprint
+    erdtree
+    eslint_d
     eww
     eza
-    eslint_d
     fastfetch
     fd
     fira-sans
+    fira-sans
     fish
+    fixjson
     font-awesome
     foot
     fzf
     fzy
+    gcc
     gh
     gimp3
     git
     glow
     gnumake
+    grimblast
     helix
     htop
     hyprpaper
-    imv
-    inputs.mq.packages.${pkgs.system}.mq
+    hyprshot
     jaq
+    java-language-server
+    jdd
     jq
     kanshi
     killall
     liberation_ttf
+    liberation_ttf
     mako
     mako
+    marksman
+    mdformat
     neofetch
     neovim
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
     nil
+    nil
+    nix-search-cli
     nix-search-cli
     nixfmt-classic
+    nixfmt-classic
     nnn
+    nnn
+    nodePackages_latest.vscode-json-languageserver
+    nodejs_22
     nodejs_22
     noto-fonts
     noto-fonts-color-emoji
     noto-fonts-extra
-    liberation_ttf
-    dejavu_fonts
-    fira-sans
-    roboto
-    rustup
-    gcc
-    roboto-mono
-    roboto-serif
-    ubuntu-sans-mono
-    ubuntu-sans-mono
-    nil
-    nixfmt-classic
-    qbittorrent
-    tldr
-    nix-search-cli
-    nnn
-    nodejs_22
     nushell
+    nwg-look
     ollama
     onefetch
     pamixer
     pass
     pavucontrol
     pfetch
+    poppler-utils
     prettierd
     pyprland
-    wofi-emoji
     qbittorrent
+    qbittorrent
+    rabbitmqadmin-ng
+    repgrep
     ripgrep
     roboto
+    roboto
+    roboto-mono
     roboto-mono
     roboto-serif
+    roboto-serif
     ruby
+    rustdesk
+    rustup
     satty
     sendme
+    shfmt
     solargraph
     speedtest-cli
     speedtest-rs
@@ -160,6 +159,7 @@ in {
     sysz
     taplo
     tldr
+    tldr
     tmex
     tmux
     tofi
@@ -168,15 +168,23 @@ in {
     typos-lsp
     ubuntu-sans-mono
     ubuntu-sans-mono
+    ubuntu-sans-mono
+    ubuntu-sans-mono
     unzip
     uv
+    way-displays
     waybar
     wf-recorder
     wl-clipboard
+    wlr-layout-ui
+    wofi-emoji
     xan
     ydotool
+    zathura
     zoxide
     zsh
+    keyd
+    telegram
   ];
 
   home.file = let

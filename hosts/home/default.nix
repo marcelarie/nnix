@@ -18,6 +18,7 @@ in {
     telegram-desktop
     ungoogled-chromium
     firefox
+    imv
   ];
 
   home.file = let
