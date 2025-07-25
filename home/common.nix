@@ -44,6 +44,7 @@ in {
     # inputs.mq.packages.${pkgs.system}.mq
     _1password-cli
     alejandra
+    asciinema
     atuin
     bacon
     bash
@@ -92,12 +93,15 @@ in {
     java-language-server
     jdd
     jq
+    just
     kanshi
+    keyd
     killall
     liberation_ttf
     liberation_ttf
     mako
     mako
+    markdown-oxide
     marksman
     mdformat
     neofetch
@@ -128,6 +132,7 @@ in {
     pavucontrol
     pfetch
     poppler-utils
+    prefetch-npm-deps
     prettierd
     pyprland
     qbittorrent
@@ -158,11 +163,16 @@ in {
     swayosd
     sysz
     taplo
+    taplo
+    taskwarrior-tui
+    taskwarrior3
+    telegram-desktop
     tldr
     tldr
     tmex
     tmux
     tofi
+    tombi
     tree
     typos
     typos-lsp
@@ -172,6 +182,7 @@ in {
     ubuntu-sans-mono
     unzip
     uv
+    vtsls
     way-displays
     waybar
     wf-recorder
@@ -181,10 +192,9 @@ in {
     xan
     ydotool
     zathura
+    zbar
     zoxide
     zsh
-    keyd
-    telegram
   ];
 
   home.file = let
@@ -227,6 +237,7 @@ in {
     ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".inputrc".source = link "${dots}/.inputrc";
+    ".taskrc".source = link "${dots}/.taskrc";
     ".config/direnv/direnv.toml".source =
       link "${dots}/.config/direnv/direnv.toml";
 
@@ -238,6 +249,11 @@ in {
 
     ".config/erdtree" = {
       source = link "${dots}/.config/erdtree";
+      recursive = true;
+    };
+
+    ".task" = {
+      source = link "${dots}/.tasks";
       recursive = true;
     };
 
@@ -275,6 +291,10 @@ in {
     };
     ".config/nvim" = {
       source = link nvim;
+      recursive = true;
+    };
+    ".config/tombi" = {
+      source = link "${dots}/.config/tombi";
       recursive = true;
     };
     "notes" = {
