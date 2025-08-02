@@ -13,6 +13,7 @@
       url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -26,6 +27,7 @@
     nixGL,
     home-manager,
     tmex,
+    neovim-nightly-overlay,
     ...
   } @ inputs: let
     system = "x86_64-linux";
@@ -35,7 +37,10 @@
     pkgs = import nixpkgs {
       inherit system;
       config.allowUnfree = true;
-      overlays = [(final: prev: {tmex = tmexPkg;})];
+      overlays = [
+        (import ./overlays/neovim-nightly.nix {inherit inputs;})
+        (final: prev: {tmex = tmexPkg;})
+      ];
     };
     pkgsStable = import nixpkgsStable {
       inherit system;

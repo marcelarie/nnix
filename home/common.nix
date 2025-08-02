@@ -57,6 +57,7 @@ in {
     brightnessctl
     carapace
     cbfmt
+    claude-code
     cliphist
     dejavu_fonts
     dejavu_fonts
@@ -81,9 +82,11 @@ in {
     gcc
     gh
     gimp3
-    git
+    git-cliff
+    gitFull
     glow
     gnumake
+    gping
     grimblast
     helix
     htop
@@ -104,13 +107,16 @@ in {
     markdown-oxide
     marksman
     mdformat
+    moar
     neofetch
     neovim
+    nvim-nightly
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
     nil
     nil
+    nix-diff
     nix-search-cli
     nix-search-cli
     nixfmt-classic
@@ -129,6 +135,7 @@ in {
     onefetch
     pamixer
     pass
+    patchutils
     pavucontrol
     pfetch
     poppler-utils
@@ -173,7 +180,9 @@ in {
     tmux
     tofi
     tombi
+    traceroute
     tree
+    trippy
     typos
     typos-lsp
     ubuntu-sans-mono
@@ -183,6 +192,7 @@ in {
     unzip
     uv
     vtsls
+    w3m
     way-displays
     waybar
     wf-recorder
