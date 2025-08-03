@@ -15,6 +15,9 @@ in {
     EDITOR = "nvim";
     VISUAL = "nvim";
     PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+    OPENSSL_DIR = "${pkgs.openssl.out}";
+    OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
+    OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
 
   xdg.mimeApps = {
@@ -100,8 +103,11 @@ in {
     kanshi
     keyd
     killall
+    ladybird
     liberation_ttf
     liberation_ttf
+    libwebp
+    lsr
     mako
     mako
     markdown-oxide
@@ -110,7 +116,6 @@ in {
     moar
     neofetch
     neovim
-    nvim-nightly
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
@@ -130,9 +135,12 @@ in {
     noto-fonts-color-emoji
     noto-fonts-extra
     nushell
+    nvim-nightly
     nwg-look
     ollama
     onefetch
+    openssl
+    optipng
     pamixer
     pass
     patchutils
