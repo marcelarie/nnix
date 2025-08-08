@@ -118,17 +118,6 @@
       pkgs = pkgsAndroid;
       modules = [
         ./hosts/android/default.nix
-        ({
-          config,
-          pkgs,
-          ...
-        }: {
-          home-manager = {
-            config = ./hosts/android/default.nix;
-            backupFileExtension = "hm-bak";
-            useGlobalPkgs = true;
-          };
-        })
       ];
     };
   };
