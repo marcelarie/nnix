@@ -1,12 +1,13 @@
 {
   config,
   pkgs,
-  inputs,
-  pkgsStable,
+  inputs ? null,
+  pkgsStable ? null,
   ...
 }: let
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
+  terminalPackages = import ./terminal-packages.nix { inherit pkgs; };
 in {
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
@@ -20,109 +21,7 @@ in {
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
 
-  home.packages = with pkgs; [
-    # Core CLI tools
-    _1password-cli
-    alejandra
-    asciinema
-    atuin
-    bacon
-    bash
-    bash-language-server
-    bat
-    black
-    bottom
-    carapace
-    cbfmt
-    claude-code
-    difftastic
-    direnv
-    dprint
-    erdtree
-    eslint_d
-    eza
-    fastfetch
-    fd
-    fish
-    fixjson
-    fzf
-    fzy
-    gcc
-    gh
-    git-cliff
-    gitFull
-    glow
-    gnumake
-    gping
-    helix
-    htop
-    jaq
-    java-language-server
-    jdd
-    jq
-    just
-    killall
-    libwebp
-    lsr
-    markdown-oxide
-    marksman
-    mdformat
-    moar
-    neofetch
-    neovim
-    nil
-    nix-diff
-    nix-search-cli
-    nixfmt-classic
-    nnn
-    nodePackages_latest.vscode-json-languageserver
-    nodejs_22
-    nushell
-    nvim-nightly
-    ollama
-    onefetch
-    openssl
-    optipng
-    pass
-    patchutils
-    pfetch
-    poppler-utils
-    prefetch-npm-deps
-    prettierd
-    rabbitmqadmin-ng
-    repgrep
-    ripgrep
-    ruby
-    rustup
-    sendme
-    shfmt
-    solargraph
-    speedtest-cli
-    speedtest-rs
-    sqlite
-    starship
-    stylua
-    sysz
-    taplo
-    taskwarrior-tui
-    taskwarrior3
-    tldr
-    tmex
-    tmux
-    traceroute
-    tree
-    trippy
-    typos
-    typos-lsp
-    unzip
-    uv
-    vtsls
-    w3m
-    xan
-    zbar
-    zoxide
-    zsh
-  ];
+  home.packages = terminalPackages;
 
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
@@ -131,7 +30,6 @@ in {
     nvim = "${clonesOwn}/nvim";
     notes = "${clonesOwn}/notes";
   in {
-    # plain files
     ".vimrc".source = link "${dots}/.vimrc";
     ".gitconfig".source = link "${dots}/.gitconfig";
     ".gitignore".source = link "${dots}/.gitignore";
@@ -144,10 +42,8 @@ in {
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".inputrc".source = link "${dots}/.inputrc";
     ".taskrc".source = link "${dots}/.taskrc";
-    ".config/direnv/direnv.toml".source =
-      link "${dots}/.config/direnv/direnv.toml";
+    ".config/direnv/direnv.toml".source = link "${dots}/.config/direnv/direnv.toml";
 
-    # directories (need recursive = true)
     "scripts" = {
       source = link "${dots}/scripts";
       recursive = true;

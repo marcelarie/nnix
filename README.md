@@ -4,8 +4,9 @@ This is my Nix setup managing multiple configurations with a modular structure:
 - **android**: Terminal-only setup for nix-on-droid
 
 The configurations use a layered approach:
-- `terminal.nix`: Core CLI tools and terminal configs (shared by all)
-- `gui.nix`: GUI applications and desktop configs
+- `terminal-packages.nix`: Shared CLI package list function
+- `terminal.nix`: Home-manager module with CLI tools + terminal file configs  
+- `gui.nix`: Imports terminal.nix + adds GUI applications and desktop configs
 
 - NixOS documentation [here](https://nixos.org/manual/nixos/unstable/)
 - Flakes info [here](https://wiki.nixos.org/wiki/Flakes)
@@ -33,15 +34,16 @@ nix-on-droid switch --flake ~/.config/nix#default
 ├── flake.lock
 ├── flake.nix
 ├── home
-│   ├── gui.nix          # GUI only
-│   └── terminal.nix     # terminal only
+│   ├── gui.nix              # GUI apps + imports terminal.nix
+│   ├── terminal.nix         # Home-manager CLI module + configs
+│   └── terminal-packages.nix # Shared CLI package list
 ├── hosts
 │   ├── android
-│   │   └── default.nix  # imports terminal.nix
+│   │   └── default.nix      # imports terminal-packages.nix directly
 │   ├── home
-│   │   └── default.nix  # imports gui.nix and terminal.nix
+│   │   └── default.nix      # imports gui.nix
 │   └── work
-│       └── default.nix  # imports gui.nix and terminal.nix
+│       └── default.nix      # imports terminal.nix
 ├── nixos
 │   ├── configuration.nix
 │   └── hardware-configuration.nix

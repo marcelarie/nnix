@@ -1,14 +1,10 @@
 {
-  config,
   pkgs,
-  pkgsStable,
   ...
 }: let
-  terminalPackages = import ../../home/terminal-packages.nix { inherit pkgs; };
+  terminalPackages = import ./terminal-packages.nix { inherit pkgs; };
 in {
-  environment.packages = terminalPackages ++ (with pkgs; [
-    # Add any Android-specific tools here
-  ]);
+  environment.packages = terminalPackages;
   
   environment.sessionVariables = {
     EDITOR = "nvim";
@@ -20,9 +16,4 @@ in {
   };
   
   user.shell = "${pkgs.fish}/bin/fish";
-
-  programs = {
-    fish.enable = true;
-    starship.enable = true;
-  };
 }
