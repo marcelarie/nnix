@@ -1,32 +1,47 @@
-This is my Nix setup, and it manages two configurations: nixos and work.
-Both share a common home/common.nix to keep things consistent across environments.
+This is my Nix setup managing multiple configurations with a modular structure:
+- **nixos**: Full desktop setup with GUI applications
+- **work**: Also full desktop setup but for a secondary work host
+- **android**: Terminal-only setup for nix-on-droid
+
+The configurations use a layered approach:
+- `terminal.nix`: Core CLI tools and terminal configs (shared by all)
+- `gui.nix`: GUI applications and desktop configs
 
 - NixOS documentation [here](https://nixos.org/manual/nixos/unstable/)
 - Flakes info [here](https://wiki.nixos.org/wiki/Flakes)
 
-Build NixOS config (common + home) with:
+## Usage
+
+Build NixOS config (GUI + terminal):
 ```bash
 sudo nixos-rebuild switch --flake ~/.config/nix#nixos
 ```
-Build secondary config (common + work) with:
+
+Build work config (GUI + terminal but with work home):
 ```bash
 home-manager switch --flake ~/.config/nix#work
 ```
-The work configuration is portable and can be applied on any system with Nix and
-Home Manager installed.
 
-Structure:
+Build Android config (terminal only):
+```bash
+nix-on-droid switch --flake ~/.config/nix#default
 ```
+
+## Structure
+```bash
 .
 ├── flake.lock
 ├── flake.nix
 ├── home
-│   └── common.nix
+│   ├── gui.nix          # GUI only
+│   └── terminal.nix     # terminal only
 ├── hosts
+│   ├── android
+│   │   └── default.nix  # imports terminal.nix
 │   ├── home
-│   │   └── default.nix
+│   │   └── default.nix  # imports gui.nix and terminal.nix
 │   └── work
-│       └── default.nix
+│       └── default.nix  # imports gui.nix and terminal.nix
 ├── nixos
 │   ├── configuration.nix
 │   └── hardware-configuration.nix

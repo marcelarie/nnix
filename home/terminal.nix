@@ -20,31 +20,8 @@ in {
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
 
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      "text/plain" = ["nvim-terminal.desktop"];
-      "text/markdown" = ["nvim-terminal.desktop"];
-      "text/html" = ["nvim-terminal.desktop"];
-      "application/json" = ["nvim-terminal.desktop"];
-      "image/png" = ["swayimg.desktop" "imv.desktop"];
-    };
-    associations = {
-      added = {
-        "text/plain" = ["nvim-terminal.desktop"];
-        "text/markdown" = ["nvim-terminal.desktop"];
-        "text/json" = ["nvim-terminal.desktop"];
-        "application/json" = ["nvim-terminal.desktop"];
-        "image/png" = ["swayimg.desktop" "imv.desktop"];
-      };
-      removed = {
-        "image/png" = ["chromium-browser.desktop"];
-      };
-    };
-  };
-
   home.packages = with pkgs; [
-    # inputs.mq.packages.${pkgs.system}.mq
+    # Core CLI tools
     _1password-cli
     alejandra
     asciinema
@@ -54,118 +31,69 @@ in {
     bash-language-server
     bat
     black
-    blesh
-    blueman
     bottom
-    brightnessctl
     carapace
     cbfmt
     claude-code
-    cliphist
-    dejavu_fonts
-    dejavu_fonts
     difftastic
     direnv
-    dmenu-wayland
     dprint
     erdtree
     eslint_d
-    eww
     eza
     fastfetch
     fd
-    fira-sans
-    fira-sans
     fish
     fixjson
-    font-awesome
-    foot
     fzf
     fzy
     gcc
     gh
-    gimp3
     git-cliff
     gitFull
     glow
     gnumake
     gping
-    grimblast
     helix
     htop
-    hyprpaper
-    hyprshot
     jaq
     java-language-server
     jdd
     jq
     just
-    kanshi
-    keyd
     killall
-    # ladybird
-    batsignal
-    liberation_ttf
-    liberation_ttf
     libwebp
     lsr
-    mako
-    mako
     markdown-oxide
     marksman
     mdformat
     moar
     neofetch
     neovim
-    nerd-fonts.blex-mono
-    nerd-fonts.droid-sans-mono
-    nerd-fonts.iosevka-term
-    nil
     nil
     nix-diff
     nix-search-cli
-    nix-search-cli
     nixfmt-classic
-    nixfmt-classic
-    nnn
     nnn
     nodePackages_latest.vscode-json-languageserver
     nodejs_22
-    nodejs_22
-    noto-fonts
-    noto-fonts-color-emoji
-    noto-fonts-extra
     nushell
     nvim-nightly
-    nwg-look
     ollama
     onefetch
     openssl
     optipng
-    pamixer
     pass
     patchutils
-    pavucontrol
     pfetch
     poppler-utils
     prefetch-npm-deps
     prettierd
-    pyprland
-    qbittorrent
-    qbittorrent
     rabbitmqadmin-ng
     repgrep
     ripgrep
-    roboto
-    roboto
-    roboto-mono
-    roboto-mono
-    roboto-serif
-    roboto-serif
     ruby
-    rustdesk
     rustup
-    satty
     sendme
     shfmt
     solargraph
@@ -174,42 +102,23 @@ in {
     sqlite
     starship
     stylua
-    swayimg
-    swayosd
     sysz
-    taplo
     taplo
     taskwarrior-tui
     taskwarrior3
-    telegram-desktop
-    tldr
     tldr
     tmex
     tmux
-    tofi
-    tombi
     traceroute
     tree
     trippy
     typos
     typos-lsp
-    ubuntu-sans-mono
-    ubuntu-sans-mono
-    ubuntu-sans-mono
-    ubuntu-sans-mono
     unzip
     uv
     vtsls
     w3m
-    way-displays
-    waybar
-    wf-recorder
-    wl-clipboard
-    wlr-layout-ui
-    wofi-emoji
     xan
-    ydotool
-    zathura
     zbar
     zoxide
     zsh
@@ -228,27 +137,6 @@ in {
     ".gitignore".source = link "${dots}/.gitignore";
     ".bashrc".source = link "${dots}/.bashrc";
     ".bash_aliases".source = link "${dots}/.bash_aliases";
-
-    # single files
-    ".config/hypr/hyprland.conf".source =
-      link "${dots}/.config/hypr/hyprland.conf";
-    ".config/hypr/hypridle.conf".source =
-      link "${dots}/.config/hypr/hypridle.conf";
-    ".config/hypr/hyprlock.conf".source =
-      link "${dots}/.config/hypr/hyprlock.conf";
-    ".config/hypr/hyprpaper.conf".source =
-      link "${dots}/.config/hypr/hyprpaper.conf";
-    ".config/hypr/keybinds.conf".source =
-      link "${dots}/.config/hypr/keybinds.conf";
-    ".config/hypr/monitors.conf".source =
-      link "${dots}/.config/hypr/monitors.conf";
-    ".config/hypr/pyprland.toml".source =
-      link "${dots}/.config/hypr/pyprland.toml";
-    ".config/hypr/workspaces.conf".source =
-      link "${dots}/.config/hypr/workspaces.conf";
-    ".config/foot/foot.ini".source = link "${dots}/.config/foot/foot.ini";
-    ".config/tofi/config".source = link "${dots}/.config/tofi/config";
-    ".config/mako/config".source = link "${dots}/.config/mako/config";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
     ".config/shellcheckrc".source = link "${dots}/.config/shellcheckrc";
     ".cargo/env".source = link "${dots}/.cargo/env";
@@ -290,31 +178,26 @@ in {
       recursive = true;
     };
 
-    ".config/waybar" = {
-      source = link "${dots}/.config/waybar";
-      recursive = true;
-    };
-
     ".config/tmux" = {
       source = link "${dots}/.config/tmux";
       recursive = true;
     };
+
     ".config/cbfmt" = {
       source = link "${dots}/.config/cbfmt";
       recursive = true;
     };
-    ".config/eww" = {
-      source = link "${dots}/.config/eww";
-      recursive = true;
-    };
+
     ".config/nvim" = {
       source = link nvim;
       recursive = true;
     };
+
     ".config/tombi" = {
       source = link "${dots}/.config/tombi";
       recursive = true;
     };
+
     "notes" = {
       source = link notes;
       recursive = true;

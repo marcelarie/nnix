@@ -6,8 +6,7 @@
 }: let
   homeDir = config.home.homeDirectory;
 in {
-  home.packages = with pkgs; [
-    # Terminal utilities
+  environment.packages = with pkgs; [
     tmux
     neovim
     git
@@ -19,30 +18,25 @@ in {
     ripgrep
     bat
     fzf
-    
-    # Development tools
+
     nodejs
     python3
     go
     rustc
     cargo
-    
-    # Text processing
+
     jq
     yq-go
-    
-    # Network tools
+
     openssh
     rsync
   ];
 
-  # Import common configuration
-  imports = [../../home/common.nix];
+  imports = [../../home/terminal.nix];
 
-  # Android-specific configurations can be added here
   programs = {
-    # Enable programs that work well on mobile
     fish.enable = true;
     starship.enable = true;
   };
 }
+

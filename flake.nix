@@ -84,7 +84,8 @@
         inherit pkgs;
         extraSpecialArgs = {inherit inputs pkgsStable nixGL;};
         modules = [
-          ./home/common.nix
+          ./home/gui.nix
+          ./home/terminal.nix
           ./hosts/work/default.nix
           ({
             config,
