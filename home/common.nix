@@ -103,7 +103,8 @@ in {
     kanshi
     keyd
     killall
-    ladybird
+    # ladybird
+    batsignal
     liberation_ttf
     liberation_ttf
     libwebp
@@ -173,7 +174,6 @@ in {
     sqlite
     starship
     stylua
-    sway
     swayimg
     swayosd
     sysz

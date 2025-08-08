@@ -10,6 +10,7 @@ in {
     _1password-cli
     _1password-gui
     pnpm
+    # sway # for now we will install it via apt
     # python313Packages.python-lsp-server
     (config.lib.nixGL.wrap alacritty)
     (config.lib.nixGL.wrap neovide)

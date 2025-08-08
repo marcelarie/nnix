@@ -18,6 +18,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-on-droid = {
+      url = "github:nix-community/nix-on-droid/release-23.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -26,6 +30,7 @@
     nixpkgsStable,
     nixGL,
     home-manager,
+    nix-on-droid,
     tmex,
     neovim-nightly-overlay,
     ...
@@ -98,6 +103,23 @@
           })
         ];
       };
+    };
+
+    nixOnDroidConfigurations.default = nix-on-droid.lib.nixOnDroidConfiguration {
+      modules = [
+        ./hosts/android/default.nix
+        ({
+          config,
+          pkgs,
+          ...
+        }: {
+          home-manager = {
+            config = ./hosts/android/default.nix;
+            backupFileExtension = "hm-bak";
+            useGlobalPkgs = true;
+          };
+        })
+      ];
     };
   };
 }
