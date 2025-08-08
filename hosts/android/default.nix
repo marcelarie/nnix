@@ -34,7 +34,7 @@ in {
       pkgs,
       ...
     }: {
-      home.stateVersion = stateVersion;
+      home.stateVersion = "25.11";
 
       home.packages = with pkgs; [
         blesh
