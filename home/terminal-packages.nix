@@ -33,7 +33,6 @@
   htop
   jaq
   java-language-server
-  jdd
   jq
   just
   killall

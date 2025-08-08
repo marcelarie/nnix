@@ -29,6 +29,7 @@ in {
       alejandra
       asciinema
       nvim-nightly
+      jdd
     ]);
 
   home.file = let
