@@ -107,6 +107,7 @@
     };
 
     nixOnDroidConfigurations.default = nix-on-droid.lib.nixOnDroidConfiguration {
+      pkgs = pkgs; # Use the same pkgs with overlays
       modules = [
         ./hosts/android/default.nix
         ({
