@@ -36,6 +36,7 @@
     ...
   } @ inputs: let
     system = "x86_64-linux";
+    androidSystem = "aarch64-linux";
     username = "marcel";
     hostname = "nixos";
     tmexPkg = tmex.packages.${system}.tmex;
@@ -45,6 +46,13 @@
       overlays = [
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
+      ];
+    };
+    pkgsAndroid = import nixpkgs {
+      system = androidSystem;
+      config.allowUnfree = true;
+      overlays = [
+        (import ./overlays/neovim-nightly.nix {inherit inputs;})
       ];
     };
     pkgsStable = import nixpkgsStable {
@@ -107,7 +115,7 @@
     };
 
     nixOnDroidConfigurations.default = nix-on-droid.lib.nixOnDroidConfiguration {
-      pkgs = pkgs; # Use the same pkgs with overlays
+      pkgs = pkgsAndroid;
       modules = [
         ./hosts/android/default.nix
         ({
