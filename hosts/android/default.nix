@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  pkgsStable,
   ...
 }: let
   terminalPackages = import ../../home/terminal-packages.nix {inherit pkgs;};
@@ -31,16 +30,16 @@ in {
     config = {
       config,
       lib,
-      pkgsStable,
+      pkgs,
       ...
     }: {
       home.stateVersion = stateVersion;
 
-      home.packages = with pkgsStable; [
+      home.packages = with pkgs; [
         blesh
       ];
     };
   };
 
-  user.shell = "${pkgsStable.fish}/bin/fish";
+  user.shell = "${pkgs.fish}/bin/fish";
 }

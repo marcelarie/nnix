@@ -48,7 +48,7 @@
         (final: prev: {tmex = tmexPkg;})
       ];
     };
-    pkgsAndroid = import nixpkgs {
+    pkgsAndroid = import nixpkgsStable {
       system = androidSystem;
       config.allowUnfree = true;
       overlays = [
