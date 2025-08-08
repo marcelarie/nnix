@@ -31,16 +31,16 @@ in {
     config = {
       config,
       lib,
-      pkgs,
+      pkgsStable,
       ...
     }: {
-      home.stateVersion = "25.11";
+      home.stateVersion = stateVersion;
 
-      home.packages = with pkgs; [
+      home.packages = with pkgsStable; [
         blesh
       ];
     };
   };
 
-  user.shell = "${pkgs.fish}/bin/fish";
+  user.shell = "${pkgsStable.fish}/bin/fish";
 }
