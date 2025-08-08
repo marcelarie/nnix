@@ -4,12 +4,16 @@
   pkgsStable,
   ...
 }: let
-  terminalPackages = import ../../home/terminal-packages.nix { inherit pkgs; };
+  terminalPackages = import ../../home/terminal-packages.nix {inherit pkgs;};
 in {
-  environment.packages = terminalPackages ++ (with pkgs; [
-    # Add any Android-specific tools here
-  ]);
+  system.stateVersion = "25.05";
   
+  environment.packages =
+    terminalPackages
+    ++ (with pkgs; [
+      # Add any Android-specific tools here
+    ]);
+
   environment.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
@@ -18,6 +22,6 @@ in {
     OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
-  
+
   user.shell = "${pkgs.fish}/bin/fish";
 }
