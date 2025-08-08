@@ -51,9 +51,6 @@
     pkgsAndroid = import nixpkgsStable {
       system = androidSystem;
       config.allowUnfree = true;
-      overlays = [
-        (import ./overlays/neovim-nightly.nix {inherit inputs;})
-      ];
     };
     pkgsStable = import nixpkgsStable {
       inherit system;

@@ -53,7 +53,6 @@
   nodePackages_latest.vscode-json-languageserver
   nodejs_22
   nushell
-  nvim-nightly
   ollama
   onefetch
   openssl

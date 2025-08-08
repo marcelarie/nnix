@@ -28,6 +28,7 @@ in {
       _1password-cli
       alejandra
       asciinema
+      nvim-nightly
     ]);
 
   home.file = let
