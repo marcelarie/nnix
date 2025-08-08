@@ -1,8 +1,5 @@
 # Shared cli only package list for both home-manager and nix-on-droid 
 { pkgs }: with pkgs; [
-  _1password-cli
-  alejandra
-  asciinema
   atuin
   bacon
   bash

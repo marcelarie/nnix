@@ -25,6 +25,9 @@ in {
     terminalPackages
     ++ (with pkgs; [
       tmex
+      _1password-cli
+      alejandra
+      asciinema
     ]);
 
   home.file = let
