@@ -7,7 +7,7 @@
 }: let
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
-  terminalPackages = import ./terminal-packages.nix { inherit pkgs; };
+  terminalPackages = import ./terminal-packages.nix {inherit pkgs;};
 in {
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
@@ -21,7 +21,11 @@ in {
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
 
-  home.packages = terminalPackages;
+  home.packages =
+    terminalPackages
+    ++ (with pkgs; [
+      tmex
+    ]);
 
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;

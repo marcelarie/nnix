@@ -85,7 +85,6 @@
   taskwarrior-tui
   taskwarrior3
   tldr
-  tmex
   tmux
   traceroute
   tree
