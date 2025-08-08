@@ -20,9 +20,4 @@ in {
   };
   
   user.shell = "${pkgs.fish}/bin/fish";
-
-  programs = {
-    fish.enable = true;
-    starship.enable = true;
-  };
 }
