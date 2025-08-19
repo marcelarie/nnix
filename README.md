@@ -50,3 +50,6 @@ nix-on-droid switch --flake ~/.config/nix#default
 └── README.md
 ```
 
+@## Todo
+
+- [] Finish android host 

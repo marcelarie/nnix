@@ -7,6 +7,7 @@
   bat
   black
   bottom
+  librespeed-cli
   carapace
   cbfmt
   claude-code
@@ -34,6 +35,8 @@
   jaq
   java-language-server
   jq
+  luau
+  fx
   just
   killall
   libwebp

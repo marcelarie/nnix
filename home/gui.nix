@@ -28,6 +28,8 @@ in {
       "text/html" = ["nvim-terminal.desktop"];
       "application/json" = ["nvim-terminal.desktop"];
       "image/png" = ["swayimg.desktop" "imv.desktop"];
+      "image/gif" = ["imv.desktop"];
+      "application/pdf" = ["zathura.desktop" "org.pwmt.zathura-pdf-mupdf.desktop"];
     };
     associations = {
       added = {
@@ -36,15 +38,18 @@ in {
         "text/json" = ["nvim-terminal.desktop"];
         "application/json" = ["nvim-terminal.desktop"];
         "image/png" = ["swayimg.desktop" "imv.desktop"];
+        "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
       };
       removed = {
         "image/png" = ["chromium-browser.desktop"];
+        "application/pdf" = ["gimp.desktop"];
       };
     };
   };
 
   home.packages = with pkgs; [
     blesh
+    abiword
     blueman
     brightnessctl
     cliphist
