@@ -32,19 +32,22 @@ in {
     carapace
     cliphist
     dejavu_fonts
+    dejavu_fonts
     difftastic
     direnv
+    eslint_d
     eww
     eza
-    eslint_d
     fastfetch
     fd
+    fira-sans
     fira-sans
     fish
     font-awesome
     foot
     fzf
     fzy
+    gcc
     gh
     gimp3
     git
@@ -60,6 +63,7 @@ in {
     kanshi
     killall
     liberation_ttf
+    liberation_ttf
     mako
     mako
     neofetch
@@ -69,30 +73,18 @@ in {
     nerd-fonts.droid-sans-mono
     nerd-fonts.iosevka-term
     nil
+    nil
+    nix-search-cli
     nix-search-cli
     nixfmt-classic
+    nixfmt-classic
     nnn
+    nnn
+    nodejs_22
     nodejs_22
     noto-fonts
     noto-fonts-color-emoji
     noto-fonts-extra
-    liberation_ttf
-    dejavu_fonts
-    fira-sans
-    roboto
-    rustup
-    gcc
-    roboto-mono
-    roboto-serif
-    ubuntu-sans-mono
-    ubuntu-sans-mono
-    nil
-    nixfmt-classic
-    qbittorrent
-    tldr
-    nix-search-cli
-    nnn
-    nodejs_22
     nushell
     ollama
     onefetch
@@ -103,11 +95,16 @@ in {
     prettierd
     pyprland
     qbittorrent
+    qbittorrent
     ripgrep
     roboto
+    roboto
+    roboto-mono
     roboto-mono
     roboto-serif
+    roboto-serif
     ruby
+    rustup
     satty
     sendme
     solargraph
@@ -122,12 +119,15 @@ in {
     sysz
     taplo
     tldr
+    tldr
     tmex
     tmux
     tofi
     tree
     typos
     typos-lsp
+    ubuntu-sans-mono
+    ubuntu-sans-mono
     ubuntu-sans-mono
     ubuntu-sans-mono
     unzip
@@ -137,6 +137,7 @@ in {
     wl-clipboard
     xan
     ydotool
+    yt-dlp
     zoxide
     zsh
   ];
