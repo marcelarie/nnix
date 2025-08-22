@@ -5,13 +5,22 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
     musnix = {url = "github:musnix/musnix";};
+    nixGL = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     mq.url = "github:marcelarie/mq";
     tmex = {
       url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     home-manager = {
       url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-on-droid = {
+      url = "github:nix-community/nix-on-droid/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -20,18 +29,29 @@
     self,
     nixpkgs,
     nixpkgsStable,
+    nixGL,
     home-manager,
+    nix-on-droid,
     tmex,
+    neovim-nightly-overlay,
     ...
   } @ inputs: let
     system = "x86_64-linux";
+    androidSystem = "aarch64-linux";
     username = "marcel";
     hostname = "nixos";
     tmexPkg = tmex.packages.${system}.tmex;
     pkgs = import nixpkgs {
       inherit system;
       config.allowUnfree = true;
-      overlays = [(final: prev: {tmex = tmexPkg;})];
+      overlays = [
+        (import ./overlays/neovim-nightly.nix {inherit inputs;})
+        (final: prev: {tmex = tmexPkg;})
+      ];
+    };
+    pkgsAndroid = import nixpkgsStable {
+      system = androidSystem;
+      config.allowUnfree = true;
     };
     pkgsStable = import nixpkgsStable {
       inherit system;
@@ -52,7 +72,6 @@
       modules = [
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
-        inputs.musnix.nixosModules.musnix
         home-manager.nixosModules.home-manager
         {
           home-manager = {
@@ -69,17 +88,35 @@
     homeConfigurations = {
       work = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
+        extraSpecialArgs = {inherit inputs pkgsStable nixGL;};
         modules = [
-          ./home/common.nix
+          ./home/gui.nix
+          ./home/terminal.nix
           ./hosts/work/default.nix
-          {
+          ({
+            config,
+            pkgs,
+            nixGL,
+            ...
+          }: {
             home.username = "mmanzanares";
             home.homeDirectory = "/home/mmanzanares";
             targets.genericLinux.enable = true;
-          }
+
+            nixGL = {
+              packages = nixGL.packages;
+              defaultWrapper = "mesa";
+            };
+          })
         ];
-        extraSpecialArgs = {inherit inputs pkgsStable;};
       };
+    };
+
+    nixOnDroidConfigurations.default = nix-on-droid.lib.nixOnDroidConfiguration {
+      pkgs = pkgsAndroid;
+      modules = [
+        ./hosts/android/default.nix
+      ];
     };
   };
 }

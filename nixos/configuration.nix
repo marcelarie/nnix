@@ -13,6 +13,10 @@
   # boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.loader.efi.canTouchEfiVariables = true;
   nix.settings = {
+    max-jobs = "auto";
+    # cores = 0; # Use all cores
+    keep-outputs = true;
+    keep-derivations = true;
     auto-optimise-store = true;
     experimental-features = [
       "nix-command"
@@ -48,8 +52,14 @@
   #   # host             = "https://marcelarie.cachix.org";  # rarely needed
   #   # verbose          = true;
   # };
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
 
   networking.hostName = "nixos";
+  services.fwupd.enable = true;
 
   hardware = {
     bluetooth = {
@@ -176,7 +186,6 @@
     };
   };
 
-  # Install firefox.
   programs.firefox = {
     enable = true;
 

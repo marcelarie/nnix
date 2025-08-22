@@ -8,7 +8,10 @@
 in {
   home.username = "marcel";
   home.homeDirectory = homeDir;
-  imports = [../../home/common.nix];
+  imports = [
+    ../../home/terminal.nix
+    ../../home/gui.nix
+  ];
 
   home.packages = with pkgs; [
     hyprlock
@@ -18,6 +21,7 @@ in {
     telegram-desktop
     ungoogled-chromium
     firefox
+    imv
   ];
 
   home.file = let

@@ -9,9 +9,12 @@ in {
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui
-    pyenv
     pnpm
-    python313Packages.python-lsp-server
+    # sway # for now we will install it via apt
+    # python313Packages.python-lsp-server
+    (config.lib.nixGL.wrap alacritty)
+    (config.lib.nixGL.wrap neovide)
+    (config.lib.nixGL.wrap imv)
   ];
 
   home.file = let
