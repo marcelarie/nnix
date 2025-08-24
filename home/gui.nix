@@ -97,6 +97,8 @@ in {
     wofi-emoji
     ydotool
     zathura
+    penguin-subtitle-player
+    unzip
   ];
 
   home.file = let

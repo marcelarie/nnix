@@ -72,6 +72,7 @@
       modules = [
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
+        inputs.musnix.nixosModules.musnix
         home-manager.nixosModules.home-manager
         {
           home-manager = {
