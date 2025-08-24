@@ -97,6 +97,8 @@ in {
     wofi-emoji
     ydotool
     zathura
+    flameshot
+    swappy
   ];
 
   home.file = let
