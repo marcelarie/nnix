@@ -2,25 +2,26 @@
   description = "NixOS and Home Manager configuration";
 
   inputs = {
+    mq.url = "github:marcelarie/mq";
+    musnix.url = "github:musnix/musnix";
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
-    musnix = {url = "github:musnix/musnix";};
+    nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
+    nix-on-droid = {
+      url = "github:nix-community/nix-on-droid/release-23.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixGL = {
       url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    mq.url = "github:marcelarie/mq";
-    tmex = {
-      url = "github:marcelarie/tmex";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-on-droid = {
-      url = "github:nix-community/nix-on-droid/release-23.11";
+    tmex = {
+      url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -34,6 +35,7 @@
     nix-on-droid,
     tmex,
     neovim-nightly-overlay,
+    nu-alias-converter,
     ...
   } @ inputs: let
     system = "x86_64-linux";
@@ -47,6 +49,7 @@
       overlays = [
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
+        (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
       ];
     };
     pkgsAndroid = import nixpkgsStable {
@@ -59,7 +62,7 @@
     };
   in {
     devShells.${system}.default = pkgs.mkShell {
-      packages = with pkgs; [git nix-prefetch cachix];
+      packages = with pkgs; [git nix-prefetch];
       shellHook = ''
         echo "🐚  Dev shell for ${username} on ${system} ready!"
         export EDITOR=nvim

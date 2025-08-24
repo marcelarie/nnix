@@ -2,6 +2,7 @@
 { pkgs }: with pkgs; [
   atuin
   bacon
+  nuit
   bash
   bash-language-server
   bat

@@ -24,19 +24,19 @@
     ];
     warn-dirty = false;
     substituters = [
-      "https://hyprland.cachix.org"
-      "https://marcelarie.cachix.org"
+      # "https://hyprland.cachix.org"
+      # "https://marcelarie.cachix.org"
       "https://cache.nixos.org"
     ];
-    trusted-public-keys = [
-      "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
-    ];
+    # trusted-public-keys = [
+    #   "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
+    # ];
     trusted-users = ["root" "marcel"];
   };
 
   # TODO: Learn how to setup cachix auto push
   # Option 1:
-  services.cachix-agent.enable = true;
+  # services.cachix-agent.enable = true;
   # services.cachix-agent = {
   #   enable = true;
   #   cache = "marcelarie";
@@ -216,7 +216,6 @@
     glib
     gcc
     gnupg
-    cachix
     openssl
     mixxx
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
