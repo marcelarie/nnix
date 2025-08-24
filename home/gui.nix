@@ -99,6 +99,8 @@ in {
     zathura
     penguin-subtitle-player
     unzip
+    flameshot
+    swappy
   ];
 
   home.file = let
