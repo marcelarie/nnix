@@ -24,19 +24,19 @@
     ];
     warn-dirty = false;
     substituters = [
-      "https://hyprland.cachix.org"
-      "https://marcelarie.cachix.org"
+      # "https://hyprland.cachix.org"
+      # "https://marcelarie.cachix.org"
       "https://cache.nixos.org"
     ];
-    trusted-public-keys = [
-      "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
-    ];
+    # trusted-public-keys = [
+    #   "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
+    # ];
     trusted-users = ["root" "marcel"];
   };
 
   # TODO: Learn how to setup cachix auto push
   # Option 1:
-  services.cachix-agent.enable = true;
+  # services.cachix-agent.enable = true;
   # services.cachix-agent = {
   #   enable = true;
   #   cache = "marcelarie";
@@ -121,6 +121,17 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+    jack.enable = true;
+    # media-session.enable = true;
+    wireplumber.enable = true;
+    extraConfig.jack = {
+      "00-buffer-size" = {
+        # filename: /etc/pipewire/jack.conf.d/00-buffer-size.conf
+        "jack.properties" = {
+          "default.buffer-size" = 128;
+        };
+      };
+    };
     # If you want to use JACK applications, uncomment this
     #jack.enable = true;
 
@@ -128,6 +139,8 @@
     # no need to redefine it in your config for now)
     #media-session.enable = true;
   };
+  # services.udev.packages = [pkgs.mixxx];
+  musnix.enable = true;
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
@@ -152,7 +165,7 @@
   users.users.marcel = {
     isNormalUser = true;
     description = "marcel";
-    extraGroups = ["networkmanager" "wheel"];
+    extraGroups = ["networkmanager" "wheel" "audio"];
     packages = with pkgs; [
       kitty
       # kdePackages.kate
@@ -203,8 +216,8 @@
     glib
     gcc
     gnupg
-    cachix
     openssl
+    mixxx
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
       [General]
       background=/etc/sddm/black.png
