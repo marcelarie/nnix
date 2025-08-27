@@ -99,6 +99,7 @@ in {
     zathura
     flameshot
     swappy
+    ironbar
   ];
 
   home.file = let
@@ -126,6 +127,7 @@ in {
     ".config/foot/foot.ini".source = link "${dots}/.config/foot/foot.ini";
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/mako/config".source = link "${dots}/.config/mako/config";
+    ".config/ironbar/config.toml".source = link "${dots}/.config/ironbar/config.toml";
 
     # GUI-specific directories
     ".config/waybar" = {

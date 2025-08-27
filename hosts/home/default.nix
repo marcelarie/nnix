@@ -24,6 +24,11 @@ in {
     imv
   ];
 
+  programs.mpv = {
+    enable = true;
+    scripts = [pkgs.mpvScripts.mpris];
+  };
+
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
     clonesOwn = "${homeDir}/clones/own";

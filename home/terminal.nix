@@ -52,6 +52,7 @@ in {
     ".inputrc".source = link "${dots}/.inputrc";
     ".taskrc".source = link "${dots}/.taskrc";
     ".config/direnv/direnv.toml".source = link "${dots}/.config/direnv/direnv.toml";
+    ".claude/CLAUDE.md".source = link "${dots}/.claude/CLAUDE.md";
 
     "scripts" = {
       source = link "${dots}/scripts";

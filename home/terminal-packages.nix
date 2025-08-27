@@ -1,5 +1,6 @@
-# Shared cli only package list for both home-manager and nix-on-droid 
-{ pkgs }: with pkgs; [
+# Shared cli only package list for both home-manager and nix-on-droid
+{pkgs}:
+with pkgs; [
   atuin
   bacon
   bash
@@ -19,7 +20,11 @@
   eza
   fastfetch
   fd
+  frogmouth
   fish
+  chafa
+  yt-dlp
+  playerctl
   fixjson
   fzf
   fzy
