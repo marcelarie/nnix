@@ -65,11 +65,24 @@
     bluetooth = {
       enable = true;
       powerOnBoot = true;
-      settings.General.Experimental = true;
+      settings = {
+        General = {
+          Experimental = true;
+          Class = "0x000100";
+          FastConnectable = true;
+        };
+        Policy = {
+          AutoEnable = true;
+        };
+      };
     };
   };
   services.mullvad-vpn.enable = true;
   services.flatpak.enable = true;
+  services.udev.extraRules = ''
+    # Auto-switch EDIFIER speakers to A2DP profile
+    SUBSYSTEM=="bluetooth", ACTION=="add", ATTRS{name}=="EDIFIER R1280DB", RUN+="${pkgs.pulseaudio}/bin/pactl set-card-profile bluez_card.FC_E8_06_5A_8D_B2 a2dp-sink-sbc_xq"
+  '';
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -129,6 +142,36 @@
         # filename: /etc/pipewire/jack.conf.d/00-buffer-size.conf
         "jack.properties" = {
           "default.buffer-size" = 128;
+        };
+      };
+    };
+    extraConfig.pipewire-pulse = {
+      "92-low-latency" = {
+        "pulse.properties" = {
+          "pulse.min.req" = "32/48000";
+          "pulse.default.req" = "32/48000";
+          "pulse.max.req" = "32/48000";
+          "pulse.min.quantum" = "32/48000";
+          "pulse.max.quantum" = "32/48000";
+        };
+        "stream.properties" = {
+          "node.latency" = "32/48000";
+          "resample.quality" = 1;
+        };
+      };
+    };
+    extraConfig.pipewire = {
+      "99-bluetooth-sbc" = {
+        "bluez5.properties" = {
+          "bluez5.sbc.bitpool" = 53;
+          "bluez5.sbc.min-bitpool" = 32;
+          "bluez5.sbc.max-bitpool" = 53;
+          "bluez5.sbc.frequency" = 48000;
+          "bluez5.sbc.channels" = 2;
+          "bluez5.sbc.method" = "loudness";
+          "bluez5.sbc.allocation" = "loudness";
+          "bluez5.auto-connect" = "[ a2dp_sink ]";
+          "bluez5.headset-roles" = "[ ]";
         };
       };
     };
@@ -203,6 +246,7 @@
     };
   };
 
+
   environment.systemPackages = with pkgs; [
     vim
     neovim
@@ -218,19 +262,27 @@
     gnupg
     openssl
     mixxx
+    sbc
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
       [General]
       background=/etc/sddm/black.png
     '')
   ];
 
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
+
+  sops = {
+    defaultSopsFile = ./secrets/secrets.yaml;
+    defaultSopsFormat = "yaml";
+    age.keyFile = "/home/marcel/.config/sops/age/keys.txt";
+  };
 
   # List services that you want to enable:
 

@@ -5,7 +5,9 @@ with pkgs; [
   bacon
   nuit
   bash
+  pulseaudioFull
   bash-language-server
+  dump
   bat
   black
   bottom

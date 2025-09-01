@@ -30,6 +30,8 @@ in {
       asciinema
       nvim-nightly
       jdd
+      sops
+      age
     ]);
 
   home.file = let
