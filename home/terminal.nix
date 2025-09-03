@@ -53,6 +53,8 @@ in {
     ".taskrc".source = link "${dots}/.taskrc";
     ".config/direnv/direnv.toml".source = link "${dots}/.config/direnv/direnv.toml";
     ".claude/CLAUDE.md".source = link "${dots}/.claude/CLAUDE.md";
+    ".claude/settings.json".source = link "${dots}/.claude/settings.json";
+    ".config/btop/btop.conf".source = link "${dots}/.config/btop/btop.conf";
 
     "scripts" = {
       source = link "${dots}/scripts";

@@ -8,6 +8,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
+    # zen-browser.url = "github:0xc000022070/zen-browser-flake";
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
