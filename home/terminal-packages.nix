@@ -61,6 +61,12 @@ with pkgs; [
   nixfmt-classic
   nnn
   nodePackages_latest.vscode-json-languageserver
+  deno
+  prettierd
+  nodePackages.prettier
+  biome
+  jujutsu
+  fennel-ls
   nodejs_22
   nushell
   ollama

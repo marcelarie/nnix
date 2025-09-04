@@ -27,8 +27,25 @@ in {
       "text/markdown" = ["nvim-terminal.desktop"];
       "text/html" = ["nvim-terminal.desktop"];
       "application/json" = ["nvim-terminal.desktop"];
-      "image/png" = ["swayimg.desktop" "imv.desktop"];
+      
+      # Web browser scheme handlers
+      "x-scheme-handler/http" = ["firefox_firefox.desktop"];
+      "x-scheme-handler/https" = ["firefox_firefox.desktop"];
+      "x-scheme-handler/about" = ["firefox_firefox.desktop"];
+      "x-scheme-handler/unknown" = ["firefox_firefox.desktop"];
+
+      "image/png" = ["imv.desktop"];
+      "image/jpeg" = ["imv.desktop"];
+      "image/jpg" = ["imv.desktop"];
       "image/gif" = ["imv.desktop"];
+      "image/webp" = ["imv.desktop"];
+      "image/tiff" = ["imv.desktop"];
+      "image/bmp" = ["imv.desktop"];
+      "image/svg+xml" = ["imv.desktop"];
+      "image/avif" = ["imv.desktop"];
+      "image/heif" = ["imv.desktop"];
+      "image/heic" = ["imv.desktop"];
+
       "application/pdf" = ["zathura.desktop" "org.pwmt.zathura-pdf-mupdf.desktop"];
     };
     associations = {
@@ -37,12 +54,33 @@ in {
         "text/markdown" = ["nvim-terminal.desktop"];
         "text/json" = ["nvim-terminal.desktop"];
         "application/json" = ["nvim-terminal.desktop"];
-        "image/png" = ["swayimg.desktop" "imv.desktop"];
+
+        "image/png" = ["imv.desktop"];
+        "image/jpeg" = ["imv.desktop"];
+        "image/jpg" = ["imv.desktop"];
+        "image/gif" = ["imv.desktop"];
+        "image/webp" = ["imv.desktop"];
+        "image/tiff" = ["imv.desktop"];
+        "image/bmp" = ["imv.desktop"];
+        "image/svg+xml" = ["imv.desktop"];
+        "image/avif" = ["imv.desktop"];
+        "image/heif" = ["imv.desktop"];
+        "image/heic" = ["imv.desktop"];
+
         "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
       };
       removed = {
-        "image/png" = ["chromium-browser.desktop"];
-        "application/pdf" = ["gimp.desktop"];
+        "image/png" = ["gimp.desktop" "chromium-browser.desktop"];
+        "image/jpeg" = ["gimp.desktop"];
+        "image/jpg" = ["gimp.desktop"];
+        "image/gif" = ["gimp.desktop"];
+        "image/webp" = ["gimp.desktop"];
+        "image/tiff" = ["gimp.desktop"];
+        "image/bmp" = ["gimp.desktop"];
+        "image/svg+xml" = ["gimp.desktop"];
+        "image/avif" = ["gimp.desktop"];
+        "image/heif" = ["gimp.desktop"];
+        "image/heic" = ["gimp.desktop"];
       };
     };
   };
@@ -102,6 +140,7 @@ in {
     flameshot
     swappy
     ironbar
+    distrobox
   ];
 
   home.file = let
