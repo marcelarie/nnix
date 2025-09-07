@@ -260,6 +260,7 @@
     glib
     gcc
     gnupg
+    pass
     openssl
     mixxx
     sbc
@@ -276,12 +277,13 @@
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
+    pinentryPackage = pkgs.pinentry-curses;
   };
 
   sops = {
     defaultSopsFile = ./secrets/secrets.yaml;
     defaultSopsFormat = "yaml";
-    age.keyFile = "/home/marcel/.config/sops/age/keys.txt";
+    gnupg.home = "/home/marcel/.gnupg";
   };
 
   # List services that you want to enable:

@@ -9,6 +9,10 @@ with pkgs; [
   bash-language-server
   dump
   bat
+  typos
+  typos-lsp
+  emmylua-ls
+  bash-preexec
   black
   bottom
   librespeed-cli

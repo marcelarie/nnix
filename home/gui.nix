@@ -29,10 +29,10 @@ in {
       "application/json" = ["nvim-terminal.desktop"];
       
       # Web browser scheme handlers
-      "x-scheme-handler/http" = ["firefox_firefox.desktop"];
-      "x-scheme-handler/https" = ["firefox_firefox.desktop"];
-      "x-scheme-handler/about" = ["firefox_firefox.desktop"];
-      "x-scheme-handler/unknown" = ["firefox_firefox.desktop"];
+      "x-scheme-handler/http" = ["firefox_firefox.desktop" "firefox.desktop"];
+      "x-scheme-handler/https" = ["firefox_firefox.desktop" "firefox.desktop"];
+      "x-scheme-handler/about" = ["firefox_firefox.desktop" "firefox.desktop"];
+      "x-scheme-handler/unknown" = ["firefox_firefox.desktop" "firefox.desktop"];
 
       "image/png" = ["imv.desktop"];
       "image/jpeg" = ["imv.desktop"];
