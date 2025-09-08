@@ -8,6 +8,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
+    zuban.url = "path:/home/mmanzanares/clones/forks/zuban";
     # zen-browser.url = "github:0xc000022070/zen-browser-flake";
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/release-23.11";
@@ -51,6 +52,7 @@
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
+        (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
       ];
     };
     pkgsAndroid = import nixpkgsStable {

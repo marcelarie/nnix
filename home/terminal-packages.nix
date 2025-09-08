@@ -8,6 +8,7 @@ with pkgs; [
   bash-language-server
   bat
   black
+  zuban
   bottom
   librespeed-cli
   carapace
