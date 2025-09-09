@@ -2,6 +2,7 @@
 {pkgs}:
 with pkgs; [
   atuin
+  astro-language-server
   bacon
   nuit
   bash
