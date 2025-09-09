@@ -4,7 +4,12 @@ with pkgs; [
   atuin
   astro-language-server
   bacon
+  socat
   nuit
+  noisetorch
+  lazygit
+  tig
+  delta
   bash
   pulseaudioFull
   bash-language-server

@@ -15,6 +15,7 @@ in {
     (config.lib.nixGL.wrap alacritty)
     (config.lib.nixGL.wrap neovide)
     (config.lib.nixGL.wrap imv)
+    (config.lib.nixGL.wrap niri)
   ];
 
   home.file = let
