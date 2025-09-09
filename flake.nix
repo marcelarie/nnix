@@ -22,6 +22,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     tmex = {
       url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -47,7 +51,12 @@
     tmexPkg = tmex.packages.${system}.tmex;
     pkgs = import nixpkgs {
       inherit system;
-      config.allowUnfree = true;
+      config = {
+        allowUnfree = true;
+        permittedInsecurePackages = [
+          "qtwebengine-5.15.19"
+        ];
+      };
       overlays = [
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
@@ -79,6 +88,7 @@
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
         inputs.musnix.nixosModules.musnix
+        inputs.sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         {
           home-manager = {

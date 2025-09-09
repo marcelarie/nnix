@@ -30,6 +30,8 @@ in {
       asciinema
       nvim-nightly
       jdd
+      sops
+      age
     ]);
 
   home.file = let
@@ -47,8 +49,8 @@ in {
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
     ".config/shellcheckrc".source = link "${dots}/.config/shellcheckrc";
     # ".cargo/env".source = link "${dots}/.cargo/env";
-    ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
-    ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
+    # ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
+    # ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".inputrc".source = link "${dots}/.inputrc";
     ".taskrc".source = link "${dots}/.taskrc";
     ".config/direnv/direnv.toml".source = link "${dots}/.config/direnv/direnv.toml";
@@ -103,6 +105,11 @@ in {
 
     ".config/tombi" = {
       source = link "${dots}/.config/tombi";
+      recursive = true;
+    };
+
+    ".config/zellij" = {
+      source = link "${dots}/.config/zellij";
       recursive = true;
     };
 

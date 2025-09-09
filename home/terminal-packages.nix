@@ -6,14 +6,21 @@ with pkgs; [
   bacon
   nuit
   bash
+  pulseaudioFull
   bash-language-server
+  dump
   bat
+  typos
+  typos-lsp
+  emmylua-ls
+  bash-preexec
   black
   zuban
   bottom
   librespeed-cli
   carapace
   cbfmt
+  charm-freeze
   claude-code
   difftastic
   direnv
@@ -109,6 +116,7 @@ with pkgs; [
   w3m
   xan
   zbar
+  zellij
   zoxide
   zsh
 ]
