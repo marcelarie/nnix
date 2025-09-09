@@ -18,6 +18,7 @@ with pkgs; [
   librespeed-cli
   carapace
   cbfmt
+  charm-freeze
   claude-code
   difftastic
   direnv
@@ -113,6 +114,7 @@ with pkgs; [
   w3m
   xan
   zbar
+  zellij
   zoxide
   zsh
 ]

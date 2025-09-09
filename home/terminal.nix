@@ -108,6 +108,11 @@ in {
       recursive = true;
     };
 
+    ".config/zellij" = {
+      source = link "${dots}/.config/zellij";
+      recursive = true;
+    };
+
     "notes" = {
       source = link notes;
       recursive = true;
