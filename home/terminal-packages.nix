@@ -10,6 +10,7 @@ with pkgs; [
   lazygit
   tig
   delta
+  vscode-langservers-extracted
   bash
   pulseaudioFull
   bash-language-server
@@ -72,9 +73,11 @@ with pkgs; [
   nix-search-cli
   nixfmt-classic
   nnn
-  nodePackages_latest.vscode-json-languageserver
   deno
   prettierd
+  util-linux
+  hyprland-workspaces
+  carl
   nodePackages.prettier
   biome
   jujutsu
