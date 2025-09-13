@@ -2,8 +2,15 @@
 {pkgs}:
 with pkgs; [
   atuin
+  astro-language-server
   bacon
+  socat
   nuit
+  noisetorch
+  lazygit
+  tig
+  delta
+  vscode-langservers-extracted
   bash
   pulseaudioFull
   bash-language-server
@@ -14,6 +21,7 @@ with pkgs; [
   emmylua-ls
   bash-preexec
   black
+  zuban
   bottom
   librespeed-cli
   carapace
@@ -65,9 +73,11 @@ with pkgs; [
   nix-search-cli
   nixfmt-classic
   nnn
-  nodePackages_latest.vscode-json-languageserver
   deno
   prettierd
+  util-linux
+  hyprland-workspaces
+  carl
   nodePackages.prettier
   biome
   jujutsu

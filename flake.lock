@@ -525,6 +525,22 @@
         "url": "https://flakehub.com/f/NixOS/nixpkgs/0.1"
       }
     },
+    "nixpkgs_6": {
+      "locked": {
+        "lastModified": 1756787288,
+        "narHash": "sha256-rw/PHa1cqiePdBxhF66V7R+WAP8WekQ0mCDG4CFqT8Y=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d0fc30899600b9b3466ddb260fd83deb486c32f1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nmd": {
       "flake": false,
       "locked": {
@@ -610,8 +626,9 @@
         "nixpkgs": "nixpkgs_4",
         "nixpkgsStable": "nixpkgsStable",
         "nu-alias-converter": "nu-alias-converter",
-        "sops-nix": "sops-nix",
-        "tmex": "tmex"
+        "tmex": "tmex",
+        "zuban": "zuban",
+        "sops-nix": "sops-nix"
       }
     },
     "rust-analyzer-src": {
@@ -758,6 +775,21 @@
         "owner": "numtide",
         "repo": "treefmt-nix",
         "type": "github"
+      }
+    },
+    "zuban": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_6"
+      },
+      "locked": {
+        "lastModified": 1756992128,
+        "narHash": "sha256-WXJaN76rkVv//Ibq7uDO058US3EDCRO4beHlEKEE/T0=",
+        "path": "/home/mmanzanares/clones/forks/zuban",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/mmanzanares/clones/forks/zuban",
+        "type": "path"
       }
     }
   },
