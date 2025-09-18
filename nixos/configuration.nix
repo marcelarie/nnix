@@ -90,6 +90,7 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+  networking.networkmanager.plugins = with pkgs; [networkmanager-openvpn];
 
   # Set your time zone.
   time.timeZone = "Europe/Madrid";
@@ -115,7 +116,6 @@
 
   # Enable the KDE Plasma Desktop Environment.
   services.desktopManager.plasma6.enable = true;
-  services.xserver.desktopManager.lxqt.enable = true;
   programs.hyprland.enable = true;
 
   # Configure keymap in X11
@@ -262,6 +262,7 @@
     gnupg
     pass
     openssl
+    openvpn
     mixxx
     sbc
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
@@ -294,7 +295,7 @@
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

@@ -23,6 +23,18 @@ with pkgs; [
   black
   zuban
   bottom
+  bind
+  iptables
+  wireguard-tools
+  wlr-randr
+  wlr-layout-ui 
+  nftables
+  nwg-displays
+  gcalcli
+  btop
+  codex
+  libreoffice
+  murex
   librespeed-cli
   carapace
   cbfmt

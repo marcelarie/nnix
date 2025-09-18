@@ -16,12 +16,15 @@ in {
   home.packages = with pkgs; [
     hyprlock
     hyprland-qtutils
-    stremio
+    # stremio
+    grim
     zeroad
+    slurp
     telegram-desktop
     ungoogled-chromium
     firefox
     imv
+    alsa-utils
   ];
 
   programs.mpv = {
