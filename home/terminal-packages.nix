@@ -35,6 +35,7 @@ with pkgs; [
   codex
   libreoffice
   murex
+  opencode
   librespeed-cli
   carapace
   cbfmt
@@ -111,6 +112,8 @@ with pkgs; [
   ripgrep
   ruby
   rustup
+  slskd
+  appimage-run
   sendme
   shfmt
   solargraph

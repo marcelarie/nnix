@@ -65,24 +65,20 @@
     bluetooth = {
       enable = true;
       powerOnBoot = true;
-      settings = {
-        General = {
-          Experimental = true;
-          Class = "0x000100";
-          FastConnectable = true;
-        };
-        Policy = {
-          AutoEnable = true;
-        };
-      };
     };
   };
   services.mullvad-vpn.enable = true;
   services.flatpak.enable = true;
-  services.udev.extraRules = ''
-    # Auto-switch EDIFIER speakers to A2DP profile
-    SUBSYSTEM=="bluetooth", ACTION=="add", ATTRS{name}=="EDIFIER R1280DB", RUN+="${pkgs.pulseaudio}/bin/pactl set-card-profile bluez_card.FC_E8_06_5A_8D_B2 a2dp-sink-sbc_xq"
-  '';
+
+  # Enable Docker
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = true;
+    autoPrune = {
+      enable = true;
+      dates = "weekly";
+    };
+  };
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -117,11 +113,16 @@
   # Enable the KDE Plasma Desktop Environment.
   services.desktopManager.plasma6.enable = true;
   programs.hyprland.enable = true;
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-hyprland];
 
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "us";
     variant = "";
+  };
+  services.nzbget = {
+    enable = true;
   };
 
   # Enable CUPS to print documents.
@@ -149,33 +150,19 @@
     extraConfig.pipewire-pulse = {
       "92-low-latency" = {
         "pulse.properties" = {
-          "pulse.min.req" = "32/48000";
-          "pulse.default.req" = "32/48000";
-          "pulse.max.req" = "32/48000";
-          "pulse.min.quantum" = "32/48000";
-          "pulse.max.quantum" = "32/48000";
+          "pulse.min.req" = "128/48000";
+          "pulse.default.req" = "128/48000";
+          "pulse.max.req" = "256/48000";
+          "pulse.min.quantum" = "128/48000";
+          "pulse.max.quantum" = "256/48000";
         };
         "stream.properties" = {
-          "node.latency" = "32/48000";
+          "node.latency" = "128/48000";
           "resample.quality" = 1;
         };
       };
     };
-    extraConfig.pipewire = {
-      "99-bluetooth-sbc" = {
-        "bluez5.properties" = {
-          "bluez5.sbc.bitpool" = 53;
-          "bluez5.sbc.min-bitpool" = 32;
-          "bluez5.sbc.max-bitpool" = 53;
-          "bluez5.sbc.frequency" = 48000;
-          "bluez5.sbc.channels" = 2;
-          "bluez5.sbc.method" = "loudness";
-          "bluez5.sbc.allocation" = "loudness";
-          "bluez5.auto-connect" = "[ a2dp_sink ]";
-          "bluez5.headset-roles" = "[ ]";
-        };
-      };
-    };
+
     # If you want to use JACK applications, uncomment this
     #jack.enable = true;
 
@@ -209,7 +196,7 @@
   users.users.marcel = {
     isNormalUser = true;
     description = "marcel";
-    extraGroups = ["networkmanager" "wheel" "audio"];
+    extraGroups = ["networkmanager" "wheel" "audio" "docker"];
     packages = with pkgs; [
       kitty
       # kdePackages.kate
@@ -296,6 +283,7 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
+  networking.networkmanager.wifi.powersave = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

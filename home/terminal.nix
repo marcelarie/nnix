@@ -58,6 +58,9 @@ in {
     ".claude/settings.json".source = link "${dots}/.claude/settings.json";
     ".config/btop/btop.conf".source = link "${dots}/.config/btop/btop.conf";
 
+    # codex
+    ".codex/AGENTS.md".source = link "${dots}/.codex/AGENTS.md";
+
     "scripts" = {
       source = link "${dots}/scripts";
       recursive = true;

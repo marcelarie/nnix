@@ -123,6 +123,7 @@ in {
     rustdesk
     satty
     swayimg
+    mqttx
     swayosd
     telegram-desktop
     tofi
