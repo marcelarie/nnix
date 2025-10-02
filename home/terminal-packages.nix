@@ -2,6 +2,7 @@
 {pkgs}:
 with pkgs; [
   atuin
+  atool
   astro-language-server
   bacon
   socat
@@ -9,6 +10,8 @@ with pkgs; [
   noisetorch
   lazygit
   tig
+  ffmpeg
+  ytfzf
   delta
   vscode-langservers-extracted
   bash
@@ -27,7 +30,7 @@ with pkgs; [
   iptables
   wireguard-tools
   wlr-randr
-  wlr-layout-ui 
+  wlr-layout-ui
   nftables
   nwg-displays
   gcalcli

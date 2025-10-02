@@ -46,6 +46,7 @@ in {
     ".gitignore".source = link "${dots}/.gitignore";
     ".bashrc".source = link "${dots}/.bashrc";
     ".bash_aliases".source = link "${dots}/.bash_aliases";
+    ".bash-preexec.sh".source = link "${dots}/.bash-preexec.sh";
     ".config/starship.toml".source = link "${dots}/.config/starship.toml";
     ".config/shellcheckrc".source = link "${dots}/.config/shellcheckrc";
     # ".cargo/env".source = link "${dots}/.cargo/env";

@@ -250,7 +250,6 @@
     pass
     openssl
     openvpn
-    mixxx
     sbc
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
       [General]

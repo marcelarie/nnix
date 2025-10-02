@@ -14,6 +14,7 @@ in {
   ];
 
   home.packages = with pkgs; [
+    (config.lib.nixGL.wrap mixxx)
     hyprlock
     hyprland-qtutils
     # stremio

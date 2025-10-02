@@ -27,7 +27,7 @@ in {
       "text/markdown" = ["nvim-terminal.desktop"];
       "text/html" = ["nvim-terminal.desktop"];
       "application/json" = ["nvim-terminal.desktop"];
-      
+
       # Web browser scheme handlers
       "x-scheme-handler/http" = ["firefox_firefox.desktop" "firefox.desktop"];
       "x-scheme-handler/https" = ["firefox_firefox.desktop" "firefox.desktop"];
@@ -124,6 +124,12 @@ in {
     satty
     swayimg
     mqttx
+    ultimate-oldschool-pc-font-pack
+    niri
+    (vivaldi.override {
+      commandLineArgs = " --enable-features=UseOzonePlatform --ozone-platform=wayland";
+    })
+    font-manager
     swayosd
     telegram-desktop
     tofi
@@ -140,8 +146,9 @@ in {
     unzip
     flameshot
     swappy
-    ironbar
+    # ironbar # currently returns an error releated to libedev
     distrobox
+    garamond-libre
   ];
 
   home.file = let
