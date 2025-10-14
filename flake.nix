@@ -9,7 +9,10 @@
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
     zuban.url = "github:marcelarie/zuban";
-    # zen-browser.url = "github:0xc000022070/zen-browser-flake";
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -42,6 +45,7 @@
     tmex,
     neovim-nightly-overlay,
     nu-alias-converter,
+    zen-browser,
     ...
   } @ inputs: let
     system = "x86_64-linux";
@@ -110,6 +114,7 @@
           ./home/gui.nix
           ./home/terminal.nix
           ./hosts/work/default.nix
+          inputs.zen-browser.homeModules.twilight
           ({
             config,
             pkgs,

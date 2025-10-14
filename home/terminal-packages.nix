@@ -3,11 +3,14 @@
 with pkgs; [
   atuin
   atool
+  imagemagick_light
   astro-language-server
   bacon
   socat
   nuit
   noisetorch
+  ncdu
+  duf
   lazygit
   tig
   ffmpeg
@@ -36,9 +39,8 @@ with pkgs; [
   gcalcli
   btop
   codex
-  libreoffice
   murex
-  opencode
+  # opencode
   librespeed-cli
   carapace
   cbfmt
@@ -67,7 +69,6 @@ with pkgs; [
   glow
   gnumake
   gping
-  helix
   htop
   jaq
   java-language-server
@@ -119,6 +120,7 @@ with pkgs; [
   appimage-run
   sendme
   shfmt
+  google-cloud-sdk-gce
   solargraph
   speedtest-cli
   speedtest-rs
@@ -145,4 +147,6 @@ with pkgs; [
   zellij
   zoxide
   zsh
+  # helix
+  # libreoffice
 ]

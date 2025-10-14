@@ -1,0 +1,8 @@
+keys:
+  - &nixos E657181013E636B3
+
+creation_rules:
+  - path_regex: secrets/secrets\.yaml$
+    key_groups:
+      - pgp:
+          - *nixos

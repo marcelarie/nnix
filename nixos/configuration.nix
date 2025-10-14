@@ -65,6 +65,11 @@
     bluetooth = {
       enable = true;
       powerOnBoot = true;
+      settings = {
+        General = {
+          ReconnectAttempts = "0";
+        };
+      };
     };
   };
   services.mullvad-vpn.enable = true;
@@ -210,6 +215,7 @@
       wayland.enable = true;
       theme = "breeze";
     };
+    sessionPackages = [pkgs.hyprland pkgs.niri];
     defaultSession = "hyprland";
     autoLogin = {
       enable = false;
@@ -238,8 +244,8 @@
     vim
     neovim
     wget
-    mullvad-vpn
-    mullvad
+    # mullvad-vpn
+    # mullvad
     git
     gnumake
     usbutils
@@ -251,6 +257,7 @@
     openssl
     openvpn
     sbc
+    chromium
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
       [General]
       background=/etc/sddm/black.png
@@ -267,9 +274,12 @@
   };
 
   sops = {
-    defaultSopsFile = ./secrets/secrets.yaml;
+    defaultSopsFile = ../secrets/secrets.yaml;
     defaultSopsFormat = "yaml";
     gnupg.home = "/home/marcel/.gnupg";
+    secrets.example_secret = {
+      owner = "marcel";
+    };
   };
 
   # List services that you want to enable:

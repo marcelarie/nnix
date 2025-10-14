@@ -15,15 +15,15 @@ in {
 
   home.packages = with pkgs; [
     (config.lib.nixGL.wrap mixxx)
-    hyprlock
-    hyprland-qtutils
+    pkgsStable.hyprlock
+    pkgsStable.hyprland-qtutils
     # stremio
     xdg-desktop-portal-hyprland
     grim
-    zeroad
+    # zeroad
     slurp
     telegram-desktop
-    ungoogled-chromium
+    # ungoogled-chromium
     firefox
     imv
     alsa-utils

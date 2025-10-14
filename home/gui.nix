@@ -8,8 +8,12 @@
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
+  imports = [inputs.zen-browser.homeModules.twilight];
+
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
+
+  programs.zen-browser.enable = true;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -97,10 +101,11 @@ in {
     fira-sans
     font-awesome
     foot
+    alacritty
     gimp3
     grimblast
-    hyprpaper
-    hyprshot
+    pkgsStable.hyprpaper
+    pkgsStable.hyprshot
     kanshi
     keyd
     batsignal
@@ -113,14 +118,12 @@ in {
     noto-fonts-color-emoji
     noto-fonts-extra
     nwg-look
-    pamixer
     pavucontrol
     pyprland
     qbittorrent
     roboto
     roboto-mono
     roboto-serif
-    rustdesk
     satty
     swayimg
     mqttx
@@ -146,6 +149,9 @@ in {
     unzip
     flameshot
     swappy
+    neovide
+    # rustdesk
+    # pamixer
     # ironbar # currently returns an error releated to libedev
     distrobox
     garamond-libre
@@ -181,6 +187,11 @@ in {
     # GUI-specific directories
     ".config/waybar" = {
       source = link "${dots}/.config/waybar";
+      recursive = true;
+    };
+
+    ".config/alacritty" = {
+      source = link "${dots}/.config/alacritty";
       recursive = true;
     };
 
