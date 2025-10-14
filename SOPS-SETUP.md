@@ -56,6 +56,34 @@ DEBUG_PASS_TO_SOPS=1 ./scripts/pass-to-sops.sh
 - `PASSWORD_STORE_DIR` overrides the pass tree (default: `$HOME/.password-store`).
 - Each run overwrites encrypted values, so expect new ciphertext even when plaintext stays the same.
 
+## Consuming Secrets in Nix
+
+Each entry under `config.sops.secrets` becomes a decrypted file at activation time:
+
+```nix
+# nixos/configuration.nix
+sops.secrets."services".owner = "postgres";
+sops.secrets."services".group = "postgres";
+
+services.postgresql = {
+  enable = true;
+  authentication = lib.mkForce ''
+    host all all 0.0.0.0/0 md5
+  '';
+  initialScript = ''
+    ALTER USER appuser WITH PASSWORD '$(<${config.sops.secrets."services".path})';
+  '';
+};
+```
+
+Common patterns:
+
+- Options ending with `File` (e.g., `passwordFile`) accept `config.sops.secrets.<name>.path`.
+- For `systemd` units, use `serviceConfig.EnvironmentFile = config.sops.secrets.<name>.path`.
+- For one-off values, read the file using `lib.fileContents config.sops.secrets.<name>.path`, avoiding inline secrets.
+
+Adjust `owner`, `group`, or `mode` on each secret so the consuming service can read the file without leaking it broadly.
+
 ## Moving to a New Machine
 
 ### On the current machine
