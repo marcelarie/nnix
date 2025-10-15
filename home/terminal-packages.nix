@@ -79,6 +79,7 @@ with pkgs; [
   killall
   libwebp
   lsr
+  lsv
   markdown-oxide
   marksman
   mdformat

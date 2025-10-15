@@ -8,6 +8,10 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
+    lsv = {
+      url = "path:./packages/lsv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zuban.url = "github:marcelarie/zuban";
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
@@ -45,6 +49,7 @@
     tmex,
     neovim-nightly-overlay,
     nu-alias-converter,
+    lsv,
     zen-browser,
     ...
   } @ inputs: let
@@ -65,6 +70,7 @@
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
+        (final: prev: {lsv = inputs.lsv.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
       ];
     };
