@@ -87,6 +87,7 @@ in {
 
   home.packages = with pkgs; [
     blesh
+    font-awesome
     abiword
     blueman
     brightnessctl
@@ -142,6 +143,7 @@ in {
     swappy
     ironbar
     distrobox
+    firefox
   ];
 
   home.file = let
