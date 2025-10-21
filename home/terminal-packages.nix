@@ -140,8 +140,8 @@ with pkgs; [
   typos
   typos-lsp
   unzip
-  uv
   vtsls
+  libnotify
   w3m
   xan
   zbar
