@@ -14,6 +14,7 @@ with pkgs; [
   lazygit
   tig
   ffmpeg
+  typst
   ytfzf
   delta
   vscode-langservers-extracted

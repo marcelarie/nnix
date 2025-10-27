@@ -101,6 +101,8 @@ in {
     fira-sans
     font-awesome
     foot
+    mullvad-vpn
+    jitsi
     alacritty
     gimp3
     grimblast
