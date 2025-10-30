@@ -17,6 +17,7 @@ with pkgs; [
   typst
   ytfzf
   delta
+  uv
   vscode-langservers-extracted
   bash
   pulseaudioFull

@@ -62,6 +62,10 @@
   services.fwupd.enable = true;
 
   hardware = {
+    opengl = {
+      enable = true;
+      driSupport32Bit = true;
+    };
     bluetooth = {
       enable = true;
       powerOnBoot = true;
@@ -141,42 +145,10 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    jack.enable = true;
-    # media-session.enable = true;
     wireplumber.enable = true;
-    extraConfig.jack = {
-      "00-buffer-size" = {
-        # filename: /etc/pipewire/jack.conf.d/00-buffer-size.conf
-        "jack.properties" = {
-          "default.buffer-size" = 128;
-        };
-      };
-    };
-    extraConfig.pipewire-pulse = {
-      "92-low-latency" = {
-        "pulse.properties" = {
-          "pulse.min.req" = "128/48000";
-          "pulse.default.req" = "128/48000";
-          "pulse.max.req" = "256/48000";
-          "pulse.min.quantum" = "128/48000";
-          "pulse.max.quantum" = "256/48000";
-        };
-        "stream.properties" = {
-          "node.latency" = "128/48000";
-          "resample.quality" = 1;
-        };
-      };
-    };
-
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
   };
   # services.udev.packages = [pkgs.mixxx];
-  musnix.enable = true;
+  musnix.enable = false;
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
@@ -233,6 +205,10 @@
           Status = "locked";
         };
         "ui.key.menuAccessKeyFocuses" = {
+          Value = false;
+          Status = "locked";
+        };
+        "browser.tabs.allowTabDetach" = {
           Value = false;
           Status = "locked";
         };

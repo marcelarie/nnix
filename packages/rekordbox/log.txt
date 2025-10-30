@@ -1,0 +1,2 @@
+Place the Rekordbox Windows installer at: /home/marcel/.local/share/rekordbox/installer.exe
+Then rerun: nix run .#rekordbox-install
