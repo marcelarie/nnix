@@ -90,6 +90,8 @@ in {
   };
 
   home.packages = with pkgs; [
+    audio-select
+    wine64
     blesh
     abiword
     blueman

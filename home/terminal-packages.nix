@@ -18,6 +18,8 @@ with pkgs; [
   ytfzf
   delta
   uv
+  mediainfo
+  parted
   vscode-langservers-extracted
   bash
   pulseaudioFull
@@ -85,7 +87,7 @@ with pkgs; [
   markdown-oxide
   marksman
   mdformat
-  moar
+  moor
   neofetch
   neovim
   nil
@@ -116,6 +118,8 @@ with pkgs; [
   prettierd
   rabbitmqadmin-ng
   repgrep
+  rff
+  pulseaudio-next-output
   ripgrep
   ruby
   rustup

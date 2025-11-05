@@ -18,32 +18,33 @@
     mk = system: let
       pkgs = import nixpkgs {inherit system;};
 
-      wineWowPackagesStaging = pkgs.wineWowPackages.staging;
-      winePkg =
-        if pkgs.lib.isDerivation wineWowPackagesStaging then wineWowPackagesStaging
-        else
-          (wineWowPackagesStaging.package
-            or (wineWowPackagesStaging.wine
-            or (wineWowPackagesStaging.wineWow
-            or (wineWowPackagesStaging.bin
-            or (throw "Unsupported wineWowPackages.staging structure; no derivation attribute found.")))));
+      winePkg = pkgs.wineWowPackages.stagingFull;
+      winebin = pkgs.wineWowPackages.stagingFull;
       winetricks = pkgs.winetricks;
       xdg-utils = pkgs.xdg-utils;
       curl = pkgs.curl;
       unzip = pkgs.unzip;
+      vulkan-loader = pkgs.vulkan-loader;
 
       dollar = "$";
       prefixVar = "${dollar}{XDG_DATA_HOME:-${dollar}HOME/.local/share}/rekordbox/wineprefix";
       installerPath = "${dollar}{XDG_DATA_HOME:-${dollar}HOME/.local/share}/rekordbox/installer.exe";
       installerUrl = "https://cdn.rekordbox.com/files/20250610145851/Install_rekordbox_x64_6_8_6.zip";
+      webviewInstaller = "${dollar}{XDG_DATA_HOME:-${dollar}HOME/.local/share}/rekordbox/MicrosoftEdgeWebView2RuntimeInstaller.exe";
+      webviewUrl = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
 
       rekordbox-install = pkgs.writeShellApplication {
         name = "rekordbox-install";
-        runtimeInputs = [winePkg winetricks xdg-utils curl unzip];
+        runtimeInputs = [winePkg winetricks xdg-utils curl unzip vulkan-loader];
         text = ''
           set -euo pipefail
           export WINEPREFIX="${prefixVar}"
-          export WINEDEBUG=-all
+          if [ ! -d "$WINEPREFIX" ]; then
+            export WINEARCH=win64
+          fi
+          if [ -z "''${WINEDEBUG:-}" ]; then
+            export WINEDEBUG=-all
+          fi
           export WINEESYNC=1
           export STAGING_SHARED_MEMORY=1
           export WINEFSYNC=1
@@ -68,9 +69,20 @@
             echo "Unable to obtain Rekordbox installer at: ${installerPath}"
             exit 1
           fi
+          if [ ! -f "${webviewInstaller}" ]; then
+            echo "Downloading Microsoft Edge WebView2 runtime..."
+            curl -fL -o "${webviewInstaller}" "${webviewUrl}"
+          fi
 
+          winetricks -q win10 || true
           winetricks -q corefonts || true
           winetricks settings fontsmooth=rgb || true
+          winetricks -q dxvk || true
+          winetricks -q vcrun2019 || true
+          winetricks -q mf || true
+          echo "Installing WebView2 runtime..."
+          wine start /unix "${webviewInstaller}" /silent /install || true
+          wineserver -w || true
           wine "${installerPath}"
 
           echo "Done. Launch with: nix run .#rekordbox"
@@ -79,24 +91,40 @@
 
       rekordbox-run = pkgs.writeShellApplication {
         name = "rekordbox";
-        runtimeInputs = [winePkg xdg-utils];
+        runtimeInputs = [winePkg xdg-utils vulkan-loader];
         text = ''
           set -euo pipefail
           export WINEPREFIX="${prefixVar}"
-          export WINEDEBUG=-all
+          if [ -z "''${WINEDEBUG:-}" ]; then
+            export WINEDEBUG=-all
+          fi
           export WINEESYNC=1
           export STAGING_SHARED_MEMORY=1
           export WINEFSYNC=1
 
-          exe="$WINEPREFIX/drive_c/Program Files/Pioneer/rekordbox/rekordbox.exe"
-          if [ ! -f "$exe" ]; then
-            exe="$(find "$WINEPREFIX/drive_c" -type f -name rekordbox.exe -print -quit 2>/dev/null || true)"
+          echo "Wine prefix: $WINEPREFIX"
+          exe_host="$WINEPREFIX/drive_c/Program Files/Pioneer/rekordbox/rekordbox.exe"
+          if [ ! -f "$exe_host" ]; then
+            exe_host="$(find "$WINEPREFIX/drive_c" -type f -name rekordbox.exe -print -quit 2>/dev/null || true)"
           fi
-          if [ -z "$exe" ] || [ ! -f "$exe" ]; then
+          if [ -z "$exe_host" ] || [ ! -f "$exe_host" ]; then
             echo "Rekordbox not found in prefix. Run: nix run .#rekordbox-install"
             exit 1
           fi
-          wine "$exe"
+          echo "Launching Rekordbox from: $exe_host"
+          wine start /unix "$exe_host"
+          status=$?
+          echo "wine start exit code: $status"
+          if [ $status -ne 0 ]; then
+            echo "Falling back to direct wine execution"
+            if command -v winepath >/dev/null 2>&1; then
+              exe_win="$(winepath -w "$exe_host")"
+            else
+              exe_win="$exe_host"
+            fi
+            wine "$exe_win"
+          fi
+          wineserver -w || true
         '';
       };
 

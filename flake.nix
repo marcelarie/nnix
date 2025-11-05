@@ -12,6 +12,18 @@
       url = "path:./packages/lsv";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    audio-select = {
+      url = "path:./packages/audio-select";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    rff = {
+      url = "path:./packages/rff";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pulseaudio-next-output = {
+      url = "path:./packages/pulseaudio-next-output";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zuban.url = "github:marcelarie/zuban";
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
@@ -37,6 +49,15 @@
       url = "github:marcelarie/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    hyprland-plugins = {
+      url = "github:hyprwm/hyprland-plugins";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.hyprland.follows = "hyprland";
+    };
   };
 
   outputs = {
@@ -50,9 +71,14 @@
     neovim-nightly-overlay,
     nu-alias-converter,
     lsv,
+    audio-select,
+    rff,
+    pulseaudio-next-output,
     zen-browser,
     ...
   } @ inputs: let
+    hyprlandInputs = inputs.hyprland;
+    hyprlandPlugins = inputs."hyprland-plugins";
     system = "x86_64-linux";
     androidSystem = "aarch64-linux";
     username = "marcel";
@@ -67,10 +93,15 @@
         ];
       };
       overlays = [
+        hyprlandInputs.overlays.default
+        hyprlandPlugins.overlays.default
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (final: prev: {lsv = inputs.lsv.packages.${system}.default;})
+        (final: prev: {"audio-select" = inputs.audio-select.packages.${system}.default;})
+        (final: prev: {rff = inputs.rff.packages.${system}.default;})
+        (final: prev: {"pulseaudio-next-output" = inputs.pulseaudio-next-output.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
       ];
     };
@@ -97,6 +128,7 @@
       modules = [
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
+        hyprlandInputs.nixosModules.default
         inputs.musnix.nixosModules.musnix
         inputs.sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
