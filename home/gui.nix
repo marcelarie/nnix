@@ -120,7 +120,6 @@ in {
     nerd-fonts.iosevka-term
     noto-fonts
     noto-fonts-color-emoji
-    noto-fonts-extra
     nwg-look
     pavucontrol
     pyprland
@@ -155,7 +154,7 @@ in {
     swappy
     neovide
     # rustdesk
-    # pamixer
+    wob
     # ironbar # currently returns an error releated to libedev
     distrobox
     garamond-libre
@@ -201,6 +200,11 @@ in {
 
     ".config/eww" = {
       source = link "${dots}/.config/eww";
+      recursive = true;
+    };
+
+    ".config/wob" = {
+      source = link "${dots}/.config/wob";
       recursive = true;
     };
   };
