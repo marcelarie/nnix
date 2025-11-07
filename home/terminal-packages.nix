@@ -87,6 +87,7 @@ with pkgs; [
   evtest 
   pamixer
   wob
+  sox
   markdown-oxide
   marksman
   mdformat
@@ -159,4 +160,5 @@ with pkgs; [
   zsh
   # helix
   # libreoffice
+  cowsay
 ]

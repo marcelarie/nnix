@@ -154,10 +154,12 @@ in {
     swappy
     neovide
     # rustdesk
+    quickshell
     wob
     # ironbar # currently returns an error releated to libedev
     distrobox
     garamond-libre
+    kdePackages.qtdeclarative
   ];
 
   home.file = let
@@ -190,6 +192,11 @@ in {
     # GUI-specific directories
     ".config/waybar" = {
       source = link "${dots}/.config/waybar";
+      recursive = true;
+    };
+
+    ".config/quickshell" = {
+      source = link "${dots}/.config/quickshell";
       recursive = true;
     };
 

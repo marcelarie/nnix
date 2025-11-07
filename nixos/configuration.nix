@@ -212,6 +212,10 @@
           Value = false;
           Status = "locked";
         };
+        "alerts.useSystemBackend" = {
+          Value = true;
+          Status = "locked";
+        };
       };
     };
   };
