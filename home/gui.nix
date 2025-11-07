@@ -8,8 +8,12 @@
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
+  imports = [inputs.zen-browser.homeModules.twilight];
+
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
+
+  programs.zen-browser.enable = true;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -27,7 +31,7 @@ in {
       "text/markdown" = ["nvim-terminal.desktop"];
       "text/html" = ["nvim-terminal.desktop"];
       "application/json" = ["nvim-terminal.desktop"];
-      
+
       # Web browser scheme handlers
       "x-scheme-handler/http" = ["firefox_firefox.desktop" "firefox.desktop"];
       "x-scheme-handler/https" = ["firefox_firefox.desktop" "firefox.desktop"];
@@ -86,6 +90,8 @@ in {
   };
 
   home.packages = with pkgs; [
+    audio-select
+    wine64
     blesh
     font-awesome
     abiword
@@ -98,10 +104,13 @@ in {
     fira-sans
     font-awesome
     foot
+    mullvad-vpn
+    jitsi
+    alacritty
     gimp3
     grimblast
-    hyprpaper
-    hyprshot
+    pkgsStable.hyprpaper
+    pkgsStable.hyprshot
     kanshi
     keyd
     batsignal
@@ -112,9 +121,7 @@ in {
     nerd-fonts.iosevka-term
     noto-fonts
     noto-fonts-color-emoji
-    noto-fonts-extra
     nwg-look
-    pamixer
     pavucontrol
     pyprland
     qbittorrent
@@ -125,6 +132,12 @@ in {
     satty
     swayimg
     mqttx
+    ultimate-oldschool-pc-font-pack
+    niri
+    (vivaldi.override {
+      commandLineArgs = " --enable-features=UseOzonePlatform --ozone-platform=wayland";
+    })
+    font-manager
     swayosd
     telegram-desktop
     tofi
@@ -141,8 +154,14 @@ in {
     unzip
     flameshot
     swappy
-    ironbar
+    neovide
+    # rustdesk
+    quickshell
+    wob
+    # ironbar # currently returns an error releated to libedev
     distrobox
+    garamond-libre
+    kdePackages.qtdeclarative
   ];
 
   home.file = let
@@ -178,8 +197,23 @@ in {
       recursive = true;
     };
 
+    ".config/quickshell" = {
+      source = link "${dots}/.config/quickshell";
+      recursive = true;
+    };
+
+    ".config/alacritty" = {
+      source = link "${dots}/.config/alacritty";
+      recursive = true;
+    };
+
     ".config/eww" = {
       source = link "${dots}/.config/eww";
+      recursive = true;
+    };
+
+    ".config/wob" = {
+      source = link "${dots}/.config/wob";
       recursive = true;
     };
   };

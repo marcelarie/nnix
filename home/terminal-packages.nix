@@ -2,15 +2,25 @@
 {pkgs}:
 with pkgs; [
   atuin
+  atool
+  imagemagick_light
   astro-language-server
   bacon
   socat
   nuit
   sqlfluff
   noisetorch
+  ncdu
+  duf
   lazygit
   tig
+  ffmpeg
+  typst
+  ytfzf
   delta
+  uv
+  mediainfo
+  parted
   vscode-langservers-extracted
   bash
   pulseaudioFull
@@ -28,15 +38,14 @@ with pkgs; [
   iptables
   wireguard-tools
   wlr-randr
-  wlr-layout-ui 
+  wlr-layout-ui
   nftables
   nwg-displays
   gcalcli
   btop
   codex
-  libreoffice
   murex
-  opencode
+  # opencode
   librespeed-cli
   carapace
   cbfmt
@@ -65,7 +74,6 @@ with pkgs; [
   glow
   gnumake
   gping
-  helix
   htop
   jaq
   java-language-server
@@ -76,10 +84,15 @@ with pkgs; [
   killall
   libwebp
   lsr
+  # lsv
+  evtest 
+  pamixer
+  wob
+  sox
   markdown-oxide
   marksman
   mdformat
-  moar
+  moor
   neofetch
   neovim
   nil
@@ -110,6 +123,8 @@ with pkgs; [
   prettierd
   rabbitmqadmin-ng
   repgrep
+  rff
+  pulseaudio-next-output
   ripgrep
   ruby
   rustup
@@ -117,6 +132,7 @@ with pkgs; [
   appimage-run
   sendme
   shfmt
+  google-cloud-sdk-gce
   solargraph
   speedtest-cli
   speedtest-rs
@@ -135,12 +151,15 @@ with pkgs; [
   typos
   typos-lsp
   unzip
-  uv
   vtsls
+  libnotify
   w3m
   xan
   zbar
   zellij
   zoxide
   zsh
+  # helix
+  # libreoffice
+  cowsay
 ]

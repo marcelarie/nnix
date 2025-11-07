@@ -14,15 +14,17 @@ in {
   ];
 
   home.packages = with pkgs; [
-    hyprlock
-    hyprland-qtutils
+    (config.lib.nixGL.wrap mixxx)
+    pkgsStable.hyprlock
+    pkgsStable.hyprland-qtutils
     # stremio
     xdg-desktop-portal-hyprland
     grim
-    zeroad
+    # zeroad
     slurp
     telegram-desktop
-    ungoogled-chromium
+    # ungoogled-chromium
+    firefox
     imv
     alsa-utils
     (pkgs.writeShellScriptBin "vivaldi-stable" ''
