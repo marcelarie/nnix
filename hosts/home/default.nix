@@ -23,7 +23,6 @@ in {
     slurp
     telegram-desktop
     ungoogled-chromium
-    firefox
     imv
     alsa-utils
     (pkgs.writeShellScriptBin "vivaldi-stable" ''

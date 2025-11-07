@@ -121,7 +121,7 @@ in {
     roboto
     roboto-mono
     roboto-serif
-    rustdesk
+    # rustdesk
     satty
     swayimg
     mqttx
@@ -143,7 +143,6 @@ in {
     swappy
     ironbar
     distrobox
-    firefox
   ];
 
   home.file = let

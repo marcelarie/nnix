@@ -6,6 +6,7 @@ with pkgs; [
   bacon
   socat
   nuit
+  sqlfluff
   noisetorch
   lazygit
   tig
