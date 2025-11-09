@@ -11,8 +11,9 @@
     rust-overlay,
   }: let
     rust = import ../rust/common.nix {inherit nixpkgs crane rust-overlay;};
+    system = "x86_64-linux";
   in {
-    packages.${rust.system} = let
+    packages.${system} = let
       rff = rust.craneLib.buildPackage {
         pname = "rff";
         version = "unstable-2025-11-03";

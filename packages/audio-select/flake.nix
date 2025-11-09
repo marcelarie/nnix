@@ -11,8 +11,9 @@
     rust-overlay,
   }: let
     rust = import ../rust/common.nix {inherit nixpkgs crane rust-overlay;};
+    system = "x86_64-linux";
   in {
-    packages.${rust.system} = let
+    packages.${system} = let
       rev = "ecbd5e8a5ad073e79c5a7ffe017d9a73de3dcfa4";
       audioSelect = rust.craneLib.buildPackage {
         pname = "audio-select";

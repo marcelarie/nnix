@@ -161,4 +161,5 @@ with pkgs; [
   # helix
   # libreoffice
   cowsay
+  csvlens
 ]
