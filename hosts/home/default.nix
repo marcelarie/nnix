@@ -33,6 +33,8 @@ in {
     firefox
     imv
     alsa-utils
+    alacritty
+    neovide
     (pkgs.writeShellScriptBin "vivaldi-stable" ''
       exec -a "$0" ${pkgs.vivaldi}/bin/vivaldi-stable --ozone-platform-hint=wayland --enable-features=WaylandWindowDecorations "$@"
     '')

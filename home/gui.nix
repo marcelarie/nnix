@@ -8,12 +8,12 @@
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
-  imports = [inputs.zen-browser.homeModules.twilight];
+  # imports = [inputs.zen-browser.homeModules.twilight];
 
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
 
-  programs.zen-browser.enable = true;
+  # programs.zen-browser.enable = true;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -197,7 +197,6 @@ in {
     foot
     mullvad-vpn
     jitsi
-    alacritty
     gimp3
     grimblast
     pkgsStable.hyprpaper
@@ -224,7 +223,6 @@ in {
     swayimg
     mqttx
     ultimate-oldschool-pc-font-pack
-    niri
     (vivaldi.override {
       commandLineArgs = " --enable-features=UseOzonePlatform --ozone-platform=wayland";
     })
@@ -245,7 +243,6 @@ in {
     unzip
     flameshot
     swappy
-    neovide
     # rustdesk
     quickshell
     wob
