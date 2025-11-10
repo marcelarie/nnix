@@ -14,10 +14,10 @@ in {
     ../../home/gui.nix
   ];
 
-  nixGL = {
-    packages = nixGL.packages;
-    defaultWrapper = "mesa";
-  };
+  # nixGL = {
+  #   packages = nixGL.packages;
+  #   defaultWrapper = "mesa";
+  # };
 
   home.packages = with pkgs; [
     (config.lib.nixGL.wrap mixxx)
@@ -33,8 +33,8 @@ in {
     firefox
     imv
     alsa-utils
-    alacritty
-    neovide
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
     (pkgs.writeShellScriptBin "vivaldi-stable" ''
       exec -a "$0" ${pkgs.vivaldi}/bin/vivaldi-stable --ozone-platform-hint=wayland --enable-features=WaylandWindowDecorations "$@"
     '')
@@ -51,5 +51,6 @@ in {
     dots = "${clonesOwn}/dots";
   in {
     ".config/kanshi/config".source = link "${dots}/.config/kanshi/config";
+    ".config/hypr/devices/nixos.conf".source = link "${dots}/.config/hypr/devices/nixos.conf";
   };
 }

@@ -250,6 +250,7 @@ in {
     distrobox
     garamond-libre
     kdePackages.qtdeclarative
+    guvcview
   ];
 
   home.file = let
