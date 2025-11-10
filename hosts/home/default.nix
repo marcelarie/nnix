@@ -2,6 +2,7 @@
   config,
   pkgs,
   pkgsStable,
+  nixGL,
   ...
 }: let
   homeDir = "/home/marcel";
@@ -12,6 +13,11 @@ in {
     ../../home/terminal.nix
     ../../home/gui.nix
   ];
+
+  nixGL = {
+    packages = nixGL.packages;
+    defaultWrapper = "mesa";
+  };
 
   home.packages = with pkgs; [
     (config.lib.nixGL.wrap mixxx)

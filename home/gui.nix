@@ -27,10 +27,12 @@ in {
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "text/plain" = ["nvim-terminal.desktop"];
-      "text/markdown" = ["nvim-terminal.desktop"];
-      "text/html" = ["nvim-terminal.desktop"];
-      "application/json" = ["nvim-terminal.desktop"];
+      "text/plain" = ["nvim.desktop"];
+      "text/markdown" = ["nvim.desktop"];
+      "text/html" = ["nvim.desktop"];
+      "application/json" = ["nvim.desktop"];
+      "text/csv" = ["nvim.desktop"];
+      "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
 
       # Web browser scheme handlers
       "x-scheme-handler/http" = ["firefox_firefox.desktop" "firefox.desktop"];
@@ -51,13 +53,61 @@ in {
       "image/heic" = ["imv.desktop"];
 
       "application/pdf" = ["zathura.desktop" "org.pwmt.zathura-pdf-mupdf.desktop"];
+
+      # Video
+      "video/mp4" = ["mpv.desktop"];
+      "video/x-matroska" = ["mpv.desktop"];
+      "video/webm" = ["mpv.desktop"];
+      "video/x-msvideo" = ["mpv.desktop"];
+      "video/quicktime" = ["mpv.desktop"];
+
+      # Audio
+      "audio/mpeg" = ["mpv.desktop"];
+      "audio/flac" = ["mpv.desktop"];
+      "audio/ogg" = ["mpv.desktop"];
+      "audio/wav" = ["mpv.desktop"];
+      "audio/x-wav" = ["mpv.desktop"];
+      "audio/aac" = ["mpv.desktop"];
+
+      # Code files
+      "text/x-python" = ["nvim.desktop"];
+      "text/x-shellscript" = ["nvim.desktop"];
+      "text/x-yaml" = ["nvim.desktop"];
+      "application/x-yaml" = ["nvim.desktop"];
+      "text/x-toml" = ["nvim.desktop"];
+      "application/toml" = ["nvim.desktop"];
+      "text/javascript" = ["nvim.desktop"];
+      "application/javascript" = ["nvim.desktop"];
+      "application/typescript" = ["nvim.desktop"];
+      "text/x-rust" = ["nvim.desktop"];
+      "text/x-c" = ["nvim.desktop"];
+      "text/x-c++" = ["nvim.desktop"];
+      "text/x-go" = ["nvim.desktop"];
+      "application/xml" = ["nvim.desktop"];
+      "text/xml" = ["nvim.desktop"];
+
+      # Archives
+      "application/zip" = ["org.kde.ark.desktop"];
+      "application/x-tar" = ["org.kde.ark.desktop"];
+      "application/x-bzip" = ["org.kde.ark.desktop"];
+      "application/x-xz" = ["org.kde.ark.desktop"];
+      "application/gzip" = ["org.kde.ark.desktop"];
+      "application/x-7z-compressed" = ["org.kde.ark.desktop"];
+      "application/x-compressed-tar" = ["org.kde.ark.desktop"];
+
+      # Other
+      "application/epub+zip" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
+      "application/x-bittorrent" = ["org.qbittorrent.qBittorrent.desktop"];
+      "inode/directory" = ["kitty-open.desktop"];
     };
     associations = {
       added = {
-        "text/plain" = ["nvim-terminal.desktop"];
-        "text/markdown" = ["nvim-terminal.desktop"];
-        "text/json" = ["nvim-terminal.desktop"];
-        "application/json" = ["nvim-terminal.desktop"];
+        "text/plain" = ["nvim.desktop"];
+        "text/markdown" = ["nvim.desktop"];
+        "text/json" = ["nvim.desktop"];
+        "application/json" = ["nvim.desktop"];
+        "text/csv" = ["nvim.desktop"];
+        "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
 
         "image/png" = ["imv.desktop"];
         "image/jpeg" = ["imv.desktop"];
@@ -72,6 +122,46 @@ in {
         "image/heic" = ["imv.desktop"];
 
         "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
+
+        "video/mp4" = ["mpv.desktop"];
+        "video/x-matroska" = ["mpv.desktop"];
+        "video/webm" = ["mpv.desktop"];
+        "video/x-msvideo" = ["mpv.desktop"];
+        "video/quicktime" = ["mpv.desktop"];
+
+        "audio/mpeg" = ["mpv.desktop"];
+        "audio/flac" = ["mpv.desktop"];
+        "audio/ogg" = ["mpv.desktop"];
+        "audio/wav" = ["mpv.desktop"];
+        "audio/x-wav" = ["mpv.desktop"];
+        "audio/aac" = ["mpv.desktop"];
+
+        "text/x-python" = ["nvim.desktop"];
+        "text/x-shellscript" = ["nvim.desktop"];
+        "text/x-yaml" = ["nvim.desktop"];
+        "application/x-yaml" = ["nvim.desktop"];
+        "text/x-toml" = ["nvim.desktop"];
+        "application/toml" = ["nvim.desktop"];
+        "text/javascript" = ["nvim.desktop"];
+        "application/javascript" = ["nvim.desktop"];
+        "application/typescript" = ["nvim.desktop"];
+        "text/x-rust" = ["nvim.desktop"];
+        "text/x-c" = ["nvim.desktop"];
+        "text/x-c++" = ["nvim.desktop"];
+        "text/x-go" = ["nvim.desktop"];
+        "application/xml" = ["nvim.desktop"];
+        "text/xml" = ["nvim.desktop"];
+
+        "application/zip" = ["org.kde.ark.desktop"];
+        "application/x-tar" = ["org.kde.ark.desktop"];
+        "application/x-bzip" = ["org.kde.ark.desktop"];
+        "application/x-xz" = ["org.kde.ark.desktop"];
+        "application/gzip" = ["org.kde.ark.desktop"];
+        "application/x-7z-compressed" = ["org.kde.ark.desktop"];
+        "application/x-compressed-tar" = ["org.kde.ark.desktop"];
+
+        "application/epub+zip" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
+        "application/x-bittorrent" = ["org.qbittorrent.qBittorrent.desktop"];
       };
       removed = {
         "image/png" = ["gimp.desktop" "chromium-browser.desktop"];
@@ -95,6 +185,7 @@ in {
     blesh
     font-awesome
     abiword
+    kdePackages.ark
     blueman
     brightnessctl
     cliphist

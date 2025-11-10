@@ -11,8 +11,9 @@
     rust-overlay,
   }: let
     rust = import ../rust/common.nix {inherit nixpkgs crane rust-overlay;};
+    system = "x86_64-linux";
   in {
-    packages.${rust.system} = let
+    packages.${system} = let
       pulseaudio-next-output = rust.craneLib.buildPackage {
         pname = "pulseaudio-next-output";
         version = "unstable-2025-09-04";

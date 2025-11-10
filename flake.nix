@@ -138,7 +138,7 @@
             useUserPackages = true;
             users.${username} = import ./hosts/home/default.nix;
             backupFileExtension = "backup";
-            extraSpecialArgs = {inherit inputs pkgsStable;};
+            extraSpecialArgs = {inherit inputs pkgsStable nixGL;};
           };
         }
       ];
