@@ -162,4 +162,6 @@ with pkgs; [
   # libreoffice
   cowsay
   csvlens
+  v4l-utils
+  gst_all_1.gstreamer
 ]

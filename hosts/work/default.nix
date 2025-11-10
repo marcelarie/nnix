@@ -27,5 +27,6 @@ in {
     ".cargo/env".source = link "${dots}/.cargo/env";
     ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
+    ".config/hypr/devices/WS0277.conf".source = link "${dots}/.config/hypr/devices/WS0277.conf";
   };
 }
