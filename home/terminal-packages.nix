@@ -8,6 +8,7 @@ with pkgs; [
   bacon
   socat
   nuit
+  sqlfluff
   noisetorch
   ncdu
   duf
