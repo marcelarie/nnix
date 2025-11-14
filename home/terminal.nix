@@ -43,7 +43,7 @@ in {
         user = "git";
         identityFile = "~/.ssh/id_rsa_bitbucket";
         extraOptions = {
-          PQKeyExchangeDisableWarnings = "yes";
+          LogLevel = "ERROR";
         };
       };
     };
