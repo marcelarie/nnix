@@ -1,5 +1,5 @@
 {inputs}: final: prev: let
-  nightlySrc = inputs.neovim-nightly-overlay.packages.${prev.system}.default;
+  nightlySrc = inputs.neovim-nightly-overlay.packages.${prev.stdenv.hostPlatform.system}.default;
 
   nvim-nightly = prev.symlinkJoin {
     name = "nvim-nightly";

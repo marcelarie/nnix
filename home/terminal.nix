@@ -34,6 +34,21 @@ in {
       age
     ]);
 
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    matchBlocks = {
+      "bitbucket.org" = {
+        hostname = "bitbucket.org";
+        user = "git";
+        identityFile = "~/.ssh/id_rsa_bitbucket";
+        extraOptions = {
+          PQKeyExchangeDisableWarnings = "yes";
+        };
+      };
+    };
+  };
+
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
     clonesOwn = "${homeDir}/clones/own";
@@ -55,12 +70,17 @@ in {
     ".inputrc".source = link "${dots}/.inputrc";
     ".taskrc".source = link "${dots}/.taskrc";
     ".config/direnv/direnv.toml".source = link "${dots}/.config/direnv/direnv.toml";
-    ".claude/CLAUDE.md".source = link "${dots}/.claude/CLAUDE.md";
     ".claude/settings.json".source = link "${dots}/.claude/settings.json";
     ".config/btop/btop.conf".source = link "${dots}/.config/btop/btop.conf";
 
     # codex
     ".codex/AGENTS.md".source = link "${dots}/.codex/AGENTS.md";
+    # claude
+    ".claude/AGENTS.md".source = link "${dots}/.codex/AGENTS.md";
+
+    # ".claude/CLAUDE.md".source = link "${dots}/.claude/CLAUDE.md";
+    ".claude/CLAUDE.md".source = link "${dots}/.codex/AGENTS.md";
+
 
     "scripts" = {
       source = link "${dots}/scripts";

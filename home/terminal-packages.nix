@@ -150,6 +150,7 @@ with pkgs; [
   typos
   typos-lsp
   unzip
+  git-commit-search
   vtsls
   libnotify
   w3m

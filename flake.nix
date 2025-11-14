@@ -24,6 +24,10 @@
       url = "path:./packages/pulseaudio-next-output";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    git-commit-search = {
+      url = "path:./packages/git-commit-search";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zuban.url = "github:marcelarie/zuban";
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
@@ -74,6 +78,7 @@
     audio-select,
     rff,
     pulseaudio-next-output,
+    git-commit-search,
     zen-browser,
     ...
   } @ inputs: let
@@ -102,6 +107,7 @@
         (final: prev: {"audio-select" = inputs.audio-select.packages.${system}.default;})
         (final: prev: {rff = inputs.rff.packages.${system}.default;})
         (final: prev: {"pulseaudio-next-output" = inputs.pulseaudio-next-output.packages.${system}.default;})
+        (final: prev: {"git-commit-search" = inputs.git-commit-search.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
       ];
     };

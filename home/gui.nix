@@ -31,7 +31,8 @@ in {
       "text/markdown" = ["nvim.desktop"];
       "text/html" = ["nvim.desktop"];
       "application/json" = ["nvim.desktop"];
-      "text/csv" = ["nvim.desktop"];
+      "text/csv" = ["csvlens.desktop"];
+      "text/comma-separated-values" = ["csvlens.desktop"];
       "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
 
       # Web browser scheme handlers
@@ -106,7 +107,8 @@ in {
         "text/markdown" = ["nvim.desktop"];
         "text/json" = ["nvim.desktop"];
         "application/json" = ["nvim.desktop"];
-        "text/csv" = ["nvim.desktop"];
+        "text/csv" = ["csvlens.desktop"];
+        "text/comma-separated-values" = ["csvlens.desktop"];
         "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
 
         "image/png" = ["imv.desktop"];
@@ -252,6 +254,7 @@ in {
     garamond-libre
     kdePackages.qtdeclarative
     guvcview
+    nautilus
   ];
 
   home.file = let
@@ -306,5 +309,17 @@ in {
       source = link "${dots}/.config/wob";
       recursive = true;
     };
+
+    ".local/share/applications/csvlens.desktop".text = ''
+      [Desktop Entry]
+      Type=Application
+      Name=csvlens
+      Comment=CSV file viewer
+      Exec=kitty --hold csvlens %f
+      Terminal=false
+      MimeType=text/csv;text/comma-separated-values;
+      Categories=Utility;Viewer;
+      NoDisplay=false
+    '';
   };
 }
