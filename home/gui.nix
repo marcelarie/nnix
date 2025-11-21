@@ -91,8 +91,7 @@ in {
       "application/zip" = ["org.kde.ark.desktop"];
       "application/x-tar" = ["org.kde.ark.desktop"];
       "application/x-bzip" = ["org.kde.ark.desktop"];
-      "application/x-xz" = ["org.kde.ark.desktop"];
-      "application/gzip" = ["org.kde.ark.desktop"];
+      "application/x-xz" = ["org.kde.ark.desktop"]; "application/gzip" = ["org.kde.ark.desktop"];
       "application/x-7z-compressed" = ["org.kde.ark.desktop"];
       "application/x-compressed-tar" = ["org.kde.ark.desktop"];
 
@@ -245,6 +244,7 @@ in {
     unzip
     flameshot
     swappy
+    wlprop
     # rustdesk
     quickshell
     wob
@@ -254,6 +254,7 @@ in {
     kdePackages.qtdeclarative
     guvcview
     nautilus
+    wlprop
   ];
 
   home.file = let
