@@ -166,4 +166,6 @@ with pkgs; [
   csvlens
   v4l-utils
   gst_all_1.gstreamer
+  glirc
+  mdwatch
 ]
