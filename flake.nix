@@ -28,6 +28,10 @@
       url = "path:./packages/git-commit-search";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    foot-fork = {
+      url = "git+https://codeberg.org/marcelarie/foot";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zuban.url = "github:marcelarie/zuban";
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
@@ -108,6 +112,7 @@
         (final: prev: {rff = inputs.rff.packages.${system}.default;})
         (final: prev: {"pulseaudio-next-output" = inputs.pulseaudio-next-output.packages.${system}.default;})
         (final: prev: {"git-commit-search" = inputs.git-commit-search.packages.${system}.default;})
+        (final: prev: {foot = inputs.foot-fork.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
       ];
     };

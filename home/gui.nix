@@ -256,6 +256,7 @@ in {
     nautilus
     alacritty
     wine
+    neovide
   ];
 
   home.file = let

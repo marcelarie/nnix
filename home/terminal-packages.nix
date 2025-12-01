@@ -29,6 +29,7 @@ with pkgs; [
   bat
   typos
   typos-lsp
+  clang-tools
   emmylua-ls
   bash-preexec
   black
@@ -168,4 +169,5 @@ with pkgs; [
   gst_all_1.gstreamer
   glirc
   mdwatch
+  opencode
 ]

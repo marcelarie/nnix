@@ -46,6 +46,14 @@ in {
           LogLevel = "ERROR";
         };
       };
+      "codeberg.org" = {
+        hostname = "codeberg.org";
+        user = "git";
+        identityFile = "~/.ssh/id_ed25519_codeberg";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+        };
+      };
     };
   };
 
@@ -124,6 +132,16 @@ in {
 
     ".config/nvim" = {
       source = link nvim;
+      recursive = true;
+    };
+
+    ".config/eza" = {
+      source = link "${dots}/.config/eza";
+      recursive = true;
+    };
+
+    ".config/bat" = {
+      source = link "${dots}/.config/bat";
       recursive = true;
     };
 
