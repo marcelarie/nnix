@@ -134,6 +134,10 @@
     enable = true;
   };
 
+  services.ollama = {
+    enable = true;
+  };
+
   # Enable CUPS to print documents.
   services.printing.enable = true;
 

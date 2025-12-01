@@ -182,8 +182,8 @@ in {
 
   home.packages = with pkgs; [
     audio-select
-    wine64
     blesh
+    winetricks
     font-awesome
     abiword
     kdePackages.ark
@@ -255,6 +255,9 @@ in {
     guvcview
     nautilus
     wlprop
+    alacritty
+    wine
+    neovide
   ];
 
   home.file = let
