@@ -155,6 +155,11 @@ in {
       recursive = true;
     };
 
+    ".config/zk" = {
+      source = link "${dots}/.config/zk";
+      recursive = true;
+    };
+
     "notes" = {
       source = link notes;
       recursive = true;

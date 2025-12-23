@@ -162,7 +162,6 @@
           ./home/gui.nix
           ./home/terminal.nix
           ./hosts/work/default.nix
-          inputs.zen-browser.homeModules.twilight
           ({
             config,
             pkgs,

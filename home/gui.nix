@@ -36,10 +36,10 @@ in {
       "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
 
       # Web browser scheme handlers
-      "x-scheme-handler/http" = ["firefox_firefox.desktop" "firefox.desktop"];
-      "x-scheme-handler/https" = ["firefox_firefox.desktop" "firefox.desktop"];
-      "x-scheme-handler/about" = ["firefox_firefox.desktop" "firefox.desktop"];
-      "x-scheme-handler/unknown" = ["firefox_firefox.desktop" "firefox.desktop"];
+      "x-scheme-handler/http" = ["firefox.desktop"];
+      "x-scheme-handler/https" = ["firefox.desktop"];
+      "x-scheme-handler/about" = ["firefox.desktop"];
+      "x-scheme-handler/unknown" = ["firefox.desktop"];
 
       "image/png" = ["imv.desktop"];
       "image/jpeg" = ["imv.desktop"];
@@ -91,8 +91,7 @@ in {
       "application/zip" = ["org.kde.ark.desktop"];
       "application/x-tar" = ["org.kde.ark.desktop"];
       "application/x-bzip" = ["org.kde.ark.desktop"];
-      "application/x-xz" = ["org.kde.ark.desktop"];
-      "application/gzip" = ["org.kde.ark.desktop"];
+      "application/x-xz" = ["org.kde.ark.desktop"]; "application/gzip" = ["org.kde.ark.desktop"];
       "application/x-7z-compressed" = ["org.kde.ark.desktop"];
       "application/x-compressed-tar" = ["org.kde.ark.desktop"];
 
@@ -245,6 +244,7 @@ in {
     unzip
     flameshot
     swappy
+    wlprop
     # rustdesk
     quickshell
     wob
@@ -253,10 +253,9 @@ in {
     garamond-libre
     kdePackages.qtdeclarative
     guvcview
-    nautilus
-    alacritty
+    thunderbird
+    wlprop
     wine
-    neovide
   ];
 
   home.file = let

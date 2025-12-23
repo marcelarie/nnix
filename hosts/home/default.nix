@@ -19,6 +19,7 @@ in {
   #   defaultWrapper = "mesa";
   # };
 
+<<<<<<< HEAD
    home.packages = with pkgs; [
      (config.lib.nixGL.wrap mixxx)
      # pkgsStable.hyprlock
@@ -26,6 +27,25 @@ in {
      # stremio
      # xdg-desktop-portal-hyprland
      grim
+||||||| 92ea64f
+  home.packages = with pkgs; [
+    (config.lib.nixGL.wrap mixxx)
+    pkgsStable.hyprlock
+    pkgsStable.hyprland-qtutils
+    # stremio
+    xdg-desktop-portal-hyprland
+    grim
+=======
+  home.packages = with pkgs; [
+    (config.lib.nixGL.wrap mixxx)
+    pkgsStable.hyprlock
+    pkgsStable.hyprland-qtutils
+    # stremio
+    alacritty
+    neovide
+    xdg-desktop-portal-hyprland
+    grim
+>>>>>>> a7b0666cf4b15c5a1086dc8099ea0fbdd41abadf
     # zeroad
     slurp
     telegram-desktop
@@ -33,6 +53,7 @@ in {
     firefox
     imv
     alsa-utils
+    gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
     (pkgs.writeShellScriptBin "vivaldi-stable" ''
