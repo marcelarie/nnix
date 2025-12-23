@@ -101,10 +101,10 @@
           "qtwebengine-5.15.19"
         ];
       };
-      overlays = [
-        hyprlandInputs.overlays.default
-        hyprlandPlugins.overlays.default
-        (import ./overlays/neovim-nightly.nix {inherit inputs;})
+       overlays = [
+         # hyprlandInputs.overlays.default
+         # hyprlandPlugins.overlays.default
+         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (final: prev: {lsv = inputs.lsv.packages.${system}.default;})
@@ -136,13 +136,12 @@
     nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
       inherit system pkgs;
       specialArgs = {inherit inputs pkgsStable;};
-      modules = [
-        ./nixos/configuration.nix
-        ./nixos/hardware-configuration.nix
-        hyprlandInputs.nixosModules.default
-        inputs.musnix.nixosModules.musnix
-        inputs.sops-nix.nixosModules.sops
-        home-manager.nixosModules.home-manager
+       modules = [
+         ./nixos/configuration.nix
+         ./nixos/hardware-configuration.nix
+         inputs.musnix.nixosModules.musnix
+         inputs.sops-nix.nixosModules.sops
+         home-manager.nixosModules.home-manager
         {
           home-manager = {
             useGlobalPkgs = true;

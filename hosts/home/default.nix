@@ -19,13 +19,13 @@ in {
   #   defaultWrapper = "mesa";
   # };
 
-  home.packages = with pkgs; [
-    (config.lib.nixGL.wrap mixxx)
-    pkgsStable.hyprlock
-    pkgsStable.hyprland-qtutils
-    # stremio
-    xdg-desktop-portal-hyprland
-    grim
+   home.packages = with pkgs; [
+     (config.lib.nixGL.wrap mixxx)
+     # pkgsStable.hyprlock
+     # pkgsStable.hyprland-qtutils
+     # stremio
+     # xdg-desktop-portal-hyprland
+     grim
     # zeroad
     slurp
     telegram-desktop

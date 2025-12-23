@@ -48,11 +48,11 @@ with pkgs; [
   murex
   # opencode
   librespeed-cli
-  carapace
-  cbfmt
-  charm-freeze
-  claude-code
-  difftastic
+   carapace
+   cbfmt
+   charm-freeze
+   # claude-code
+   difftastic
   direnv
   dprint
   erdtree
@@ -102,11 +102,11 @@ with pkgs; [
   nixfmt-classic
   nnn
   deno
-  prettierd
-  util-linux
-  hyprland-workspaces
-  carl
-  nodePackages.prettier
+   prettierd
+   util-linux
+   # hyprland-workspaces
+   carl
+   nodePackages.prettier
   biome
   jujutsu
   fennel-ls
@@ -124,7 +124,6 @@ with pkgs; [
   prettierd
   rabbitmqadmin-ng
   repgrep
-  rff
   pulseaudio-next-output
   ripgrep
   ruby
@@ -163,7 +162,6 @@ with pkgs; [
   zsh
   # helix
   # libreoffice
-  cowsay
   csvlens
   v4l-utils
   gst_all_1.gstreamer
