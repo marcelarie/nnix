@@ -1,142 +1,137 @@
 # Shared cli only package list for both home-manager and nix-on-droid
 {pkgs}:
 with pkgs; [
-  atuin
-  atool
-  imagemagick_light
-  astro-language-server
-  bacon
-  socat
-  nuit
-  sqlfluff
-  noisetorch
-  ncdu
-  duf
-  lazygit
-  tig
-  ffmpeg
-  typst
-  ytfzf
-  delta
-  uv
-  mediainfo
-  parted
-  vscode-langservers-extracted
-  bash
-  pulseaudioFull
-  bash-language-server
-  dump
-  bat
-  typos
-  typos-lsp
-  clang-tools
-  emmylua-ls
-  bash-preexec
-  black
-  zuban
-  bottom
-  bind
-  iptables
-  wireguard-tools
-  wlr-randr
-  wlr-layout-ui
-  nftables
-  nwg-displays
-  gcalcli
-  btop
-  codex
-  murex
+  # helix
+  # libreoffice
+  # lsv
   # opencode
-  librespeed-cli
+  appimage-run
+  astro-language-server
+  atool
+  atuin
+  bacon
+  bash
+  bash-language-server
+  bash-preexec
+  bat
+  bind
+  biome
+  black
+  bottom
+  btop
   carapace
+  carl
   cbfmt
+  chafa
   charm-freeze
+  clang-tools
   claude-code
+  codex
+  cowsay
+  csvlens
+  delta
+  deno
   difftastic
   direnv
   dprint
+  duf
+  dump
+  emmylua-ls
   erdtree
   eslint_d
+  evtest 
   eza
   fastfetch
   fd
-  frogmouth
+  fennel-ls
+  ffmpeg
   fish
-  chafa
-  yt-dlp
-  playerctl
   fixjson
+  frogmouth
+  fx
   fzf
   fzy
+  gcalcli
   gcc
   gh
   git-cliff
+  git-commit-search
   gitFull
+  glirc
   glow
   gnumake
+  google-cloud-sdk-gce
   gping
   htop
+  hyprland-workspaces
+  imagemagick_light
+  iptables
   jaq
   java-language-server
   jq
-  luau
-  fx
+  jujutsu
   just
   killall
+  lazygit
+  libnotify
+  librespeed-cli
   libwebp
   lsr
-  # lsv
-  evtest 
-  pamixer
-  wob
-  sox
+  luau
   markdown-oxide
   marksman
   mdformat
+  mdwatch
+  mediainfo
   moor
+  murex
+  ncdu
   neofetch
   neovim
+  nftables
   nil
   nix-diff
   nix-search-cli
   nixfmt-classic
   nnn
-  deno
-  prettierd
-  util-linux
-  hyprland-workspaces
-  carl
   nodePackages.prettier
-  biome
-  jujutsu
-  fennel-ls
   nodejs_22
+  noisetorch
+  nuit
   nushell
+  nwg-displays
   ollama
   onefetch
+  opencode
   openssl
   optipng
+  pamixer
+  parted
   pass
   patchutils
   pfetch
+  playerctl
   poppler-utils
   prefetch-npm-deps
   prettierd
+  prettierd
+  pulseaudio-next-output
+  pulseaudioFull
   rabbitmqadmin-ng
   repgrep
   rff
-  pulseaudio-next-output
   ripgrep
   ruby
   rustup
-  slskd
-  appimage-run
   sendme
   shfmt
-  google-cloud-sdk-gce
+  slskd
+  socat
   solargraph
+  sox
   speedtest-cli
   speedtest-rs
+  sqlfluff
   sqlite
   starship
   stylua
@@ -144,30 +139,35 @@ with pkgs; [
   taplo
   taskwarrior-tui
   taskwarrior3
+  tig
   tldr
   tmux
   traceroute
   tree
   trippy
   typos
+  typos
   typos-lsp
+  typos-lsp
+  typst
   unzip
-  git-commit-search
+  util-linux
+  uv
+  v4l-utils
+  vscode-langservers-extracted
   vtsls
-  libnotify
   w3m
+  wireguard-tools
+  wlr-layout-ui
+  wlr-randr
+  wob
   xan
+  yt-dlp
+  ytfzf
   zbar
   zellij
+  zk
   zoxide
   zsh
-  # helix
-  # libreoffice
-  cowsay
-  csvlens
-  v4l-utils
-  gst_all_1.gstreamer
-  glirc
-  mdwatch
-  opencode
+  zuban
 ]

@@ -24,6 +24,8 @@ in {
     pkgsStable.hyprlock
     pkgsStable.hyprland-qtutils
     # stremio
+    alacritty
+    neovide
     xdg-desktop-portal-hyprland
     grim
     # zeroad
@@ -33,6 +35,7 @@ in {
     firefox
     imv
     alsa-utils
+    gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
     (pkgs.writeShellScriptBin "vivaldi-stable" ''

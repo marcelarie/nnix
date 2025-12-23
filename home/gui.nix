@@ -36,10 +36,10 @@ in {
       "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
 
       # Web browser scheme handlers
-      "x-scheme-handler/http" = ["firefox_firefox.desktop" "firefox.desktop"];
-      "x-scheme-handler/https" = ["firefox_firefox.desktop" "firefox.desktop"];
-      "x-scheme-handler/about" = ["firefox_firefox.desktop" "firefox.desktop"];
-      "x-scheme-handler/unknown" = ["firefox_firefox.desktop" "firefox.desktop"];
+      "x-scheme-handler/http" = ["firefox.desktop"];
+      "x-scheme-handler/https" = ["firefox.desktop"];
+      "x-scheme-handler/about" = ["firefox.desktop"];
+      "x-scheme-handler/unknown" = ["firefox.desktop"];
 
       "image/png" = ["imv.desktop"];
       "image/jpeg" = ["imv.desktop"];
@@ -253,11 +253,9 @@ in {
     garamond-libre
     kdePackages.qtdeclarative
     guvcview
-    nautilus
+    thunderbird
     wlprop
-    alacritty
     wine
-    neovide
   ];
 
   home.file = let
