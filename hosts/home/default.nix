@@ -19,23 +19,6 @@ in {
   #   defaultWrapper = "mesa";
   # };
 
-<<<<<<< HEAD
-   home.packages = with pkgs; [
-     (config.lib.nixGL.wrap mixxx)
-     # pkgsStable.hyprlock
-     # pkgsStable.hyprland-qtutils
-     # stremio
-     # xdg-desktop-portal-hyprland
-     grim
-||||||| 92ea64f
-  home.packages = with pkgs; [
-    (config.lib.nixGL.wrap mixxx)
-    pkgsStable.hyprlock
-    pkgsStable.hyprland-qtutils
-    # stremio
-    xdg-desktop-portal-hyprland
-    grim
-=======
   home.packages = with pkgs; [
     (config.lib.nixGL.wrap mixxx)
     pkgsStable.hyprlock
@@ -45,7 +28,6 @@ in {
     neovide
     xdg-desktop-portal-hyprland
     grim
->>>>>>> a7b0666cf4b15c5a1086dc8099ea0fbdd41abadf
     # zeroad
     slurp
     telegram-desktop
@@ -63,7 +45,8 @@ in {
 
   programs.mpv = {
     enable = true;
-    scripts = [pkgs.mpvScripts.mpris];
+    package = pkgsStable.mpv;
+    # scripts = [pkgsStable.mpvScripts.mpris];
   };
 
   home.file = let

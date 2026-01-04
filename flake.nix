@@ -6,7 +6,7 @@
     musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
     lsv = {
       url = "path:./packages/lsv";
@@ -102,10 +102,10 @@
         ];
       };
        overlays = [
-         # hyprlandInputs.overlays.default
-         # hyprlandPlugins.overlays.default
-         (import ./overlays/neovim-nightly.nix {inherit inputs;})
-        (final: prev: {tmex = tmexPkg;})
+           # hyprlandInputs.overlays.default
+           # hyprlandPlugins.overlays.default
+           (import ./overlays/neovim-nightly.nix {inherit inputs;})
+          (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (final: prev: {lsv = inputs.lsv.packages.${system}.default;})
         (final: prev: {"audio-select" = inputs.audio-select.packages.${system}.default;})

@@ -28,7 +28,7 @@ in {
       _1password-cli
       alejandra
       asciinema
-      nvim-nightly
+      # nvim-nightly
       jdd
       sops
       age

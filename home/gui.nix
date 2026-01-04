@@ -91,7 +91,8 @@ in {
       "application/zip" = ["org.kde.ark.desktop"];
       "application/x-tar" = ["org.kde.ark.desktop"];
       "application/x-bzip" = ["org.kde.ark.desktop"];
-      "application/x-xz" = ["org.kde.ark.desktop"]; "application/gzip" = ["org.kde.ark.desktop"];
+      "application/x-xz" = ["org.kde.ark.desktop"];
+      "application/gzip" = ["org.kde.ark.desktop"];
       "application/x-7z-compressed" = ["org.kde.ark.desktop"];
       "application/x-compressed-tar" = ["org.kde.ark.desktop"];
 
@@ -233,7 +234,7 @@ in {
     tofi
     ubuntu-sans-mono
     way-displays
-    waybar
+    pkgsStable.waybar
     wf-recorder
     wl-clipboard
     wlr-layout-ui
@@ -256,22 +257,25 @@ in {
     thunderbird
     wlprop
     wine
+    pinentry-all
+    librewolf
+    mullvad-browser
   ];
 
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
     clonesOwn = "${homeDir}/clones/own";
     dots = "${clonesOwn}/dots";
-   in {
-     # GUI-specific config files only
-     # ".config/hypr/hyprland.conf".source =
-     #   link "${dots}/.config/hypr/hyprland.conf";
-     # ".config/hypr/hypridle.conf".source =
-     #   link "${dots}/.config/hypr/hypridle.conf";
-     # ".config/hypr/hyprlock.conf".source =
-     #   link "${dots}/.config/hypr/hyprlock.conf";
-     # ".config/hypr/hyprpaper.conf".source =
-     #   link "${dots}/.config/hypr/hyprpaper.conf";
+  in {
+    # GUI-specific config files only
+    ".config/hypr/hyprland.conf".source =
+      link "${dots}/.config/hypr/hyprland.conf";
+    ".config/hypr/hypridle.conf".source =
+      link "${dots}/.config/hypr/hypridle.conf";
+    ".config/hypr/hyprlock.conf".source =
+      link "${dots}/.config/hypr/hyprlock.conf";
+    ".config/hypr/hyprpaper.conf".source =
+      link "${dots}/.config/hypr/hyprpaper.conf";
     ".config/hypr/keybinds.conf".source =
       link "${dots}/.config/hypr/keybinds.conf";
     ".config/hypr/monitors.conf".source =

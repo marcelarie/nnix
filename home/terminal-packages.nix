@@ -6,6 +6,7 @@ with pkgs; [
   # lsv
   # opencode
   appimage-run
+  passff-host
   astro-language-server
   atool
   atuin
@@ -39,7 +40,7 @@ with pkgs; [
   emmylua-ls
   erdtree
   eslint_d
-  evtest 
+  evtest
   eza
   fastfetch
   fd
@@ -117,20 +118,16 @@ with pkgs; [
   prettierd
   pulseaudio-next-output
   pulseaudioFull
+  python3Packages.python-lsp-server
   rabbitmqadmin-ng
   repgrep
-<<<<<<< HEAD
+  # rff
   pulseaudio-next-output
-||||||| 92ea64f
-  rff
-  pulseaudio-next-output
-=======
-  rff
->>>>>>> a7b0666cf4b15c5a1086dc8099ea0fbdd41abadf
   ripgrep
   ruby
   rustup
   sendme
+  clang-tools
   shfmt
   slskd
   socat
@@ -176,16 +173,6 @@ with pkgs; [
   zk
   zoxide
   zsh
-<<<<<<< HEAD
-  # helix
-  # libreoffice
-  csvlens
-  v4l-utils
-  gst_all_1.gstreamer
-  glirc
-  mdwatch
-  opencode
-||||||| 92ea64f
   # helix
   # libreoffice
   cowsay
@@ -195,7 +182,7 @@ with pkgs; [
   glirc
   mdwatch
   opencode
-=======
   zuban
->>>>>>> a7b0666cf4b15c5a1086dc8099ea0fbdd41abadf
+  unrar
+  mdx-language-server
 ]
