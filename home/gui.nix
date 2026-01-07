@@ -91,7 +91,8 @@ in {
       "application/zip" = ["org.kde.ark.desktop"];
       "application/x-tar" = ["org.kde.ark.desktop"];
       "application/x-bzip" = ["org.kde.ark.desktop"];
-      "application/x-xz" = ["org.kde.ark.desktop"]; "application/gzip" = ["org.kde.ark.desktop"];
+      "application/x-xz" = ["org.kde.ark.desktop"];
+      "application/gzip" = ["org.kde.ark.desktop"];
       "application/x-7z-compressed" = ["org.kde.ark.desktop"];
       "application/x-compressed-tar" = ["org.kde.ark.desktop"];
 
@@ -233,7 +234,7 @@ in {
     tofi
     ubuntu-sans-mono
     way-displays
-    waybar
+    pkgsStable.waybar
     wf-recorder
     wl-clipboard
     wlr-layout-ui
@@ -257,6 +258,9 @@ in {
     wlprop
     wine
     vvvvvv
+    pinentry-all
+    librewolf
+    mullvad-browser
   ];
 
   home.file = let
@@ -304,6 +308,11 @@ in {
 
     ".config/eww" = {
       source = link "${dots}/.config/eww";
+      recursive = true;
+    };
+
+    ".config/blueman" = {
+      source = link "${dots}/.config/blueman";
       recursive = true;
     };
 

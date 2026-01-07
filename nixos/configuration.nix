@@ -24,14 +24,18 @@
     ];
     warn-dirty = false;
     substituters = [
+      "https://nix-community.cachix.org"
       # "https://hyprland.cachix.org"
       # "https://marcelarie.cachix.org"
       "https://cache.nixos.org"
     ];
-    # trusted-public-keys = [
-    #   "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
-    # ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2QlZceJ1306tMKZnQAS4p75VYwtwHf1qkw="
+      # "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
+    ];
     trusted-users = ["root" "marcel"];
+    connect-timeout = 15;
   };
 
   # TODO: Learn how to setup cachix auto push
@@ -96,6 +100,7 @@
   # Enable networking
   networking.networkmanager.enable = true;
   networking.networkmanager.plugins = with pkgs; [networkmanager-openvpn];
+  # networking.enableIPv6 = false;
 
   # Set your time zone.
   time.timeZone = "Europe/Madrid";
@@ -119,11 +124,11 @@
   # You can disable this if you're only using the Wayland session.
   # services.xserver.enable = true;
 
-  # Enable the KDE Plasma Desktop Environment.
-  services.desktopManager.plasma6.enable = true;
-  programs.hyprland.enable = true;
-  xdg.portal.enable = true;
-  xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-hyprland];
+    # Enable the KDE Plasma Desktop Environment.
+    services.desktopManager.plasma6.enable = true;
+    programs.hyprland.enable = true;
+    xdg.portal.enable = true;
+    xdg.portal.extraPortals = [];
 
   # Configure keymap in X11
   services.xserver.xkb = {

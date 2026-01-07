@@ -45,7 +45,8 @@ in {
 
   programs.mpv = {
     enable = true;
-    scripts = [pkgs.mpvScripts.mpris];
+    package = pkgsStable.mpv;
+    # scripts = [pkgsStable.mpvScripts.mpris];
   };
 
   home.file = let
