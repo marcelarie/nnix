@@ -256,6 +256,7 @@ in {
     thunderbird
     wlprop
     wine
+    vvvvvv
   ];
 
   home.file = let
