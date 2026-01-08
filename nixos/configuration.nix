@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{ config, pkgs, ... }: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -18,10 +14,7 @@
     keep-outputs = true;
     keep-derivations = true;
     auto-optimise-store = true;
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+    experimental-features = [ "nix-command" "flakes" ];
     warn-dirty = false;
     substituters = [
       "https://nix-community.cachix.org"
@@ -34,7 +27,7 @@
       "nix-community.cachix.org-1:mB9FSh9qf2QlZceJ1306tMKZnQAS4p75VYwtwHf1qkw="
       # "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
     ];
-    trusted-users = ["root" "marcel"];
+    trusted-users = [ "root" "marcel" ];
     connect-timeout = 15;
   };
 
@@ -73,11 +66,7 @@
     bluetooth = {
       enable = true;
       powerOnBoot = true;
-      settings = {
-        General = {
-          ReconnectAttempts = "0";
-        };
-      };
+      settings = { General = { ReconnectAttempts = "0"; }; };
     };
   };
   services.mullvad-vpn.enable = true;
@@ -99,7 +88,7 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = with pkgs; [networkmanager-openvpn];
+  networking.networkmanager.plugins = with pkgs; [ networkmanager-openvpn ];
   # networking.enableIPv6 = false;
 
   # Set your time zone.
@@ -124,24 +113,20 @@
   # You can disable this if you're only using the Wayland session.
   # services.xserver.enable = true;
 
-    # Enable the KDE Plasma Desktop Environment.
-    services.desktopManager.plasma6.enable = true;
-    programs.hyprland.enable = true;
-    xdg.portal.enable = true;
-    xdg.portal.extraPortals = [];
+  # Enable the KDE Plasma Desktop Environment.
+  services.desktopManager.plasma6.enable = true;
+  programs.hyprland.enable = true;
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [ ];
 
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "us";
     variant = "";
   };
-  services.nzbget = {
-    enable = true;
-  };
+  services.nzbget = { enable = true; };
 
-  services.ollama = {
-    enable = true;
-  };
+  services.ollama = { enable = true; };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -182,12 +167,13 @@
   users.users.marcel = {
     isNormalUser = true;
     description = "marcel";
-    extraGroups = ["networkmanager" "wheel" "audio" "docker"];
-    packages = with pkgs; [
-      kitty
-      # kdePackages.kate
-      #  thunderbird
-    ];
+    extraGroups = [ "networkmanager" "wheel" "audio" "docker" ];
+    packages = with pkgs;
+      [
+        kitty
+        # kdePackages.kate
+        #  thunderbird
+      ];
   };
 
   services.displayManager = {
@@ -196,7 +182,7 @@
       wayland.enable = true;
       theme = "breeze";
     };
-    sessionPackages = [pkgs.hyprland pkgs.niri];
+    sessionPackages = [ pkgs.hyprland pkgs.niri ];
     defaultSession = "hyprland";
     autoLogin = {
       enable = false;
@@ -206,6 +192,7 @@
 
   programs.firefox = {
     enable = true;
+    nativeMessagingHosts.packages = [ pkgs.passff-host ];
 
     policies = {
       Preferences = {
@@ -266,9 +253,7 @@
     defaultSopsFile = ../secrets/secrets.yaml;
     defaultSopsFormat = "yaml";
     gnupg.home = "/home/marcel/.gnupg";
-    secrets.example_secret = {
-      owner = "marcel";
-    };
+    secrets.example_secret = { owner = "marcel"; };
   };
 
   # List services that you want to enable:

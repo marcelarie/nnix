@@ -1,10 +1,5 @@
-{
-  config,
-  pkgs,
-  pkgsStable,
-  ...
-}: let
-  homeDir = config.home.homeDirectory;
+{ config, pkgs, pkgsStable, ... }:
+let homeDir = config.home.homeDirectory;
 in {
   home.packages = with pkgs; [
     _1password-cli
@@ -30,6 +25,9 @@ in {
     ".cargo/env".source = link "${dots}/.cargo/env";
     ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
-    ".config/hypr/devices/WS0277.conf".source = link "${dots}/.config/hypr/devices/WS0277.conf";
+    ".config/hypr/devices/WS0277.conf".source =
+      link "${dots}/.config/hypr/devices/WS0277.conf";
+    ".mozilla/native-messaging-hosts/passff.json".source =
+      "${pkgs.passff-host}/lib/mozilla/native-messaging-hosts/passff.json";
   };
 }
