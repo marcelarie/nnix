@@ -260,6 +260,7 @@ in {
     pinentry-all
     librewolf
     mullvad-browser
+    signal-desktop
   ];
 
   home.file = let
