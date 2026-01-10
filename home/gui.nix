@@ -13,6 +13,41 @@ in {
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
 
+  programs.firefox = {
+    enable = true;
+
+    profiles.default = {
+      path = "08wgv37i.default-1759997538874";
+      isDefault = true;
+      userChrome = ''
+#TabsToolbar,
+#toolbar-menubar,
+#PersonalToolbar,
+#titlebar {
+  visibility: collapse !important;
+}
+
+#navigator-toolbox {
+  position: relative;
+}
+
+#nav-bar {
+  margin-top: -40px !important;
+  opacity: 0;
+  z-index: 1;
+  transition:
+    margin-top 0.2s ease,
+    opacity 0.2s ease !important;
+}
+
+#navigator-toolbox:focus-within #nav-bar {
+  margin-top: 0 !important;
+  opacity: 1 !important;
+}
+      '';
+    };
+  };
+
   # programs.zen-browser.enable = true;
 
   home.sessionVariables = {
@@ -261,6 +296,7 @@ in {
     librewolf
     mullvad-browser
     signal-desktop
+    # open-webui
   ];
 
   home.file = let
