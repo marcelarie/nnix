@@ -184,4 +184,6 @@ with pkgs; [
   unrar
   mdx-language-server
   aider-chat
+  vale
+  vale-ls
 ]
