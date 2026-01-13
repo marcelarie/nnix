@@ -215,30 +215,30 @@
     };
   };
 
-  programs.firefox = {
-    enable = true;
-
-    policies = {
-      Preferences = {
-        "extensions.pocket.enabled" = {
-          Value = false;
-          Status = "locked";
-        };
-        "ui.key.menuAccessKeyFocuses" = {
-          Value = false;
-          Status = "locked";
-        };
-        "browser.tabs.allowTabDetach" = {
-          Value = false;
-          Status = "locked";
-        };
-        "alerts.useSystemBackend" = {
-          Value = true;
-          Status = "locked";
-        };
-      };
-    };
-  };
+  # programs.firefox = {
+  #   enable = true;
+  #
+  #   policies = {
+  #     Preferences = {
+  #       "extensions.pocket.enabled" = {
+  #         Value = false;
+  #         Status = "locked";
+  #       };
+  #       "ui.key.menuAccessKeyFocuses" = {
+  #         Value = false;
+  #         Status = "locked";
+  #       };
+  #       "browser.tabs.allowTabDetach" = {
+  #         Value = false;
+  #         Status = "locked";
+  #       };
+  #       "alerts.useSystemBackend" = {
+  #         Value = true;
+  #         Status = "locked";
+  #       };
+  #     };
+  #   };
+  # };
 
   environment.systemPackages = with pkgs; [
     vim

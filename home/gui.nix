@@ -36,8 +36,73 @@ in {
       # - Keep pinned tabs alive
       # - Song id
       # - UnDistracted - Hide Facebook, YouTube Feeds
-      # - UltimaDark
+      # - UltimaDark (theme)
       # - RYS — Remove YouTube Suggestions
+
+      bookmarks = {
+        force = true;
+        settings = [
+        {
+          name = "Bookmarks Toolbar";
+          toolbar = true;
+          bookmarks = [
+            { name = "marcelarie - Dashboard - Codeberg.org"; url = "https://codeberg.org/"; }
+            { name = "The Rustonomicon"; url = "https://doc.rust-lang.org/nomicon/index.html"; }
+            { name = "Shared-State Concurrency - The Rust Programming Language"; url = "https://doc.rust-lang.org/book/ch16-03-shared-state.html"; }
+            { name = "Better HN"; url = "https://bhn.vercel.app/top"; }
+            { name = "Magnet search"; url = "https://btdig.com/"; }
+            { name = "Sci-Hub: knowledge belongs to all mankind"; url = "https://sci-hub.st/"; }
+            { name = "Opensauced"; url = "https://app.opensauced.pizza/workspaces/3164341c-c16e-47d9-8cf9-b74220432337"; }
+            { name = "Anna's Archive"; url = "https://annas-archive.org/"; }
+            { name = "Bitbucket Issues dashboard"; url = "https://jira.atlassian.com/projects/BSERV/issues/BSERV-19819?filter=allissues"; }
+            { name = "News Minimalist"; url = "https://www.newsminimalist.com/?sort=significance"; }
+            { name = "Browse Standard Ebooks - Standard Ebooks: Free and liberated ebooks, carefully produced for the true book lover"; url = "https://standardebooks.org/ebooks"; }
+            { name = "cmt dev"; url = "https://cmt-dev.wocs3.com/"; }
+            { name = "cmt stg"; url = "https://cmt-stg.wocs3.com/"; }
+            { name = "Marcel Manzanares - Personal"; url = "https://worldsensing.bamboohr.com/employees/employee.php?id=349&page=2092"; }
+            { name = "CMT - 006_ENG/Internal - Google Drive"; url = "https://drive.google.com/drive/u/1/folders/1aTJz4Omb0QXNUo1WeLrKFR_bMMRUf2q0"; }
+            { name = "006_ENG/External - Google Drive"; url = "https://drive.google.com/drive/u/1/folders/0AOJLFb2bKvUfUk9PVA"; }
+            { name = "Desk Booking Tool - Google Sheets"; url = "https://docs.google.com/spreadsheets/d/1YSfm1OqV_Kel-WQtCuzdLkEne_uThY6rW1CeVEWyLug/edit?gid=808998914#gid=808998914"; }
+            { name = "VPN Installation | Guides"; url = "https://guide.int.worldsensing.com/books/manuals/page/vpn-installation-and-configuration"; }
+            { name = "1Password"; url = "https://worldsensing.1password.eu/signin"; }
+            { name = "OpenSearch Dashboards"; url = "https://opensearch.wocs3.com/app/login?nextUrl=%2Fapp%2Fdiscover#/?_g=%28filters:!%28%29,refreshInterval:%28pause:!t,value:0%29,time:%28from:now-15m,to:now%29%29&_a=%28columns:!%28_source%29,filters:!%28%29,index:dc9292e0-bc12-11ed-a5f8-df7a538a5c2e,interval:auto,query:%28language:kuery,query:%27%27%29,sort:!%28%29%29"; }
+            { name = "Worldsensing | Connectivity Management Tool"; url = "https://cmt-dev.wocs3.com/login"; }
+            { name = "Alan Turing - 006_ENG/Internal - Google Drive"; url = "https://drive.google.com/drive/u/1/folders/1nBsm096yv2hcJdV3NoJYj_-WStxW-KWA"; }
+            { name = "Argo CD"; url = "https://argocd-dev.wocs3.com/login?return_url=https%3A%2F%2Fargocd-dev.wocs3.com%2Fapplications"; }
+            { name = "Google Chat"; url = "https://mail.google.com/chat/u/1/#chat/home"; }
+            { name = "Tech Debt Requests"; url = "https://ws.tpondemand.com/restui/board.aspx?#page=board/4667432318295481078&appConfig=eyJhY2lkIjoiIn0="; }
+            { name = "Work Calendar"; url = "https://calendar.google.com/calendar/u/1/r/week"; }
+            { name = "Component library [CMT Cloud] – Figma"; url = "https://www.figma.com/design/chpKXzkgKmQCQINNRtohvm/Component-library-%5BCMT-Cloud%5D?node-id=1773-224&t=ynpt3CRPABgMZQSh-0"; }
+            { name = "Alan Turing - Team Inventory - Google Sheets"; url = "https://docs.google.com/spreadsheets/d/14W-ffaFCLPsL1KZYb2OaC4SJSKnmvOtEK_SsMsNfmzg/edit?gid=0#gid=0"; }
+            { name = "Postman WS Workspace"; url = "https://web.postman.co/workspace/5c7a1002-0b1c-43fe-82fd-5fc18ed1ef63/request/41010325-5fc76bb5-24f8-4704-9522-fdc66e0cb6ac"; }
+            { name = "CMT.drawio - draw.io"; url = "https://app.diagrams.net/#G1krBRlaHvGF7gaEQ8ShMSpJeB2YpB_gIg#%7B%22pageId%22%3A%22Njqf2apxFuwAC4SVHstD%22%7D"; }
+            { name = "Keycloak Administration Console"; url = "https://keycloak-dev.wocs3.com/admin/master/console/"; }
+            { name = "92760 Hide/DIsable Integration Creation and Visibility for Account Admins - Google Docs"; url = "https://docs.google.com/document/d/1s4vl_41iCarTXBRgcW2jezwjcMgyjycgQvPE4v9zONw/edit?tab=t.0"; }
+            { name = "CMT Cloud How-To / Support - Google Docs"; url = "https://docs.google.com/document/d/1m18P6bPIX9aiusiom-J-GDEiqOuzPQANb6IYCDHh1lo/edit?tab=t.0"; }
+            { name = "ThingsBoard | Home"; url = "https://thingsboard-dev.wocs3.com/home"; }
+            { name = "WS Snippets — Bitbucket"; url = "https://bitbucket.org/worldsensing_traffic/workspace/snippets/"; }
+            { name = "Goku M3 - Web - Front end"; url = "https://ws.tpondemand.com/restui/board.aspx?#page=feature/99189"; }
+            { name = "ThreadX4 internal API - Google Docs"; url = "https://docs.google.com/document/d/1DtttiaXcZogKqotNqtJAKeR2cOuzK9ERwDy2QM3WdyU/edit?tab=t.efmodvkivcyt"; }
+          ];
+        }
+      ];
+      };
+
+      search = {
+        default = "Kagi";
+        force = true;
+        engines = {
+          "Kagi" = {
+            urls = [{
+              template = "https://kagi.com/search";
+              params = [
+                { name = "q"; value = "{searchTerms}"; }
+              ];
+            }];
+            definedAliases = [ "@k" ];
+          };
+        };
+      };
 
       settings = {
         "browser.aboutConfig.showWarning" = false;
@@ -49,8 +114,10 @@ in {
         "browser.safebrowsing.downloads.remote.block_potentially_unwanted" = false;
         "browser.startup.homepage" = "https://kagi.com";
         "browser.startup.page" = 3;
+        "browser.theme.toolbar-theme" = 0;
         "browser.urlbar.showSearchSuggestionsFirst" = false;
         "browser.urlbar.suggest.engines" = false;
+        "extensions.activeThemeID" = "{f2b832a9-f0f5-4532-934c-74b25eb23fb9}";
         "general.autoScroll" = true;
         "intl.accept_languages" = "en-us,en,es-es";
         "media.eme.enabled" = true;
