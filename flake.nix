@@ -9,6 +9,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
+    nur.url = "github:nix-community/NUR";
     lsv = {
       url = "path:./packages/lsv";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -90,6 +91,7 @@
     git-commit-search,
     haralyzer,
     zen-browser,
+    nur,
     ...
   } @ inputs: let
     hyprlandInputs = inputs.hyprland;
@@ -110,6 +112,7 @@
       overlays = [
         # hyprlandInputs.overlays.default
         # hyprlandPlugins.overlays.default
+        nur.overlays.default
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})

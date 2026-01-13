@@ -19,6 +19,52 @@ in {
     profiles.default = {
       path = "08wgv37i.default-1759997538874";
       isDefault = true;
+
+      extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
+        ublock-origin
+        reddit-enhancement-suite
+      ];
+
+      # Extensions not available in NUR (install manually):
+      # - Vimmatic
+      # - Greasemonkey
+      # - Redirector
+      # - LanguageTool
+      # - PassFF
+      # - 1Password
+      # - TWP - Translate Web Pages
+      # - Keep pinned tabs alive
+      # - Song id
+      # - UnDistracted - Hide Facebook, YouTube Feeds
+      # - UltimaDark
+      # - RYS — Remove YouTube Suggestions
+
+      settings = {
+        "browser.aboutConfig.showWarning" = false;
+        "browser.bookmarks.showMobileBookmarks" = true;
+        "browser.discovery.enabled" = false;
+        "browser.newtabpage.activity-stream.feeds.topsites" = false;
+        "browser.newtabpage.activity-stream.showSearch" = false;
+        "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
+        "browser.safebrowsing.downloads.remote.block_potentially_unwanted" = false;
+        "browser.startup.homepage" = "https://kagi.com";
+        "browser.startup.page" = 3;
+        "browser.urlbar.showSearchSuggestionsFirst" = false;
+        "browser.urlbar.suggest.engines" = false;
+        "general.autoScroll" = true;
+        "intl.accept_languages" = "en-us,en,es-es";
+        "media.eme.enabled" = true;
+        "media.videocontrols.picture-in-picture.video-toggle.enabled" = false;
+        "network.dns.disablePrefetch" = true;
+        "network.http.speculative-parallel-limit" = 0;
+        "network.prefetch-next" = false;
+        "privacy.clearOnShutdown_v2.formdata" = true;
+        "privacy.userContext.enabled" = true;
+        "privacy.userContext.ui.enabled" = true;
+        "signon.rememberSignons" = false;
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+      };
+
       userChrome = ''
 #TabsToolbar,
 #toolbar-menubar,
