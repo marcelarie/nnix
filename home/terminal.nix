@@ -146,6 +146,16 @@ in {
       recursive = true;
     };
 
+    ".config/vale" = {
+      source = link "${dots}/.config/vale";
+      recursive = true;
+    };
+
+    ".config/opencode" = {
+      source = link "${dots}/.config/opencode";
+      recursive = true;
+    };
+
     ".config/tombi" = {
       source = link "${dots}/.config/tombi";
       recursive = true;

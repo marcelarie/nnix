@@ -11,7 +11,6 @@ in {
     (config.lib.nixGL.wrap neovide)
     (config.lib.nixGL.wrap imv)
     (config.lib.nixGL.wrap niri)
-    (config.lib.nixGL.wrap firefox)
     (config.lib.nixGL.wrap freetube)
     (config.lib.nixGL.wrap nautilus)
   ];

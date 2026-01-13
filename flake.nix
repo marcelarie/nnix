@@ -29,6 +29,10 @@
       url = "path:./packages/git-commit-search";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    haralyzer = {
+      url = "path:./packages/haralyzer";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     foot-fork = {
       url = "git+https://codeberg.org/marcelarie/foot";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -84,6 +88,7 @@
     rff,
     pulseaudio-next-output,
     git-commit-search,
+    haralyzer,
     zen-browser,
     ...
   } @ inputs: let
@@ -113,6 +118,7 @@
         (final: prev: {rff = inputs.rff.packages.${system}.default;})
         (final: prev: {"pulseaudio-next-output" = inputs.pulseaudio-next-output.packages.${system}.default;})
         (final: prev: {"git-commit-search" = inputs.git-commit-search.packages.${system}.default;})
+        (final: prev: {haralyzer = inputs.haralyzer.packages.${system}.default;})
         (final: prev: {foot = inputs.foot-fork.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
         (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})

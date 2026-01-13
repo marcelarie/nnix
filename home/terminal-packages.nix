@@ -4,7 +4,6 @@ with pkgs; [
   # helix
   # libreoffice
   # lsv
-  # opencode
   appimage-run
   passff-host
   astro-language-server
@@ -63,6 +62,7 @@ with pkgs; [
   gnumake
   google-cloud-sdk-gce
   gping
+  haralyzer
   htop
   hyprland-workspaces
   imagemagick_light
@@ -93,7 +93,7 @@ with pkgs; [
   nil
   nix-diff
   nix-search-cli
-  nixfmt-classic
+  nixfmt
   nnn
   nodePackages.prettier
   nodejs_22
@@ -181,9 +181,11 @@ with pkgs; [
   gst_all_1.gstreamer
   glirc
   mdwatch
-  opencode
   zuban
   unrar
   mdx-language-server
   htmlq
+  aider-chat
+  vale
+  vale-ls
 ]

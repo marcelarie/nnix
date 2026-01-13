@@ -32,7 +32,6 @@ in {
     slurp
     telegram-desktop
     # ungoogled-chromium
-    firefox
     imv
     alsa-utils
     gst_all_1.gstreamer

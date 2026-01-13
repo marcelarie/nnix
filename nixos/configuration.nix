@@ -128,6 +128,17 @@
 
   services.ollama = { enable = true; };
 
+  systemd.services.ollama.environment = {
+    OLLAMA_CONTEXT_LENGTH = "32768";
+    OLLAMA_FLASH_ATTENTION = "1";
+    OLLAMA_KEEP_ALIVE = "24h";
+  };
+
+  services.open-webui = {
+    enable = true;
+    port = 8080;
+  };
+
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
