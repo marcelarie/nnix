@@ -132,32 +132,32 @@ in {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
       };
 
-      userChrome = ''
-#TabsToolbar,
-#toolbar-menubar,
-#PersonalToolbar,
-#titlebar {
-  visibility: collapse !important;
-}
-
-#navigator-toolbox {
-  position: relative;
-}
-
-#nav-bar {
-  margin-top: -40px !important;
-  opacity: 0;
-  z-index: 1;
-  transition:
-    margin-top 0.2s ease,
-    opacity 0.2s ease !important;
-}
-
-#navigator-toolbox:focus-within #nav-bar {
-  margin-top: 0 !important;
-  opacity: 1 !important;
-}
-      '';
+#       userChrome = ''
+# #TabsToolbar,
+# #toolbar-menubar,
+# #PersonalToolbar,
+# #titlebar {
+#   visibility: collapse !important;
+# }
+#
+# #navigator-toolbox {
+#   position: relative;
+# }
+#
+# #nav-bar {
+#   margin-top: -40px !important;
+#   opacity: 0;
+#   z-index: 1;
+#   transition:
+#     margin-top 0.2s ease,
+#     opacity 0.2s ease !important;
+# }
+#
+# #navigator-toolbox:focus-within #nav-bar {
+#   margin-top: 0 !important;
+#   opacity: 1 !important;
+# }
+#       '';
     };
   };
 
