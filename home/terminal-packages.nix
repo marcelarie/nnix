@@ -62,6 +62,7 @@ with pkgs; [
   gnumake
   google-cloud-sdk-gce
   gping
+  haralyzer
   htop
   hyprland-workspaces
   imagemagick_light
@@ -183,6 +184,7 @@ with pkgs; [
   zuban
   unrar
   mdx-language-server
+  htmlq
   aider-chat
   vale
   vale-ls

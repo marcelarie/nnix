@@ -405,6 +405,7 @@ in {
     thunderbird
     wlprop
     wine
+    vvvvvv
     pinentry-all
     librewolf
     mullvad-browser
