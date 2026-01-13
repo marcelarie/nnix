@@ -17,7 +17,7 @@ in {
     enable = true;
 
     profiles.default = {
-      path = "08wgv37i.default-1759997538874";
+      path = "default";
       isDefault = true;
 
       extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
