@@ -29,6 +29,7 @@ in {
       alejandra
       asciinema
       # nvim-nightly
+      ki-editor
       jdd
       sops
       age

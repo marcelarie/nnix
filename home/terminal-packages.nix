@@ -185,4 +185,5 @@ with pkgs; [
   zuban
   unrar
   mdx-language-server
+  htmlq
 ]

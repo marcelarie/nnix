@@ -3,6 +3,7 @@
 
   inputs = {
     mq.url = "github:marcelarie/mq";
+    ki-editor.url = "github:ki-editor/ki-editor";
     musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -101,11 +102,11 @@
           "qtwebengine-5.15.19"
         ];
       };
-       overlays = [
-           # hyprlandInputs.overlays.default
-           # hyprlandPlugins.overlays.default
-           (import ./overlays/neovim-nightly.nix {inherit inputs;})
-          (final: prev: {tmex = tmexPkg;})
+      overlays = [
+        # hyprlandInputs.overlays.default
+        # hyprlandPlugins.overlays.default
+        (import ./overlays/neovim-nightly.nix {inherit inputs;})
+        (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (final: prev: {lsv = inputs.lsv.packages.${system}.default;})
         (final: prev: {"audio-select" = inputs.audio-select.packages.${system}.default;})
@@ -114,6 +115,7 @@
         (final: prev: {"git-commit-search" = inputs.git-commit-search.packages.${system}.default;})
         (final: prev: {foot = inputs.foot-fork.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
+        (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
       ];
     };
     pkgsAndroid = import nixpkgsStable {
@@ -136,12 +138,12 @@
     nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
       inherit system pkgs;
       specialArgs = {inherit inputs pkgsStable;};
-       modules = [
-         ./nixos/configuration.nix
-         ./nixos/hardware-configuration.nix
-         inputs.musnix.nixosModules.musnix
-         inputs.sops-nix.nixosModules.sops
-         home-manager.nixosModules.home-manager
+      modules = [
+        ./nixos/configuration.nix
+        ./nixos/hardware-configuration.nix
+        inputs.musnix.nixosModules.musnix
+        inputs.sops-nix.nixosModules.sops
+        home-manager.nixosModules.home-manager
         {
           home-manager = {
             useGlobalPkgs = true;
