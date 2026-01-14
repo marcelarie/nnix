@@ -8,7 +8,6 @@
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
-  # imports = [inputs.zen-browser.homeModules.twilight];
 
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
@@ -105,6 +104,7 @@ in {
       };
 
       settings = {
+        "ui.key.menuAccessKeyFocuses" = false;
         "browser.aboutConfig.showWarning" = false;
         "browser.bookmarks.showMobileBookmarks" = true;
         "browser.discovery.enabled" = false;
@@ -160,8 +160,6 @@ in {
 #       '';
     };
   };
-
-  # programs.zen-browser.enable = true;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -411,6 +409,8 @@ in {
     mullvad-browser
     signal-desktop
     # open-webui
+    socat
+    jq
   ];
 
   home.file = let
