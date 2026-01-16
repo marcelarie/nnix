@@ -1,6 +1,10 @@
 { config, pkgs, pkgsStable, ... }:
 let homeDir = config.home.homeDirectory;
 in {
+  programs.firefox = {
+    package = config.lib.nixGL.wrap pkgs.firefox;
+  };
+
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui

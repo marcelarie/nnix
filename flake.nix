@@ -178,7 +178,7 @@
             home.homeDirectory = "/home/mmanzanares";
             targets.genericLinux.enable = true;
 
-            nixGL = {
+            targets.genericLinux.nixGL = {
               packages = nixGL.packages;
               defaultWrapper = "mesa";
             };
