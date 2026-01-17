@@ -37,6 +37,7 @@ in {
     gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
+    librewolf
     (pkgs.writeShellScriptBin "vivaldi-stable" ''
       exec -a "$0" ${pkgs.vivaldi}/bin/vivaldi-stable --ozone-platform-hint=wayland --enable-features=WaylandWindowDecorations "$@"
     '')

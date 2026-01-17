@@ -39,10 +39,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zuban.url = "github:marcelarie/zuban";
-    zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -90,7 +86,6 @@
     pulseaudio-next-output,
     git-commit-search,
     haralyzer,
-    zen-browser,
     nur,
     ...
   } @ inputs: let
@@ -183,7 +178,7 @@
             home.homeDirectory = "/home/mmanzanares";
             targets.genericLinux.enable = true;
 
-            nixGL = {
+            targets.genericLinux.nixGL = {
               packages = nixGL.packages;
               defaultWrapper = "mesa";
             };

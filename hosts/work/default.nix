@@ -1,6 +1,10 @@
 { config, pkgs, pkgsStable, ... }:
 let homeDir = config.home.homeDirectory;
 in {
+  programs.firefox = {
+    package = config.lib.nixGL.wrap pkgs.firefox;
+  };
+
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui
@@ -13,6 +17,7 @@ in {
     (config.lib.nixGL.wrap niri)
     (config.lib.nixGL.wrap freetube)
     (config.lib.nixGL.wrap nautilus)
+    (config.lib.nixGL.wrap librewolf)
   ];
 
   home.file = let

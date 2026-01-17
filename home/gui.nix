@@ -8,7 +8,6 @@
   homeDir = config.home.homeDirectory;
   pstore = "${homeDir}/clones/own/password-store";
 in {
-  # imports = [inputs.zen-browser.homeModules.twilight];
 
   home.stateVersion = "25.05";
   programs.home-manager.enable = true;
@@ -17,7 +16,7 @@ in {
     enable = true;
 
     profiles.default = {
-      path = "08wgv37i.default-1759997538874";
+      path = "default";
       isDefault = true;
 
       extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
@@ -105,6 +104,7 @@ in {
       };
 
       settings = {
+        "ui.key.menuAccessKeyFocuses" = false;
         "browser.aboutConfig.showWarning" = false;
         "browser.bookmarks.showMobileBookmarks" = true;
         "browser.discovery.enabled" = false;
@@ -132,36 +132,34 @@ in {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
       };
 
-      userChrome = ''
-#TabsToolbar,
-#toolbar-menubar,
-#PersonalToolbar,
-#titlebar {
-  visibility: collapse !important;
-}
-
-#navigator-toolbox {
-  position: relative;
-}
-
-#nav-bar {
-  margin-top: -40px !important;
-  opacity: 0;
-  z-index: 1;
-  transition:
-    margin-top 0.2s ease,
-    opacity 0.2s ease !important;
-}
-
-#navigator-toolbox:focus-within #nav-bar {
-  margin-top: 0 !important;
-  opacity: 1 !important;
-}
-      '';
+#       userChrome = ''
+# #TabsToolbar,
+# #toolbar-menubar,
+# #PersonalToolbar,
+# #titlebar {
+#   visibility: collapse !important;
+# }
+#
+# #navigator-toolbox {
+#   position: relative;
+# }
+#
+# #nav-bar {
+#   margin-top: -40px !important;
+#   opacity: 0;
+#   z-index: 1;
+#   transition:
+#     margin-top 0.2s ease,
+#     opacity 0.2s ease !important;
+# }
+#
+# #navigator-toolbox:focus-within #nav-bar {
+#   margin-top: 0 !important;
+#   opacity: 1 !important;
+# }
+#       '';
     };
   };
-
-  # programs.zen-browser.enable = true;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -407,10 +405,11 @@ in {
     wine
     vvvvvv
     pinentry-all
-    librewolf
     mullvad-browser
     signal-desktop
     # open-webui
+    socat
+    jq
   ];
 
   home.file = let
