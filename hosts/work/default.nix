@@ -17,6 +17,7 @@ in {
     (config.lib.nixGL.wrap niri)
     (config.lib.nixGL.wrap freetube)
     (config.lib.nixGL.wrap nautilus)
+    (config.lib.nixGL.wrap librewolf)
   ];
 
   home.file = let

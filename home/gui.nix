@@ -405,7 +405,6 @@ in {
     wine
     vvvvvv
     pinentry-all
-    librewolf
     mullvad-browser
     signal-desktop
     # open-webui
