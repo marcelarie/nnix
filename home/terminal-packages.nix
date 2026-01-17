@@ -188,4 +188,5 @@ with pkgs; [
   aider-chat
   vale
   vale-ls
+  shellcheck
 ]
