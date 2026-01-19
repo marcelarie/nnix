@@ -410,6 +410,7 @@ in {
     # open-webui
     socat
     jq
+    llama-cpp
   ];
 
   home.file = let

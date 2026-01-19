@@ -189,4 +189,5 @@ with pkgs; [
   vale
   vale-ls
   shellcheck
+  python314Packages.huggingface-hub
 ]
