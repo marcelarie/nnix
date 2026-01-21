@@ -170,6 +170,10 @@ in {
       source = link "${dots}/.config/zk";
       recursive = true;
     };
+    ".newsboat" = {
+      source = link "${dots}/.newsboat";
+      recursive = true;
+    };
 
     "notes" = {
       source = link notes;
