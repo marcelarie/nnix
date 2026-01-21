@@ -189,4 +189,6 @@ with pkgs; [
   vale
   vale-ls
   newsboat
+  shellcheck
+  python314Packages.huggingface-hub
 ]
