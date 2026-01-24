@@ -411,6 +411,7 @@ in {
     socat
     jq
     llama-cpp
+    songrec
   ];
 
   home.file = let

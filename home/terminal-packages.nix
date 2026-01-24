@@ -101,7 +101,6 @@ with pkgs; [
   nuit
   nushell
   nwg-displays
-  ollama
   onefetch
   opencode
   openssl

@@ -21,6 +21,10 @@ in {
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
 
+  services.ollama = {
+    enable = true;
+  };
+
   home.packages =
     terminalPackages
     ++ (with pkgs; [
@@ -89,7 +93,6 @@ in {
 
     # ".claude/CLAUDE.md".source = link "${dots}/.claude/CLAUDE.md";
     ".claude/CLAUDE.md".source = link "${dots}/.codex/AGENTS.md";
-
 
     "scripts" = {
       source = link "${dots}/scripts";
