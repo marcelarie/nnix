@@ -412,6 +412,7 @@ in {
     jq
     llama-cpp
     songrec
+    picard
   ];
 
   home.file = let
