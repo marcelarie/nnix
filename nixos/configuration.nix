@@ -151,15 +151,13 @@
         directories = [ "/home/${username}/music/share" ];
       };
       soulseek = {
-        username = username;
-        password = "slskd123";
         listen_port = 50300;
       };
       web = {
         port = 5030;
         authentication = {
-          username = "admin";
-          password = "admin";
+          username = username;
+          password = "slskd";
         };
       };
       global = {
