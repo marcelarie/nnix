@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, username, ... }: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -125,6 +125,49 @@
     variant = "";
   };
   services.nzbget = { enable = true; };
+
+  systemd.services.slskd.serviceConfig.ProtectHome = lib.mkForce false;
+
+  systemd.tmpfiles.rules = [
+    "d /home/${username}/music/downloads 0755 ${username} users -"
+    "d /home/${username}/music/incompleted 0755 ${username} users -"
+    "d /home/${username}/music/share 0755 ${username} users -"
+    "f /run/slskd.env 0600 ${username} users -"
+  ];
+
+  services.slskd = {
+    enable = true;
+    openFirewall = true;
+    domain = null;
+    user = username;
+    group = "users";
+    environmentFile = "/run/slskd.env";
+    settings = {
+      directories = {
+        downloads = "/home/${username}/music/downloads";
+        incomplete = "/home/${username}/music/incompleted";
+      };
+      shares = {
+        directories = [ "/home/${username}/music/share" ];
+      };
+      soulseek = {
+        username = username;
+        password = "slskd123";
+        listen_port = 50300;
+      };
+      web = {
+        port = 5030;
+        authentication = {
+          username = "admin";
+          password = "admin";
+        };
+      };
+      global = {
+        upload.slots = 10;
+        download.slots = 10;
+      };
+    };
+  };
 
   services.ollama = { enable = true; };
 
