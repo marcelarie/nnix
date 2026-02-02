@@ -10,6 +10,7 @@ with pkgs; [
   atool
   atuin
   bacon
+  beets
   bash
   bash-language-server
   bash-preexec

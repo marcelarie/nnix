@@ -141,7 +141,7 @@
 
     nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
       inherit system pkgs;
-      specialArgs = {inherit inputs pkgsStable;};
+      specialArgs = {inherit inputs pkgsStable username;};
       modules = [
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
