@@ -190,4 +190,5 @@ with pkgs; [
   newsboat
   shellcheck
   python314Packages.huggingface-hub
+  pwgen
 ]
