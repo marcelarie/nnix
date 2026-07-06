@@ -131,33 +131,15 @@
       port = 9800;
       href = "https://yt.marcel.cool";
     };
-    # Matrix Synapse - handled separately in matrix.nix with Element Web
-    # matrix = {
-    #   port = 8088;
-    #   href = "https://matrix.marcel.cool";
-    # };
-    # zulip = {
-    #   port = 8088;
-    #   href = "https://chat.marcel.cool";
-    # };
     stalwartadmin = {
       port = 8087;
       href = "https://jmap-admin.marcel.cool";
       protected = true;
     };
-    # ytmusic = {
-    #   port = 9801;
-    #   href = "https://ytmusic.marcel.cool";
-    #   protected = true;
-    # };
-    # pipedapi = {
-    #   port = 9802;
-    #   href = "https://pipedapi.marcel.cool";
-    # };
-    # pipedproxy = {
-    #   port = 9803;
-    #   href = "https://pipedproxy.marcel.cool";
-    # };
+    vaultwarden = {
+      port = 8222;
+      href = "https://vault.marcel.cool";
+    };
   };
 
   mkProxyHost = name: service: {

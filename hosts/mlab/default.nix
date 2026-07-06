@@ -41,6 +41,7 @@
     ./stalwart.nix
     ./uptime-kuma.nix
     ./matrix.nix
+    ./vaultwarden.nix
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -72,6 +73,8 @@
         owner = "dev";
         mode = "0400";
       };
+      "ms01_admin_hash" = {neededForUsers = true;};
+      "ms01_dev_hash" = {neededForUsers = true;};
     };
 
     templates."cloudflare-acme.env" = {
@@ -178,7 +181,7 @@
     defaultGateway = "192.168.1.1";
 
     interfaces = {
-      enp87s0 = {
+      enp1s0 = {
         useDHCP = true;
         ipv4.addresses = [
           {
@@ -187,24 +190,30 @@
           }
         ];
       };
-      enp2s0f0np0 = {
+      enp3s0f0np0 = {
         useDHCP = true;
       };
-      enp2s0f1np1 = {
+      enp3s0f1np1 = {
         useDHCP = true;
       };
     };
     dhcpcd = {
       extraConfig = ''
         slaac private
-        interface enp87s0
+        interface enp1s0
         noipv4
       '';
+    };
+    # Ignore ISP DNS from WiFi DHCP and use our own
+    networkmanager = {
+      enable = true;
+      dns = "none";
     };
     nameservers = [
       "1.1.1.1"
       "8.8.8.8"
     ];
+    # Use dnsmasq as a DNS forwarder to bypass ISP DNS that DHCP may return
     hosts = {
       "127.0.0.1" = ["marcel.cool"];
     };
@@ -213,13 +222,14 @@
       enable = true;
       allowedTCPPorts =
         [
+          53 # DNS (dnsmasq) so router/LAN clients can redirect here
           80 # nginx catch-all / http to https redirects
           443 # Nginx HTTPS
           23951 # Qbitorrent
           50300 # Soulseek
         ]
         ++ builtins.map (v: v.port) (builtins.attrValues services);
-      allowedUDPPorts = [23951];
+      allowedUDPPorts = [53 23951];
       allowedUDPPortRanges = [
         {
           from = 60000;
@@ -233,6 +243,13 @@
       '';
       trustedInterfaces = ["podman0"];
     };
+  };
+  services.dnsmasq.enable = true;
+  # ponytail: bind only the LAN NIC so dnsmasq (port 53) doesn't collide with
+  # podman's aardvark-dns on 10.89.0.1:53. Router redirects LAN clients here.
+  services.dnsmasq.settings = {
+    interface = "enp1s0";
+    bind-interfaces = true;
   };
 
   boot = {
@@ -262,18 +279,15 @@
       KbdInteractiveAuthentication = false;
       AllowAgentForwarding = true;
     };
-
-    # Add specific ssh rules for user X
-    # extraConfig = ''
-    #   Match User X
-    #     PasswordAuthentication yes
-    #     KbdInteractiveAuthentication yes
-    # '';
-
-    # Log file ops for sftp (and scp, which uses the sftp protocol on OpenSSH 9+).
-    # Lets you see exactly what share_guest pulls: journalctl -u sshd | grep sftp.
     extraConfig = ''
       Subsystem sftp internal-sftp -l INFO
+
+      # admin is local console only
+      DenyUsers admin
+
+      Match User dev
+        PasswordAuthentication yes
+        KbdInteractiveAuthentication yes
     '';
   };
 
@@ -309,6 +323,7 @@
     waypipe
     zoxide
     thunar
+    sqlite
   ];
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
@@ -346,27 +361,11 @@
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/systemctl --system show *";
+          command = "/run/current-system/sw/bin/systemctl reload *";
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/systemctl --system status *";
-          options = ["NOPASSWD"];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl --system cat *";
-          options = ["NOPASSWD"];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl --system list-units *";
-          options = ["NOPASSWD"];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl --system list-unit-files *";
-          options = ["NOPASSWD"];
-        }
-        {
-          command = "/run/current-system/sw/bin/journalctl *";
+          command = "/run/current-system/sw/bin/nix-collect-garbage -d";
           options = ["NOPASSWD"];
         }
       ];
@@ -374,15 +373,24 @@
   ];
 
   users = {
+    mutableUsers = false; # nix overrides the user password specified in the sops hashes
     groups.dev-team = {};
 
+    # dev: ssh key + password over ssh + local console. Same perms as before (limited sudo via dev-team).
     users.dev = {
       isNormalUser = true;
+      hashedPasswordFile = config.sops.secrets."ms01_dev_hash".path;
       extraGroups = ["dev-team" "systemd-journal"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvff/camqPCFP3s0xfpjyMcw3y3V3/lEbh9Y1Q3Nj0M nix-on-droid@localhost"
       ];
+    };
+
+    users.admin = {
+      isNormalUser = true;
+      hashedPasswordFile = config.sops.secrets."ms01_admin_hash".path;
+      extraGroups = ["wheel"];
     };
     users.root = {
       openssh.authorizedKeys.keys = [
@@ -428,6 +436,8 @@
           pass
           pi-coding-agent
           opencode
+          gh
+          fastfetch
         ];
         file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
         file."clones/forks/xelabash".source = inputs.xelabash;

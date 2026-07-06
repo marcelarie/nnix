@@ -319,334 +319,6 @@ in {
         };
       };
     };
-    style = ''
-      @define-color noti-border-color rgba(255, 255, 255, 0.15);
-      @define-color noti-bg rgba(51,51,51,1);
-      @define-color noti-bg-hover-alt #454545;
-      @define-color noti-bg-alt rgba(43,43,43,1);
-      @define-color noti-fg white;
-      @define-color noti-bg-hover rgba(255, 255, 255, 0);
-      @define-color noti-bg-focus rgba(255, 255, 255, 0);
-      @define-color noti-close-bg rgba(255, 255, 255, 0);
-      @define-color noti-close-bg-hover rgba(255, 255, 255, 0);
-      @define-color noti-urgent rgba(255,0,80,0.8);
-      @define-color bg-selected #33ccff;
-
-      *{
-        font-family: FontAwesome, "Noto Sans";
-        color: @noti-fg;
-      }
-
-      .notification-row {
-        outline: none;
-      }
-
-      .notification-row:focus,
-      .notification-row:hover {
-        background: @noti-bg-focus;
-      }
-
-      .notification {
-        border: 1px solid @bg-selected;
-        border-radius: 4px;
-        margin: 6px 12px;
-        box-shadow: none;
-        padding: 0;
-      }
-
-      /* Uncomment to enable specific urgency colors */
-      /* .low {
-        background: yellow;
-      }
-
-      .normal {
-        background: green;
-      } */
-
-      .critical {
-        border: 1px solid @noti-urgent;
-      }
-
-
-      .notification-content {
-        background: transparent;
-        padding: 6px;
-        border-radius: 4px;
-      }
-
-      .close-button {
-        background: @noti-close-bg;
-        color: white;
-        text-shadow: none;
-        padding: 0;
-        border-radius: 100%;
-        margin-top: 10px;
-        margin-right: 16px;
-        box-shadow: none;
-        border: none;
-        min-width: 24px;
-        min-height: 24px;
-      }
-
-      .close-button:hover {
-        box-shadow: none;
-        background: @noti-close-bg-hover;
-        transition: all 0.15s ease-in-out;
-        border: none;
-      }
-
-      .notification-default-action,
-      .notification-action {
-        padding: 4px;
-        margin: 0;
-        box-shadow: none;
-        background: @noti-bg;
-        border: 1px solid @noti-border-color;
-        color: white;
-      }
-
-      .notification-default-action:hover,
-      .notification-action:hover {
-        -gtk-icon-effect: none;
-        background: @noti-bg-alt;
-      }
-
-      .notification-default-action {
-        border-radius: 4px;
-      }
-
-      /* When alternative actions are visible */
-      .notification-default-action:not(:only-child) {
-        border-bottom-left-radius: 0px;
-        border-bottom-right-radius: 0px;
-      }
-
-      .notification-action {
-        border-radius: 0px;
-        border-top: none;
-        border-right: none;
-      }
-
-      /* add bottom border radius to eliminate clipping */
-      .notification-action:first-child {
-        border-bottom-left-radius: 4px;
-      }
-
-      .notification-action:last-child {
-        border-bottom-right-radius: 4px;
-        border-right: 1px solid @noti-border-color;
-      }
-
-      .image {}
-
-      .body-image {
-        margin-top: 6px;
-        background-color: white;
-        border-radius: 6px;
-      }
-
-      .summary {
-        font-size: 14px;
-        font-weight: bold;
-        background: transparent;
-        color: white;
-        text-shadow: none;
-      }
-
-      .time {
-        font-size: 13px;
-        font-weight: bold;
-        background: transparent;
-        color: white;
-        text-shadow: none;
-        margin-right: 18px;
-      }
-
-      .body {
-        font-size: 12px;
-        font-weight: normal;
-        background: transparent;
-        color: white;
-        text-shadow: none;
-      }
-
-      /* The "Notifications" and "Do Not Disturb" text widget */
-      .top-action-title {
-        color: white;
-        text-shadow: none;
-      }
-
-      .control-center {
-        background-color: @noti-bg-alt;
-        border-radius: 6px;
-        border: 1px solid @bg-selected;
-      }
-
-      .control-center-list {
-        background: transparent;
-      }
-
-      .floating-notifications {
-        background: transparent;
-      }
-
-      /* Window behind control center and on all other monitors */
-      .blank-window {
-        background: transparent;
-      }
-
-      /*** Widgets ***/
-
-      /* Title widget */
-      .widget-title {
-        margin: 8px;
-        font-size: 16px;
-      }
-
-      .widget-title>button {
-        font-size: initial;
-        color: white;
-        text-shadow: none;
-        background: @noti-bg;
-        border: 1px solid @noti-border-color;
-        box-shadow: none;
-        border-radius: 4px;
-      }
-
-      .widget-title>button:hover {
-        background: @noti-bg-hover;
-      }
-
-      /* DND widget */
-      .widget-dnd {
-        margin: 8px;
-        font-size: 1.1rem;
-      }
-
-      .widget-dnd>switch {
-        font-size: initial;
-        border-radius: 4px;
-        background: @noti-bg;
-        border: 1px solid @noti-border-color;
-        box-shadow: none;
-      }
-
-      .widget-dnd>switch:checked {
-        background: @bg-selected;
-      }
-
-      .widget-dnd>switch slider {
-        background: @noti-bg-hover;
-        border-radius: 4px;
-      }
-
-      /* Label widget */
-      .widget-label {
-        margin: 4px 8px 8px;
-      }
-
-      .widget-label>label {
-        font-size: 16px;
-      }
-
-      /* Mpris widget */
-      .widget-mpris {
-        /* The parent to all players */
-      }
-
-      .widget-mpris-player {
-        padding: 8px;
-        margin: 8px;
-      }
-
-      .widget-mpris-title {
-        font-weight: bold;
-        font-size: 1.25rem;
-      }
-
-      .widget-mpris-subtitle {
-        font-size: 1.1rem;
-      }
-
-      /* Volume and Brightness Widget*/
-
-      .widget-volume {
-        background-color: @noti-bg;
-        padding: 4px 4px 4px 20px;
-        margin: 0px 8px 8px 8px;
-        border-radius: 4px;
-        font-size: 14px;
-      }
-
-      .widget-backlight {
-        background-color: @noti-bg;
-        padding: 8px 8px 4px 8px;
-        margin: 8px 8px 0px 8px;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-      }
-
-      .KB {
-        padding: 4px 8px 4px 8px;
-        margin: 0px 8px 0px 8px;
-        border-radius: 0;
-      }
-
-      .widget-menubar>box{
-        padding: 8px 0px 4px;
-        margin: 0px 8px;
-        border-radius: 4px 4px 0px 0px;
-        background-color: @noti-bg;
-      }
-
-      .widget-menubar>box>.menu-button-bar>button{
-        border: 1px solid @noti-border-color;
-        background: @noti-bg;
-        border-radius: 4px;
-        margin: 4px 12px;
-      }
-
-      .widget-buttons-grid{
-        padding: 0px 8px 8px;
-        margin: 0px 8px 8px;
-        border-radius: 0px 0px 4px 4px;
-        background-color: @noti-bg;
-        font-size: 14px;
-      }
-
-      .widget-buttons-grid>flowbox>flowboxchild>button{
-        background: @noti-bg;
-        border-radius: 4px;
-      }
-
-      .widget-buttons-grid>flowbox>flowboxchild>button:hover {
-        background: @noti-bg-hover;
-      }
-
-      .screenshot-buttons,
-      .screencast-buttons,
-      .powermode-buttons,
-      .power-buttons{
-        border-radius: 4px;
-      }
-
-      .screenshot-buttons>button,
-      .screencast-buttons>button,
-      .powermode-buttons>button,
-      .power-buttons>button{
-        background: transparent;
-        padding: 2px 0px;
-        margin: 5px 70px 3px;
-        border: 1px solid @noti-border-color;
-      }
-
-      .screenshot-buttons>button:hover,
-      .screencast-buttons>button:hover,
-      .powermode-buttons>button:hover,
-      .power-buttons>button:hover{
-        background: @noti-bg-hover;
-      }
-    '';
   };
 
   programs.firefox = {
@@ -926,15 +598,6 @@ in {
         "sidebar.new-sidebar.has-used" = true;
         "sidebar.old-sidebar.has-used" = true;
         "sidebar.verticalTabs.dragToPinPromo.dismissed" = true;
-
-        # UI Customization State (Vertical Tabs Layout)
-        # This captures your current layout with tabs on the side
-        "browser.uiCustomization.state" = ''{"placements":{"widget-overflow-fixed-list":[],"unified-extensions-area":["search_kagi_com-browser-action"],"nav-bar":["sidebar-button","back-button","forward-button","stop-reload-button","vertical-spacer","urlbar-container","downloads-button","fxa-toolbar-menu-button","unified-extensions-button","ublock0_raymondhill_net-browser-action","vimmatic_i-beam_org-browser-action","passff_invicem_pro-browser-action","languagetool-webextension_languagetool_org-browser-action","redirector_einaregilsson_com-browser-action","harper_writewithharper_com-browser-action"],"toolbar-menubar":["menubar-items"],"TabsToolbar":[],"vertical-tabs":["tabbrowser-tabs"],"PersonalToolbar":["import-button","personal-bookmarks"]},"seen":["developer-button","screenshot-button","vimmatic_i-beam_org-browser-action","search_kagi_com-browser-action","ublock0_raymondhill_net-browser-action","passff_invicem_pro-browser-action","languagetool-webextension_languagetool_org-browser-action","redirector_einaregilsson_com-browser-action","harper_writewithharper_com-browser-action"],"dirtyAreaCache":["nav-bar","vertical-tabs","toolbar-menubar","TabsToolbar","PersonalToolbar","unified-extensions-area","widget-overflow-fixed-list"],"currentVersion":23,"newElementCount":8}'';
-
-        # Backup of horizontal tabs layout (in case you want to switch back)
-        "browser.uiCustomization.horizontalTabsBackup" = ''{"placements":{"widget-overflow-fixed-list":[],"unified-extensions-area":["vimmatic_i-beam_org-browser-action","search_kagi_com-browser-action"],"nav-bar":["sidebar-button","back-button","forward-button","stop-reload-button","customizableui-special-spring1","vertical-spacer","urlbar-container","customizableui-special-spring2","downloads-button","fxa-toolbar-menu-button","unified-extensions-button","ublock0_raymondhill_net-browser-action"],"toolbar-menubar":["menubar-items"],"TabsToolbar":["firefox-view-button","tabbrowser-tabs","new-tab-button","alltabs-button"],"vertical-tabs":[],"PersonalToolbar":["import-button","personal-bookmarks"]},"seen":["developer-button","screenshot-button","vimmatic_i-beam_org-browser-action","search_kagi_com-browser-action","ublock0_raymondhill_net-browser-action"],"dirtyAreaCache":["nav-bar","vertical-tabs","toolbar-menubar","TabsToolbar","PersonalToolbar","unified-extensions-area"],"currentVersion":23,"newElementCount":2}'';
-
-        "browser.uiCustomization.navBarWhenVerticalTabs" = ''["sidebar-button","back-button","forward-button","stop-reload-button","customizableui-special-spring1","vertical-spacer","urlbar-container","customizableui-special-spring2","downloads-button","fxa-toolbar-menu-button","unified-extensions-button","ublock0_raymondhill_net-browser-action","vimmatic_i-beam_org-browser-action"]'';
       };
 
       #       userChrome = ''
@@ -967,10 +630,336 @@ in {
   };
 
   xdg.configFile."mimeapps.list".force = true;
-  xdg.configFile."swaync/style.css".force = true;
+  xdg.configFile."swaync/style.css".text = ''
+    @define-color noti-border-color rgba(255, 255, 255, 0.15);
+    @define-color noti-bg rgba(51,51,51,1);
+    @define-color noti-bg-hover-alt #454545;
+    @define-color noti-bg-alt rgba(43,43,43,1);
+    @define-color noti-fg white;
+    @define-color noti-bg-hover rgba(255, 255, 255, 0);
+    @define-color noti-bg-focus rgba(255, 255, 255, 0);
+    @define-color noti-close-bg rgba(255, 255, 255, 0);
+    @define-color noti-close-bg-hover rgba(255, 255, 255, 0);
+    @define-color noti-urgent rgba(255,0,80,0.8);
+    @define-color bg-selected #33ccff;
+
+    *{
+      font-family: FontAwesome, "Noto Sans";
+      color: @noti-fg;
+    }
+
+    .notification-row {
+      outline: none;
+    }
+
+    .notification-row:focus,
+    .notification-row:hover {
+      background: @noti-bg-focus;
+    }
+
+    .notification {
+      border: 1px solid @bg-selected;
+      border-radius: 4px;
+      margin: 6px 12px;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    /* Uncomment to enable specific urgency colors */
+    /* .low {
+      background: yellow;
+    }
+
+    .normal {
+      background: green;
+    } */
+
+    .critical {
+      border: 1px solid @noti-urgent;
+    }
+
+
+    .notification-content {
+      background: transparent;
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .close-button {
+      background: @noti-close-bg;
+      color: white;
+      text-shadow: none;
+      padding: 0;
+      border-radius: 100%;
+      margin-top: 10px;
+      margin-right: 16px;
+      box-shadow: none;
+      border: none;
+      min-width: 24px;
+      min-height: 24px;
+    }
+
+    .close-button:hover {
+      box-shadow: none;
+      background: @noti-close-bg-hover;
+      transition: all 0.15s ease-in-out;
+      border: none;
+    }
+
+    .notification-default-action,
+    .notification-action {
+      padding: 4px;
+      margin: 0;
+      box-shadow: none;
+      background: @noti-bg;
+      border: 1px solid @noti-border-color;
+      color: white;
+    }
+
+    .notification-default-action:hover,
+    .notification-action:hover {
+      -gtk-icon-effect: none;
+      background: @noti-bg-alt;
+    }
+
+    .notification-default-action {
+      border-radius: 4px;
+    }
+
+    /* When alternative actions are visible */
+    .notification-default-action:not(:only-child) {
+      border-bottom-left-radius: 0px;
+      border-bottom-right-radius: 0px;
+    }
+
+    .notification-action {
+      border-radius: 0px;
+      border-top: none;
+      border-right: none;
+    }
+
+    /* add bottom border radius to eliminate clipping */
+    .notification-action:first-child {
+      border-bottom-left-radius: 4px;
+    }
+
+    .notification-action:last-child {
+      border-bottom-right-radius: 4px;
+      border-right: 1px solid @noti-border-color;
+    }
+
+    .image {}
+
+    .body-image {
+      margin-top: 6px;
+      background-color: white;
+      border-radius: 6px;
+    }
+
+    .summary {
+      font-size: 14px;
+      font-weight: bold;
+      background: transparent;
+      color: white;
+      text-shadow: none;
+    }
+
+    .time {
+      font-size: 13px;
+      font-weight: bold;
+      background: transparent;
+      color: white;
+      text-shadow: none;
+      margin-right: 18px;
+    }
+
+    .body {
+      font-size: 12px;
+      font-weight: normal;
+      background: transparent;
+      color: white;
+      text-shadow: none;
+    }
+
+    /* The "Notifications" and "Do Not Disturb" text widget */
+    .top-action-title {
+      color: white;
+      text-shadow: none;
+    }
+
+    .control-center {
+      background-color: @noti-bg-alt;
+      border-radius: 6px;
+      border: 1px solid @bg-selected;
+    }
+
+    .control-center-list {
+      background: transparent;
+    }
+
+    .floating-notifications {
+      background: transparent;
+    }
+
+    /* Window behind control center and on all other monitors */
+    .blank-window {
+      background: transparent;
+    }
+
+    /*** Widgets ***/
+
+    /* Title widget */
+    .widget-title {
+      margin: 8px;
+      font-size: 16px;
+    }
+
+    .widget-title>button {
+      font-size: initial;
+      color: white;
+      text-shadow: none;
+      background: @noti-bg;
+      border: 1px solid @noti-border-color;
+      box-shadow: none;
+      border-radius: 4px;
+    }
+
+    .widget-title>button:hover {
+      background: @noti-bg-hover;
+    }
+
+    /* DND widget */
+    .widget-dnd {
+      margin: 8px;
+      font-size: 1.1rem;
+    }
+
+    .widget-dnd>switch {
+      font-size: initial;
+      border-radius: 4px;
+      background: @noti-bg;
+      border: 1px solid @noti-border-color;
+      box-shadow: none;
+    }
+
+    .widget-dnd>switch:checked {
+      background: @bg-selected;
+    }
+
+    .widget-dnd>switch slider {
+      background: @noti-bg-hover;
+      border-radius: 4px;
+    }
+
+    /* Label widget */
+    .widget-label {
+      margin: 4px 8px 8px;
+    }
+
+    .widget-label>label {
+      font-size: 16px;
+    }
+
+    /* Mpris widget */
+    .widget-mpris {
+      /* The parent to all players */
+    }
+
+    .widget-mpris-player {
+      padding: 8px;
+      margin: 8px;
+    }
+
+    .widget-mpris-title {
+      font-weight: bold;
+      font-size: 1.25rem;
+    }
+
+    .widget-mpris-subtitle {
+      font-size: 1.1rem;
+    }
+
+    /* Volume and Brightness Widget*/
+
+    .widget-volume {
+      background-color: @noti-bg;
+      padding: 4px 4px 4px 20px;
+      margin: 0px 8px 8px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .widget-backlight {
+      background-color: @noti-bg;
+      padding: 8px 8px 4px 8px;
+      margin: 8px 8px 0px 8px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    .KB {
+      padding: 4px 8px 4px 8px;
+      margin: 0px 8px 0px 8px;
+      border-radius: 0;
+    }
+
+    .widget-menubar>box{
+      padding: 8px 0px 4px;
+      margin: 0px 8px;
+      border-radius: 4px 4px 0px 0px;
+      background-color: @noti-bg;
+    }
+
+    .widget-menubar>box>.menu-button-bar>button{
+      border: 1px solid @noti-border-color;
+      background: @noti-bg;
+      border-radius: 4px;
+      margin: 4px 12px;
+    }
+
+    .widget-buttons-grid{
+      padding: 0px 8px 8px;
+      margin: 0px 8px 8px;
+      border-radius: 0px 0px 4px 4px;
+      background-color: @noti-bg;
+      font-size: 14px;
+    }
+
+    .widget-buttons-grid>flowbox>flowboxchild>button{
+      background: @noti-bg;
+      border-radius: 4px;
+    }
+
+    .widget-buttons-grid>flowbox>flowboxchild>button:hover {
+      background: @noti-bg-hover;
+    }
+
+    .screenshot-buttons,
+    .screencast-buttons,
+    .powermode-buttons,
+    .power-buttons{
+      border-radius: 4px;
+    }
+
+    .screenshot-buttons>button,
+    .screencast-buttons>button,
+    .powermode-buttons>button,
+    .power-buttons>button{
+      background: transparent;
+      padding: 2px 0px;
+      margin: 5px 70px 3px;
+      border: 1px solid @noti-border-color;
+    }
+
+    .screenshot-buttons>button:hover,
+    .screencast-buttons>button:hover,
+    .powermode-buttons>button:hover,
+    .power-buttons>button:hover{
+      background: @noti-bg-hover;
+    }
+  '';
   xdg.configFile."swaync/config.json".force = true;
-  xdg.mimeApps = {
-    enable = true;
+  xdg.mimeApps = let
     defaultApplications = {
       "text/plain" = ["nvim.desktop"];
       "text/markdown" = ["nvim.desktop"];
@@ -1055,70 +1044,15 @@ in {
       "application/x-bittorrent" = ["org.qbittorrent.qBittorrent.desktop"];
       "inode/directory" = ["kitty-open.desktop"];
     };
+  in {
+    enable = true;
+    inherit defaultApplications;
     associations = {
-      added = {
-        "text/plain" = ["nvim.desktop"];
-        "text/markdown" = ["nvim.desktop"];
-        "text/json" = ["nvim.desktop"];
-        "application/json" = ["nvim.desktop"];
-        "text/csv" = ["csvlens.desktop"];
-        "text/comma-separated-values" = ["csvlens.desktop"];
-        "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
-
-        "image/png" = ["imv.desktop"];
-        "image/jpeg" = ["imv.desktop"];
-        "image/jpg" = ["imv.desktop"];
-        "image/gif" = ["imv.desktop"];
-        "image/webp" = ["imv.desktop"];
-        "image/tiff" = ["imv.desktop"];
-        "image/bmp" = ["imv.desktop"];
-        "image/svg+xml" = ["imv.desktop"];
-        "image/avif" = ["imv.desktop"];
-        "image/heif" = ["imv.desktop"];
-        "image/heic" = ["imv.desktop"];
-
-        "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
-
-        "video/mp4" = ["mpv.desktop"];
-        "video/x-matroska" = ["mpv.desktop"];
-        "video/webm" = ["mpv.desktop"];
-        "video/x-msvideo" = ["mpv.desktop"];
-        "video/quicktime" = ["mpv.desktop"];
-
-        "audio/mpeg" = ["mpv.desktop"];
-        "audio/flac" = ["mpv.desktop"];
-        "audio/ogg" = ["mpv.desktop"];
-        "audio/wav" = ["mpv.desktop"];
-        "audio/x-wav" = ["mpv.desktop"];
-        "audio/aac" = ["mpv.desktop"];
-
-        "text/x-python" = ["nvim.desktop"];
-        "text/x-shellscript" = ["nvim.desktop"];
-        "text/x-yaml" = ["nvim.desktop"];
-        "application/x-yaml" = ["nvim.desktop"];
-        "text/x-toml" = ["nvim.desktop"];
-        "application/toml" = ["nvim.desktop"];
-        "text/javascript" = ["nvim.desktop"];
-        "application/javascript" = ["nvim.desktop"];
-        "application/typescript" = ["nvim.desktop"];
-        "text/x-rust" = ["nvim.desktop"];
-        "text/x-c" = ["nvim.desktop"];
-        "text/x-c++" = ["nvim.desktop"];
-        "text/x-go" = ["nvim.desktop"];
-        "application/xml" = ["nvim.desktop"];
-        "text/xml" = ["nvim.desktop"];
-
-        "application/zip" = ["org.kde.ark.desktop"];
-        "application/x-tar" = ["org.kde.ark.desktop"];
-        "application/x-bzip" = ["org.kde.ark.desktop"];
-        "application/x-xz" = ["org.kde.ark.desktop"];
-        "application/gzip" = ["org.kde.ark.desktop"];
-        "application/x-7z-compressed" = ["org.kde.ark.desktop"];
-        "application/x-compressed-tar" = ["org.kde.ark.desktop"];
-
-        "application/epub+zip" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
-        "application/x-bittorrent" = ["org.qbittorrent.qBittorrent.desktop"];
-      };
+      added =
+        defaultApplications
+        // {
+          "text/json" = ["nvim.desktop"];
+        };
       removed = {
         "image/png" = [
           "gimp.desktop"
@@ -1157,8 +1091,6 @@ in {
     };
     ".config/foot/colors-dark.ini".source = link "${dots}/.config/foot/colors-dark.ini";
     ".config/foot/colors-light.ini".source = link "${dots}/.config/foot/colors-light.ini";
-    ".config/foot/font.d/laptop.ini".source = link "${dots}/.config/foot/font.d/laptop.ini";
-    ".config/foot/font.d/screen.ini".source = link "${dots}/.config/foot/font.d/screen.ini";
     ".config/foot/set-font".source = link "${dots}/.config/foot/set-font";
     ".config/foot/set-theme".source = link "${dots}/.config/foot/set-theme";
     ".config/foot/themes.d" = {
@@ -1226,5 +1158,12 @@ in {
       Categories=Utility;Viewer;
       NoDisplay=false
     '';
+
+    # jellyfin-desktop is Qt6 Wayland-native; global QT_SCALE_FACTOR=2 is meant for XWayland Qt under force_zero_scaling and makes Wayland-native Qt render ~2x too big.
+    # Override to 1 here so the compositor scale alone sizes it. force=true tolerates the live symlink until next switch.
+    ".local/share/applications/org.jellyfin.JellyfinDesktop.desktop" = {
+      source = link "${dots}/.local/share/applications/org.jellyfin.JellyfinDesktop.desktop";
+      force = true;
+    };
   };
 }
