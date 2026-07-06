@@ -1160,6 +1160,11 @@ in {
     ".config/foot/font.d/laptop.ini".source = link "${dots}/.config/foot/font.d/laptop.ini";
     ".config/foot/font.d/screen.ini".source = link "${dots}/.config/foot/font.d/screen.ini";
     ".config/foot/set-font".source = link "${dots}/.config/foot/set-font";
+    ".config/foot/set-theme".source = link "${dots}/.config/foot/set-theme";
+    ".config/foot/themes.d" = {
+      source = link "${dots}/.config/foot/themes.d";
+      recursive = true;
+    };
     ".config/tofi/config".source = link "${dots}/.config/tofi/config";
     ".config/swappy/config".source = link "${dots}/.config/swappy/config";
     # ".config/mako/config".source = link "${dots}/.config/mako/config";

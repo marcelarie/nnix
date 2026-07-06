@@ -46,6 +46,17 @@ in {
     (config.lib.nixGL.wrap brave-origin)
   ];
 
+  # Fix FiiO LDAC: pin A2DP/LDAC codec order and drop hfp/hsp so opening a
+  # mic-using app can't autoswitch the headset off the high-quality profile.
+  xdg.configFile."wireplumber/wireplumber.conf.d/50-bluez.conf".text = ''
+    monitor.bluez.properties = {
+      bluez5.enable-sbc-xq = true
+      bluez5.codecs = [ ldac aac sbc_xq sbc ]
+      bluez5.roles = [ a2dp_sink a2dp_source ]
+      bluez5.enable-hw-volume = true
+    }
+  '';
+
   sops = {
     defaultSopsFile = ../../secrets/work.yaml;
     defaultSopsFormat = "yaml";
@@ -104,6 +115,8 @@ in {
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".config/hypr/devices/WS0277.conf".source =
       link "${dots}/.config/hypr/devices/WS0277.conf";
+    ".config/xdg-desktop-portal/hyprland-portals.conf".source =
+      link "${dots}/.config/xdg-desktop-portal/hyprland-portals.conf";
     ".mozilla/native-messaging-hosts/passff.json".source = "${pkgs.passff-host}/lib/mozilla/native-messaging-hosts/passff.json";
   };
 }
