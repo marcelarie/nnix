@@ -960,6 +960,8 @@ in {
     }
   '';
   xdg.configFile."swaync/config.json".force = true;
+  xdg.configFile."swaync/style.css".force = true;
+
   xdg.mimeApps = let
     defaultApplications = {
       "text/plain" = ["nvim.desktop"];
