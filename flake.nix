@@ -21,6 +21,10 @@
       url = "github:marcelmanz/dots";
       flake = false;
     };
+    myna = {
+      url = "github:sayyadirfanali/Myna";
+      flake = false;
+    };
     xelabash = {
       url = "github:marcelmanz/xelabash";
       flake = false;
@@ -88,6 +92,7 @@
       overlays = [
         nur.overlays.default
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
+        (import ./overlays/myna-font.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (import ./overlays/rust.nix {inherit pkgs crane;})

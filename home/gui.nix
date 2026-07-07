@@ -49,6 +49,7 @@ in {
     keyd
     batsignal
     liberation_ttf
+    myna-font
     # mako
     nerd-fonts.blex-mono
     nerd-fonts.droid-sans-mono

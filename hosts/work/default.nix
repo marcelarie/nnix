@@ -119,4 +119,9 @@ in {
       link "${dots}/.config/xdg-desktop-portal/hyprland-portals.conf";
     ".mozilla/native-messaging-hosts/passff.json".source = "${pkgs.passff-host}/lib/mozilla/native-messaging-hosts/passff.json";
   };
+
+  xdg.configFile."systemd/user/waybar.service.d/after-portal.conf".text = ''
+    [Unit]
+    After=xdg-desktop-portal.service
+  '';
 }
