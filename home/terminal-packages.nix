@@ -149,6 +149,8 @@ with pkgs; [
   rabbitmqadmin-ng
   rbw
   rofi-rbw
+  android-tools
+  scrcpy
   rclone
   repgrep
   rich-cli

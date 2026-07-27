@@ -79,8 +79,6 @@ in {
     locations."/_matrix/client/versions" = {
       proxyPass = "http://127.0.0.1:8088";
       extraConfig = ''
-        # ponytail: sub_filter module unavailable, Synapse doesn't advertise mRtc natively
-        # Element Call discovers transport via .well-known/matrix/client org.matrix.msc4143.rtc_foci
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -99,9 +97,6 @@ in {
       proxyPass = "http://127.0.0.1:8090/";
       extraConfig = "proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto https; proxy_http_version 1.1; proxy_set_header Connection \"\";";
     };
-    # ponytail: serve here too so in-browser clients (Cinny) doing discovery on the
-    # homeserver host don't fall through the SPA catch-all to index.html (200 HTML)
-    # and abort with 'configuration appears unusable'. Same-origin, no CORS needed.
     locations."/.well-known/matrix/client" = {
       extraConfig = ''add_header Content-Type application/json; return 200 '${lib.toJSON clientConfig}';'';
     };

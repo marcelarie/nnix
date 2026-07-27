@@ -22,6 +22,8 @@
     ./invidious.nix
     ./jellyfin.nix
     ./livekit.nix
+    ./matrix.nix
+    ./mautrix-whatsapp.nix
     ./miniflux.nix
     ./navidrome.nix
     ./ollama.nix
@@ -30,18 +32,17 @@
     ./pinchflat.nix
     ./proxy.nix
     ./qbittorrent.nix
+    ./redroid.nix
     ./sabnzbd.nix
     ./seafile.nix
     ./searxng.nix
     ./seerr.nix
     ./shoko.nix
     ./slskd.nix
-    ./sway.nix
     ./soulbeet.nix
     ./stalwart.nix
+    ./sway.nix
     ./uptime-kuma.nix
-    ./matrix.nix
-    ./mautrix-whatsapp.nix
     ./vaultwarden.nix
   ];
 
@@ -98,11 +99,6 @@
       mode = "0444";
     };
 
-    # ponytail: shared rendered secret, format "KEY: SECRET" (space after colon).
-    # lk-jwt LIVEKIT_KEY_FILE splits on ":" then trims ws; livekit-server --key-file
-    # YAML-unmarshals into map[string]string (needs the space to be a map, not a
-    # scalar). The old LIVEKIT_KEYS= prefix leaked into lk-jwt's parsed key and
-    # livekit's separate /etc file had unrendered sops placeholders.
     templates."livekit-secrets" = {
       content = "${config.sops.placeholder.livekit_api_key}: ${config.sops.placeholder.livekit_api_secret}";
       owner = "root";

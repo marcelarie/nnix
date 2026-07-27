@@ -70,12 +70,6 @@
     ];
   };
 
-  # ponytail: two du passes → per-service bytes in Grafana. /var/lib depth 1
-  # for services, /var/lib/media depth 2 for the library tree. --block-size=1 =
-  # allocated blocks (matches df, honest on sparse podman layers & VM disks);
-  # -b/--apparent-size would lie and overcount. Stale-free vs a hardcoded list.
-  # Ceiling: stats every file under /var/lib + media hourly; switch to an
-  # explicit list or shallower depth if that scan ever stings.
   systemd.tmpfiles.rules = [
     "d /var/lib/prometheus-node-exporter-text-files 0755 root root -"
   ];
