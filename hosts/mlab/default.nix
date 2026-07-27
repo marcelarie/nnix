@@ -41,6 +41,7 @@
     ./stalwart.nix
     ./uptime-kuma.nix
     ./matrix.nix
+    ./mautrix-whatsapp.nix
     ./vaultwarden.nix
   ];
 

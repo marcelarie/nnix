@@ -84,6 +84,7 @@
         permittedInsecurePackages = [
           "qtwebengine-5.15.19"
           "pnpm-9.15.9"
+          "olm-3.2.16" # mautrix-whatsapp links libolm (deprecated, CVE-2024-45191/2/3) for optional E2E
         ];
       };
       overlays = [
