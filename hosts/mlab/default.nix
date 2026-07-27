@@ -70,6 +70,7 @@
       };
       "livekit_api_secret" = {};
       "livekit_api_key" = {};
+      "mautrix_whatsapp_pickle_key" = {owner = "mautrix-whatsapp";};
       "synthetic_api_key" = {
         owner = "dev";
         mode = "0400";
@@ -106,6 +107,12 @@
       content = "${config.sops.placeholder.livekit_api_key}: ${config.sops.placeholder.livekit_api_secret}";
       owner = "root";
       mode = "0600";
+    };
+
+    templates."mautrix-whatsapp.env" = {
+      content = "ENCRYPTION_PICKLE_KEY=${config.sops.placeholder.mautrix_whatsapp_pickle_key}";
+      owner = "mautrix-whatsapp";
+      mode = "0400";
     };
   };
 
