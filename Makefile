@@ -1,4 +1,4 @@
-.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm sops
+.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops
 
 format:
 	alejandra .
@@ -8,6 +8,13 @@ nixos:
 
 hm:
 	home-manager switch --flake .#work
+
+news:
+	@if [ -f /etc/NIXOS ]; then \
+		echo "On NixOS news shows during 'make nixos'."; \
+	else \
+		home-manager news --flake .#work; \
+	fi
 
 nixos-nixbuild:
 	sudo nixos-rebuild switch --flake .#nixos \
