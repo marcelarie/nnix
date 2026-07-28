@@ -17,6 +17,10 @@
       "androidboot.redroid_width=1080"
       "androidboot.redroid_height=1920"
       "androidboot.redroid_fps=30"
+      # Starts vendor.uinputd at boot -> creates the virtual touch device before
+      # EventHub scans /dev/input. Without it /dev/input is empty and every
+      # injected tap (scrcpy --mouse=sdk, adb input tap) is silently dropped.
+      "androidboot.use_redroid_stream=1"
       # redroid lets any ro.* prop be overridden as a bare boot arg (redroid-doc README).
       # Spoofs a certified stock device so WhatsApp drops its "Custom ROM" warning.
       "ro.build.type=user"

@@ -128,9 +128,9 @@
   services.flatpak.enable = true;
 
   virtualisation = {
-    # waydroid = {
-    #   enable = true;
-    # };
+    waydroid = {
+      enable = true;
+    };
 
     podman = {
       enable = true;
