@@ -22,7 +22,7 @@ in {
     gimagereader
     tesseract
     grayjay
-    
+
     cinny
     # librewolf # no active commiter in nixpkgs
     jellyfin-desktop

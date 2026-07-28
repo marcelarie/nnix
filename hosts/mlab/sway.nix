@@ -4,7 +4,7 @@
   _lib,
   ...
 }: {
-  fonts.packages = [ pkgs.myna-font ];
+  fonts.packages = [pkgs.myna-font];
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;

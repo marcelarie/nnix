@@ -10,7 +10,7 @@
       homeserver.address = "http://localhost:8088";
 
       bridge = {
-        # single-user bridge. 
+        # single-user bridge.
         relay.enabled = false;
 
         permissions."@admin:marcel.cool" = "admin";

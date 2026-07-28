@@ -1,5 +1,10 @@
-{ config, pkgs, lib, ... }: {
-  boot.kernelModules = [ "binder_linux" ];
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
+  boot.kernelModules = ["binder_linux"];
   systemd.tmpfiles.rules = [
     "d /var/lib/redroid 0755 root root -"
   ];
