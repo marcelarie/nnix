@@ -37,7 +37,7 @@ in {
     (config.lib.nixGL.wrap alacritty)
     (config.lib.nixGL.wrap neovide)
     (config.lib.nixGL.wrap imv)
-    (config.lib.nixGL.wrap niri)
+    # (config.lib.nixGL.wrap niri)
     (config.lib.nixGL.wrap freetube)
     (config.lib.nixGL.wrap nautilus)
     (config.lib.nixGL.wrap mermaid-cli)
@@ -64,6 +64,10 @@ in {
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
 
     secrets.attic_token = {};
+    secrets.mlab_key = {
+      path = "${config.home.homeDirectory}/.ssh/mlab_key";
+      mode = "0600";
+    };
     secrets.github_ssh_key = {
       sopsFile = ../../secrets/github.yaml;
       path = "${config.home.homeDirectory}/.ssh/github_ed25519";
@@ -92,9 +96,23 @@ in {
   };
 
   nix.package = pkgs.nix;
+  nix.distributedBuilds = true;
+  nix.buildMachines = [
+    {
+      hostName = "mlab";
+      protocol = "ssh-ng";
+      systems = ["x86_64-linux"];
+      sshKey = config.sops.secrets.mlab_key.path;
+      maxJobs = 8;
+      speedFactor = 2;
+      supportedFeatures = ["nixos-test" "benchmark" "big-parallel" "kvm"];
+    }
+  ];
   nix.settings = {
     trusted-users = ["root" "mmanzanares"];
     experimental-features = ["nix-command" "flakes"];
+    fallback = true;
+    "builders-use-substitutes" = true;
     substituters = [
       "https://cache.marcel.cool/system"
       "https://cache.nixos.org"
@@ -104,6 +122,9 @@ in {
       "system:Ve/kZ+DnW135w7Z44yIxH0kOgIXoK6akWv282O2xmWM="
     ];
   };
+
+  # auto-accept mlab host key on first build (non-interactive); pinned after
+  programs.ssh.settings."mlab".strictHostKeyChecking = "accept-new";
 
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;

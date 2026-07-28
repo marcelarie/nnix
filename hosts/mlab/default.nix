@@ -437,6 +437,8 @@
     users.root = {
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
+        # restricted nix builder key (work laptop); serve+write only, no shell
+        "restrict,command=\"nix-store --serve --write\" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPSTGnRIsqtRehW+QjAUmmtexnE+zx1Lkhp+WaQcTAUQ nix-builder@work"
       ];
     };
 
