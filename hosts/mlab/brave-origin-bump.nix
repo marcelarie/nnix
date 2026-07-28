@@ -31,7 +31,7 @@
   systemd.timers.brave-origin-bump = {
     wantedBy = ["timers.target"];
     timerConfig = {
-      OnCalendar = "daily";
+      OnCalendar = "03,07,15,19:00";
       Persistent = true;
     };
   };
