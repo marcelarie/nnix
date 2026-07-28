@@ -10,7 +10,7 @@
       GIT_COMMITTER_NAME = "mlab-bot";
       GIT_COMMITTER_EMAIL = "mlab@localhost";
     };
-    path = with pkgs; [nix git gnumake openssh bash];
+    path = with pkgs; [nix git gnumake openssh bash curl jq nix-prefetch nix-hash];
     serviceConfig = {
       Type = "oneshot";
       User = "dev";
