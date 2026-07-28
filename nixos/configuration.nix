@@ -295,7 +295,7 @@
     };
     sessionPackages = [
       pkgs.hyprland
-      pkgs.niri
+      # pkgs.niri
     ];
     defaultSession = "hyprland";
   };

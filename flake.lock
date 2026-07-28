@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "brave-origin-pr": {
-      "locked": {
-        "lastModified": 1781218297,
-        "narHash": "sha256-s3AaHH0lMV3Y0J+Ppg1QmJ6TeM3osQDyS/vM94b6nk4=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "d75790057ceacaa5770ee20d2537241fcf7f7df3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "refs/pull/513143/head",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "cliflux": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -704,7 +688,6 @@
     },
     "root": {
       "inputs": {
-        "brave-origin-pr": "brave-origin-pr",
         "cliflux": "cliflux",
         "crane": "crane",
         "dots": "dots",

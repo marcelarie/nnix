@@ -50,7 +50,6 @@
       url = "github:marcelmanz/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    brave-origin-pr.url = "github:NixOS/nixpkgs?ref=refs/pull/513143/head";
   };
 
   outputs = {
@@ -68,7 +67,6 @@
     nixpkgs2405,
     crane,
     # rust-overlay,
-    brave-origin-pr,
     ...
   } @ inputs: let
     system = "x86_64-linux";
@@ -100,13 +98,7 @@
         (final: prev: {
           protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
         })
-        (final: prev: {
-          "brave-origin" =
-            (import brave-origin-pr {
-              inherit system;
-              config.allowUnfree = true;
-            })."brave-origin-nightly";
-        })
+        (final: prev: {"brave-origin" = import ./packages/brave-origin-nightly/package.nix {inherit pkgs;};})
       ];
     };
     pkgsAndroid = import nixpkgs2405 {
