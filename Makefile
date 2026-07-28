@@ -1,4 +1,4 @@
-.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm sops
+.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm sops brave-update
 
 format:
 	alejandra .
@@ -44,3 +44,8 @@ sops:
 	if [ -n "$$selected" ]; then \
 		sops secrets/$$selected; \
 	fi
+
+brave-update:
+	@bash packages/brave-origin-nightly/update.sh
+	@git add packages/brave-origin-nightly/release.nix
+	@echo "staged release.nix (v$$(grep -m1 version packages/brave-origin-nightly/release.nix | cut -d\"\" -f2)) — review & commit"
