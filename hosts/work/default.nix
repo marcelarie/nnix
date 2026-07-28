@@ -99,10 +99,10 @@ in {
   nix.distributedBuilds = true;
   nix.buildMachines = [
     {
-      hostName = "mlab";
-      protocol = "ssh-ng";
+      hostName = "ssh.marcel.cool";
+      protocol = "ssh";
       systems = ["x86_64-linux"];
-      sshKey = config.sops.secrets.mlab_key.path;
+      sshKey = "/root/.ssh/mlab_key";
       maxJobs = 8;
       speedFactor = 2;
       supportedFeatures = ["nixos-test" "benchmark" "big-parallel" "kvm"];
