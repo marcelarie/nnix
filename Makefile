@@ -1,4 +1,4 @@
-.PHONY: format nixos nixos-nixbuild vps mlab nixos-nixbuild-mlab droid hm sops
+.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm sops
 
 format:
 	alejandra .
@@ -14,9 +14,6 @@ nixos-nixbuild:
 		--option builders "@/tmp/nixbuild-machines" \
 		--option builders-use-substitutes true \
 		--option max-jobs 0
-
-vps:
-	nixos-rebuild switch  --flake .#vps --target-host root@vps
 
 mlab:
 	@if ssh -q -o ConnectTimeout=5 root@mlab-local exit 2>/dev/null; then \

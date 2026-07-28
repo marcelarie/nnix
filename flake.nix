@@ -50,10 +50,6 @@
       url = "github:marcelmanz/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     brave-origin-pr.url = "github:NixOS/nixpkgs?ref=refs/pull/513143/head";
   };
 
@@ -69,7 +65,6 @@
     nu-alias-converter,
     nur,
     my-nixpkgs,
-    disko,
     nixpkgs2405,
     crane,
     # rust-overlay,
@@ -167,15 +162,6 @@
             extraSpecialArgs = {inherit inputs pkgsStable nixGL;};
           };
         }
-      ];
-    };
-
-    nixosConfigurations.vps = nixpkgs.lib.nixosSystem {
-      inherit system pkgs;
-      specialArgs = {inherit inputs;};
-      modules = [
-        disko.nixosModules.disko
-        ./hosts/vps/default.nix
       ];
     };
 

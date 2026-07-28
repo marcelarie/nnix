@@ -45,23 +45,17 @@ nix-on-droid switch --flake ~/.config/nix#default
 │   │   ├── GUIDE.md
 │   │   └── ssh.pub
 │   ├── home
-│   │   └── default.nix       # imports gui.nix
-│   └── work
-│       └── default.nix       # imports terminal.nix
-│   ├── infected-vps
-│   │   └── default.nix
-│   ├── mlab                  # homelab config
+│   │   └── default.nix       # imports gui.nix
+│   └── work
+│       └── default.nix       # imports terminal.nix
+│   ├── mlab                  # homelab config
 │   │   ├── arr
 │   │   │   ├── bazarr.nix
 │   │   │   └── etc...
 │   │   ├── attic.nix
-│   │   ├── audiobookshelf.nix
-│   │   ├── authelia.nix
-│   │   ├── etc...
-│   ├── vps                   # external vps, for quick deploys
-│   │   ├── default.nix
-│   │   ├── disk-config.nix
-│   │   └── hardware-configuration.nix
+│   │   ├── audiobookshelf.nix
+│   │   ├── authelia.nix
+│   │   ├── etc...
 ├── nixos
 │   ├── configuration.nix
 │   └── hardware-configuration.nix
