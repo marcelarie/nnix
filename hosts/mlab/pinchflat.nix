@@ -3,10 +3,6 @@
   services,
   ...
 }: {
-  # ponytail: authelia fronts this (protected=true in proxy.nix), so no BASIC_AUTH.
-  # selfhosted=true satisfies the module assertion (SECRET_KEY_BASE falls back to
-  # the bundled weak default — fine behind authelia on a LAN). Drop selfhosted +
-  # add a secretsFile with a real SECRET_KEY_BASE if this ever faces the public net.
   services.pinchflat = {
     enable = true;
     openFirewall = true;

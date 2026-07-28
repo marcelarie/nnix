@@ -25,6 +25,7 @@ in {
     grayjay
     orion
     (brave.override {commandLineArgs = "--password-store=gnome-libsecret";})
+    cinny-desktop
     # librewolf # no active commiter in nixpkgs
     jellyfin-desktop
     obsidian

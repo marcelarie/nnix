@@ -22,6 +22,8 @@
     ./invidious.nix
     ./jellyfin.nix
     ./livekit.nix
+    ./matrix.nix
+    ./mautrix-whatsapp.nix
     ./miniflux.nix
     ./navidrome.nix
     ./ollama.nix
@@ -30,17 +32,17 @@
     ./pinchflat.nix
     ./proxy.nix
     ./qbittorrent.nix
+    ./redroid.nix
     ./sabnzbd.nix
     ./seafile.nix
     ./searxng.nix
     ./seerr.nix
     ./shoko.nix
     ./slskd.nix
-    ./sway.nix
     ./soulbeet.nix
     ./stalwart.nix
+    ./sway.nix
     ./uptime-kuma.nix
-    ./matrix.nix
     ./vaultwarden.nix
   ];
 
@@ -69,6 +71,7 @@
       };
       "livekit_api_secret" = {};
       "livekit_api_key" = {};
+      "mautrix_whatsapp_pickle_key" = {owner = "mautrix-whatsapp";};
       "synthetic_api_key" = {
         owner = "dev";
         mode = "0400";
@@ -96,15 +99,16 @@
       mode = "0444";
     };
 
-    # ponytail: shared rendered secret, format "KEY: SECRET" (space after colon).
-    # lk-jwt LIVEKIT_KEY_FILE splits on ":" then trims ws; livekit-server --key-file
-    # YAML-unmarshals into map[string]string (needs the space to be a map, not a
-    # scalar). The old LIVEKIT_KEYS= prefix leaked into lk-jwt's parsed key and
-    # livekit's separate /etc file had unrendered sops placeholders.
     templates."livekit-secrets" = {
       content = "${config.sops.placeholder.livekit_api_key}: ${config.sops.placeholder.livekit_api_secret}";
       owner = "root";
       mode = "0600";
+    };
+
+    templates."mautrix-whatsapp.env" = {
+      content = "ENCRYPTION_PICKLE_KEY=${config.sops.placeholder.mautrix_whatsapp_pickle_key}";
+      owner = "mautrix-whatsapp";
+      mode = "0400";
     };
   };
 
@@ -178,37 +182,8 @@
 
   networking = {
     hostName = "mlab";
-    defaultGateway = "192.168.1.1";
-
-    interfaces = {
-      enp1s0 = {
-        useDHCP = true;
-        ipv4.addresses = [
-          {
-            address = "192.168.1.140";
-            prefixLength = 24;
-          }
-        ];
-      };
-      enp3s0f0np0 = {
-        useDHCP = true;
-      };
-      enp3s0f1np1 = {
-        useDHCP = true;
-      };
-    };
-    dhcpcd = {
-      extraConfig = ''
-        slaac private
-        interface enp1s0
-        noipv4
-      '';
-    };
-    # Ignore ISP DNS from WiFi DHCP and use our own
-    networkmanager = {
-      enable = true;
-      dns = "none";
-    };
+    useNetworkd = true;
+    useDHCP = false;
     nameservers = [
       "1.1.1.1"
       "8.8.8.8"
@@ -244,9 +219,52 @@
       trustedInterfaces = ["podman0"];
     };
   };
+
+  systemd.network = {
+    enable = true;
+    wait-online.enable = false;
+    networks = {
+      "10-lan10g" = {
+        # Wavlink 10G (atlantic) — primary cable NIC
+        matchConfig.MACAddress = "80:3f:5d:fd:d0:35";
+        address = ["192.168.1.140/24"];
+        routes = [{Gateway = "192.168.1.1";}];
+        networkConfig = {
+          DHCP = "ipv6"; # SLAAC/DHCPv6 only; static IPv4 (was dhcpcd noipv4)
+          # RFC 7217 opaque addr (no MAC leak). Was dhcpcd "slaac private".
+          IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+        };
+      };
+      "20-lan2g5" = {
+        # Built-in 2.5G (igc) — fallback cable NIC, same .140
+        matchConfig.MACAddress = "38:05:25:35:30:0a";
+        address = ["192.168.1.140/24"];
+        routes = [{Gateway = "192.168.1.1";}];
+        networkConfig = {
+          DHCP = "ipv6";
+          IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+        };
+      };
+      "30-sfp0" = {
+        # SFP+ port 0 (i40e) — DHCP if ever plugged
+        matchConfig.MACAddress = "38:05:25:35:30:08";
+        networkConfig = {
+          DHCP = "yes";
+          IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+        };
+      };
+      "31-sfp1" = {
+        # SFP+ port 1 (i40e) — DHCP if ever plugged
+        matchConfig.MACAddress = "38:05:25:35:30:09";
+        networkConfig = {
+          DHCP = "yes";
+          IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+        };
+      };
+    };
+  };
+
   services.dnsmasq.enable = true;
-  # ponytail: bind only the LAN NIC so dnsmasq (port 53) doesn't collide with
-  # podman's aardvark-dns on 10.89.0.1:53. Router redirects LAN clients here.
   services.dnsmasq.settings = {
     interface = "enp1s0";
     bind-interfaces = true;
@@ -291,6 +309,24 @@
     '';
   };
 
+  # rate limit brute-force attacks
+  services.fail2ban = {
+    enable = true;
+    ignoreIP = [
+      "127.0.0.0/8"
+      "192.168.0.0/24"
+      "192.168.1.0/24"
+    ];
+    bantime-increment.enable = true; # repeat offenders get longer bans each time
+    jails.sshd.settings = {
+      enabled = true;
+      backend = "systemd"; # sshd logs to journald on NixOS
+      maxretry = 5;
+      findtime = "10m";
+      bantime = "1h";
+    };
+  };
+
   environment.systemPackages = with pkgs; [
     attic-client
     atuin
@@ -306,6 +342,7 @@
     fd
     ffmpeg_7
     fzf
+    gdu
     git
     gnupg
     jq
@@ -328,16 +365,21 @@
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-
-    # optimization for 32gb + likely a multi-core cpu
-    auto-optimise-store = true;
-    cores = 0;
-    max-jobs = "auto";
+  nix = {
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 30d";
+    };
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      auto-optimise-store = true;
+      cores = 0;
+      max-jobs = "auto";
+    };
   };
 
   security.sudo.extraRules = [
@@ -404,6 +446,7 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
+    backupFileExtension = "backup";
     extraSpecialArgs = {
       inherit inputs;
       inherit (inputs) nvim;
@@ -418,69 +461,22 @@
         file.".config/btop".source = "${inputs.dots}/.config/btop";
       };
     };
-    users.dev = {lib, ...}: {
+    users.dev = {
+      imports = [./home.nix];
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
-        matchBlocks."github.com" = {
-          hostname = "github.com";
-          user = "git";
-          identityFile = "/run/secrets/github_ssh_key";
-          extraOptions.IdentitiesOnly = "yes";
+        settings."github.com" = {
+          HostName = "github.com";
+          User = "git";
+          IdentityFile = "/run/secrets/github_ssh_key";
+          IdentitiesOnly = "yes";
         };
       };
-      home = {
-        stateVersion = "26.05";
-        sessionVariables.NVIM_PROFILE = "minimal";
-        packages = with pkgs; [
-          pass
-          pi-coding-agent
-          opencode
-          gh
-          fastfetch
-        ];
-        file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
-        file."clones/forks/xelabash".source = inputs.xelabash;
-        file."scripts".source = "${inputs.dots}/scripts";
-        file.".config/tmux".source = "${inputs.dots}/.config/tmux";
-        file.".config/atuin".source = "${inputs.dots}/.config/atuin";
-        file.".config/carapace".source = "${inputs.dots}/.config/carapace";
-        file.".config/git".source = "${inputs.dots}/.config/git";
-        file.".config/zoxide".source = "${inputs.dots}/.config/zoxide";
-        file.".config/btop".source = "${inputs.dots}/.config/btop";
-        file.".config/foot/foot.ini".source = "${inputs.dots}/.config/foot/foot.ini";
-        file.".config/foot/colors-light.ini".source = "${inputs.dots}/.config/foot/colors-light.ini";
-        file.".config/foot/colors-dark.ini".source = "${inputs.dots}/.config/foot/colors-dark.ini";
-        file.".config/foot/font-active.ini".text = "font=Myna:size=10";
-        file.".pi/agent/settings.json" = {
-          source = "${inputs.dots}/.pi/agent/settings.json";
-          force = true;
-        };
-        file.".pi/agent/models.json" = {
-          source = "${inputs.dots}/.pi/agent/models.json";
-          force = true;
-        };
-        file.".pi/agent/mcp.json" = {
-          source = "${inputs.dots}/.pi/agent/mcp.json";
-          force = true;
-        };
-        file.".agents/skills/" = {
-          source = "${inputs.dots}/.agents/skills";
-          force = true;
-        };
+    };
 
-        # bashrc deps
-        file.".bash-preexec.sh".source = "${inputs.dots}/.bash-preexec.sh";
-        file.".inputrc".source = "${inputs.dots}/.inputrc";
-      };
-      programs.bash = {
-        enable = true;
-        initExtra = ''
-          source ${inputs.dots}/.bashrc
-          export SYNTHETIC_API_KEY="$(cat /run/secrets/synthetic_api_key 2>/dev/null)"
-        '';
-      };
-      imports = [inputs.nvim.homeManagerModules.default];
+    users.admin = {
+      imports = [./home.nix];
     };
   };
 

@@ -38,6 +38,7 @@
                 hash = "sha256-1DE1aaanRHHeCOMWDGdOS1wBXxOF84UXAjJzT5Ek6mM=";
               }
             } $out/node-exporter-full.json
+            cp ${./dir-sizes.json} $out/dir-sizes.json
           '';
         }
       ];
@@ -51,8 +52,9 @@
     exporters = {
       node = {
         enable = true;
-        enabledCollectors = ["systemd"];
+        enabledCollectors = ["systemd" "textfile"];
         port = 9100;
+        extraFlags = ["--collector.textfile.directory=/var/lib/prometheus-node-exporter-text-files"];
       };
     };
 
@@ -66,5 +68,39 @@
         ];
       }
     ];
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /var/lib/prometheus-node-exporter-text-files 0755 root root -"
+  ];
+  systemd.services.directory-size-exporter = {
+    description = "Export /var/lib + media subdir sizes for Prometheus textfile collector";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      DIR=/var/lib/prometheus-node-exporter-text-files
+      mkdir -p "$DIR"
+      TMP=$(mktemp -p "$DIR")
+      {
+        du --max-depth=1 --block-size=1 /var/lib 2>/dev/null | while IFS=$'\t' read -r size path; do
+          [ "$path" = "/var/lib" ] && continue
+          printf 'node_directory_size_bytes{directory="%s"} %s\n' "$path" "$size"
+        done
+        du --max-depth=2 --block-size=1 /var/lib/media 2>/dev/null | while IFS=$'\t' read -r size path; do
+          [ "$path" = "/var/lib/media" ] && continue
+          printf 'node_directory_size_bytes{directory="%s"} %s\n' "$path" "$size"
+        done
+      } > "$TMP"
+      chmod 0644 "$TMP"
+      mv "$TMP" "$DIR/dir_sizes.prom"
+    '';
+  };
+
+  systemd.timers.directory-size-exporter = {
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnBootSec = "1min";
+      OnCalendar = "hourly";
+      Persistent = true;
+    };
   };
 }

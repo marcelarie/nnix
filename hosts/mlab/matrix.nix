@@ -18,12 +18,13 @@
     };
     "m.server_name" = serverName;
     "widget_url" = "https://${callDomain}/";
-    "org.matrix.msc4143.rtc_foci" = [{
-      type = "livekit";
-      livekit_service_url = "https://${domain}/livekit/jwt";
-    }];
+    "org.matrix.msc4143.rtc_foci" = [
+      {
+        type = "livekit";
+        livekit_service_url = "https://${domain}/livekit/jwt";
+      }
+    ];
   };
-
 in {
   imports = [
     ./cinny.nix
@@ -38,21 +39,37 @@ in {
       enable_registration = false;
       server_name = serverName;
       experimental_features.msc4143_enabled = true;
-      listeners = [{
-        port = 8088;
-        bind_addresses = ["127.0.0.1"];
-        type = "http";
-        tls = false;
-        resources = [{ names = ["client" "federation"]; compress = true; }];
-      }];
+      listeners = [
+        {
+          port = 8088;
+          bind_addresses = ["127.0.0.1"];
+          type = "http";
+          tls = false;
+          resources = [
+            {
+              names = ["client" "federation"];
+              compress = true;
+            }
+          ];
+        }
+      ];
       use_appservice_welcome_email = false;
       matrix_rtc = {
-        transports = [{
-          type = "livekit";
-          livekit_service_url = "https://${domain}/livekit/jwt";
-        }];
+        transports = [
+          {
+            type = "livekit";
+            livekit_service_url = "https://${domain}/livekit/jwt";
+          }
+        ];
       };
-      database = { name = "psycopg2"; args = { database = "matrix"; user = "matrix"; host = "/run/postgresql"; }; };
+      database = {
+        name = "psycopg2";
+        args = {
+          database = "matrix";
+          user = "matrix";
+          host = "/run/postgresql";
+        };
+      };
     };
   };
 
@@ -62,8 +79,6 @@ in {
     locations."/_matrix/client/versions" = {
       proxyPass = "http://127.0.0.1:8088";
       extraConfig = ''
-        # ponytail: sub_filter module unavailable, Synapse doesn't advertise mRtc natively
-        # Element Call discovers transport via .well-known/matrix/client org.matrix.msc4143.rtc_foci
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -82,9 +97,6 @@ in {
       proxyPass = "http://127.0.0.1:8090/";
       extraConfig = "proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto https; proxy_http_version 1.1; proxy_set_header Connection \"\";";
     };
-    # ponytail: serve here too so in-browser clients (Cinny) doing discovery on the
-    # homeserver host don't fall through the SPA catch-all to index.html (200 HTML)
-    # and abort with 'configuration appears unusable'. Same-origin, no CORS needed.
     locations."/.well-known/matrix/client" = {
       extraConfig = ''add_header Content-Type application/json; return 200 '${lib.toJSON clientConfig}';'';
     };
@@ -133,13 +145,20 @@ in {
     port = 8090;
   };
 
-  services.matrix-synapse.settings.turn_servers = [{
-    urls = ["turn:${domain}:3478" "turn:${domain}:3478?transport=udp"];
-    username = "turn_user";
-    credential = config.sops.placeholder.coturn_secret;
-  }];
+  services.matrix-synapse.settings.turn_servers = [
+    {
+      urls = ["turn:${domain}:3478" "turn:${domain}:3478?transport=udp"];
+      username = "turn_user";
+      credential = config.sops.placeholder.coturn_secret;
+    }
+  ];
 
   networking.firewall.allowedTCPPorts = [80 443 3478];
   networking.firewall.allowedUDPPorts = [3478];
-  networking.firewall.allowedUDPPortRanges = [{ from = 49152; to = 49200; }];
+  networking.firewall.allowedUDPPortRanges = [
+    {
+      from = 49152;
+      to = 49200;
+    }
+  ];
 }

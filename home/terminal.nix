@@ -22,6 +22,7 @@ in {
     PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
     PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
     USE_GKE_GCLOUD_AUTH_PLUGIN = "True";
+    NIX_REMOTE = "ssh-ng://mlab";
   };
 
   services.ollama = {
@@ -72,6 +73,7 @@ in {
         user = "root";
         identityFile = "~/.ssh/mlab_key";
         identitiesOnly = true;
+        addressFamily = "inet";
       };
       "mlab-local" = {
         hostname = "192.168.1.140";

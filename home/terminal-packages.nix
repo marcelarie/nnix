@@ -147,6 +147,10 @@ with pkgs; [
   pulseaudioFull
   pwgen
   rabbitmqadmin-ng
+  rbw
+  rofi-rbw
+  android-tools
+  scrcpy
   rclone
   repgrep
   rich-cli

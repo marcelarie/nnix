@@ -22,9 +22,33 @@
 
   programs.nix-ld.enable = true;
 
+  nix.distributedBuilds = true;
+  nix.buildMachines = [
+    {
+      hostName = "mlab";
+      system = "x86_64-linux";
+      protocol = "ssh-ng";
+      # sshUser = "root";
+      # sshKey = "/home/${username}/.ssh/mlab_key";
+      maxJobs = 8;
+      speedFactor = 2;
+      supportedFeatures = ["nixos-test" "benchmark" "big-parallel" "kvm"];
+    }
+  ];
+
+  programs.ssh.extraConfig = ''
+    Host mlab
+      HostName ssh.marcel.cool
+      User root
+      IdentityFile /etc/nix/keys/mlab_key
+      IdentitiesOnly yes
+      AddressFamily inet
+  '';
+
   nix.settings = {
     # cores = 0; # Use all cores
-
+    builders-use-substitutes = true;
+    builders = "@/etc/nix/machines";
     auto-optimise-store = true;
     connect-timeout = 15;
     http-connections = 0;
@@ -38,6 +62,7 @@
     experimental-features = ["nix-command" "flakes"];
 
     substituters = [
+      "https://cache.marcel.cool/system"
       "https://cache.nixos.org"
     ];
     trusted-public-keys = [
@@ -102,16 +127,22 @@
   };
   services.flatpak.enable = true;
 
-  virtualisation.waydroid = {
-    enable = true;
-  };
-
-  virtualisation.docker = {
-    enable = true;
-    enableOnBoot = true;
-    autoPrune = {
+  virtualisation = {
+    waydroid = {
       enable = true;
-      dates = "weekly";
+    };
+
+    podman = {
+      enable = true;
+    };
+
+    docker = {
+      enable = true;
+      enableOnBoot = true;
+      autoPrune = {
+        enable = true;
+        dates = "weekly";
+      };
     };
   };
 
@@ -121,9 +152,6 @@
     networkmanager = {
       enable = true;
       plugins = with pkgs; [networkmanager-openvpn];
-      # ponytail: router on "w-plus" pushes dead DHCP DNS (100.100.1.1/100.90.1.1) that
-      # time out and make hostname resolution take ~13s -> breaks fast.com/browser.
-      # Prepend working resolvers so glibc never tries the dead ones.
       insertNameservers = ["1.1.1.1" "8.8.8.8"];
     };
   };
@@ -248,6 +276,17 @@
   services.dbus.enable = true;
   services.gnome.gnome-keyring.enable = true;
 
+  services.xserver = {
+    enable = true;
+    windowManager.i3 = {
+      enable = true;
+      extraPackages = with pkgs; [dmenu];
+    };
+  };
+
+  # plasma6 and seahorse both mkDefault this; pick plasma's ksshaskpass
+  programs.ssh.askPassword = lib.mkForce "${pkgs.kdePackages.ksshaskpass.out}/bin/ksshaskpass";
+
   services.displayManager = {
     sddm = {
       enable = true;
@@ -280,6 +319,7 @@
 
   environment.systemPackages = with pkgs; [
     attic-client
+    distrobox
     swaybg
     vim
     brave-origin
@@ -313,6 +353,12 @@
     age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
+      "mlab_builder_key" = {
+        owner = "root";
+        group = "root";
+        mode = "0600";
+        path = "/etc/nix/keys/mlab_key";
+      };
       "SLSKD_SLSK_USERNAME" = {
         owner = username;
       };
