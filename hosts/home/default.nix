@@ -9,6 +9,7 @@
 in {
   home.username = "marcel";
   home.homeDirectory = homeDir;
+  home.sessionVariables.NIX_REMOTE = "ssh-ng://mlab";
   imports = [
     ../../home/terminal.nix
     ../../home/gui.nix

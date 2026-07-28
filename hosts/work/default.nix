@@ -27,6 +27,7 @@ in {
   home.packages = with pkgs; [
     (element-desktop.override {commandLineArgs = "--password-store=gnome-libsecret";})
     _1password-cli
+    (config.lib.nixGL.wrap cinny-desktop)
     pnpm
     attic-client
     blueman
@@ -95,8 +96,8 @@ in {
     trusted-users = ["root" "mmanzanares"];
     experimental-features = ["nix-command" "flakes"];
     substituters = [
-      "https://cache.nixos.org"
       "https://cache.marcel.cool/system"
+      "https://cache.nixos.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
