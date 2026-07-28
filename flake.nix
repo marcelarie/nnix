@@ -17,6 +17,10 @@
     # };
     nvim.url = "github:marcelmanz/nvim-lua";
     cliflux.url = "git+https://codeberg.org/marcelmanz/cliflux?ref=personal";
+    brave-origin-channels = {
+      url = "git+https://codeberg.org/marcelmanz/brave-origin-channels";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     dots = {
       url = "github:marcelmanz/dots";
       flake = false;
@@ -98,7 +102,7 @@
         (final: prev: {
           protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
         })
-        (final: prev: {"brave-origin" = import ./packages/brave-origin-nightly/package.nix {inherit pkgs;};})
+        (final: prev: {"brave-origin" = inputs.brave-origin-channels.packages.${system}.nightly;})
       ];
     };
     pkgsAndroid = import nixpkgs2405 {
