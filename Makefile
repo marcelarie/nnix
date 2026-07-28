@@ -1,10 +1,13 @@
-.PHONY: format nixos nixos-nixbuild vps mlab nixos-nixbuild-mlab droid sops
+.PHONY: format nixos nixos-nixbuild vps mlab nixos-nixbuild-mlab droid hm sops
 
 format:
 	alejandra .
 
 nixos:
 	sudo nixos-rebuild switch --flake .#nixos
+
+hm:
+	home-manager switch --flake .#work
 
 nixos-nixbuild:
 	sudo nixos-rebuild switch --flake .#nixos \
