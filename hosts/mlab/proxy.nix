@@ -239,6 +239,16 @@ in {
               };
           };
 
+        "brave-origin-channels.marcel.cool" = {
+          forceSSL = true;
+          useACMEHost = "marcel.cool";
+          root = "/var/lib/brave-origin-channels";
+          locations."/" = {
+            index = "index.html";
+            tryFiles = "$uri $uri/ =404";
+          };
+        };
+
         "_" = {
           default = true;
           listen = [
