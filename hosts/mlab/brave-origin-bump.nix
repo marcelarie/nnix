@@ -6,9 +6,9 @@
     environment = {
       GIT_SSH_COMMAND = "ssh -i /run/secrets/codeberg_ssh_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new";
       GIT_AUTHOR_NAME = "mlab-bot";
-      GIT_AUTHOR_EMAIL = "mlab@localhost";
+      GIT_AUTHOR_EMAIL = "mlab-bot@marcel.cool";
       GIT_COMMITTER_NAME = "mlab-bot";
-      GIT_COMMITTER_EMAIL = "mlab@localhost";
+      GIT_COMMITTER_EMAIL = "mlab-bot@marcel.cool";
     };
     path = with pkgs; [nix git gnumake openssh bash curl jq];
     serviceConfig = {
