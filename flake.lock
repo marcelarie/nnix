@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "brave-origin-channels": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785274665,
+        "narHash": "sha256-R+J5gKqPVTuMMYdq9aiRi8MF9PEdtFLhs7pFOIQVFoc=",
+        "ref": "refs/heads/main",
+        "rev": "06df27a1213cbea093f28239b2cd06eff3e65e6d",
+        "revCount": 2,
+        "type": "git",
+        "url": "https://codeberg.org/marcelmanz/brave-origin-channels"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://codeberg.org/marcelmanz/brave-origin-channels"
+      }
+    },
     "cliflux": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -688,6 +708,7 @@
     },
     "root": {
       "inputs": {
+        "brave-origin-channels": "brave-origin-channels",
         "cliflux": "cliflux",
         "crane": "crane",
         "dots": "dots",

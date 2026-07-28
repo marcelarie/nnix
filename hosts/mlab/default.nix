@@ -13,6 +13,7 @@
     ./attic.nix
     ./audiobookshelf.nix
     ./authelia.nix
+    ./brave-origin-bump.nix
     ./calibre.nix
     ./ddclient.nix
     ./dropbox.nix
@@ -66,6 +67,10 @@
       };
       "github_ssh_key" = {
         sopsFile = ../../secrets/github.yaml;
+        owner = "dev";
+        mode = "0600";
+      };
+      "codeberg_ssh_key" = {
         owner = "dev";
         mode = "0600";
       };
