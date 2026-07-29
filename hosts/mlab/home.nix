@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   lib,
   inputs,
@@ -12,19 +11,7 @@
     sessionVariables.NVIM_PROFILE = "minimal";
     packages = with pkgs; [
       pass
-      (pkgs.symlinkJoin {
-        # Wrap pi with nodejs on PATH so its startup `npm install` of declared
-        # extension packages (settings.json) succeeds — raw pi-coding-agent has no
-        # node, and pir's tmux pane exits the moment pi crashes (spawn npm ENOENT).
-        name = "pi-coding-agent";
-        buildInputs = [pkgs.makeWrapper];
-        paths = [pkgs.pi-coding-agent];
-        postBuild = ''
-          wrapProgram $out/bin/pi \
-            --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
-            --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.nodejs_latest]}
-        '';
-      })
+      pi-coding-agent
       opencode
       gh
       fastfetch

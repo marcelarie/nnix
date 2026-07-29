@@ -713,11 +713,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785366029,
-        "narHash": "sha256-84036GaK2wbtt0rnmTVY6nmoGptzNOPxueGk2ii0Zbw=",
+        "lastModified": 1785366931,
+        "narHash": "sha256-sKij1pIRPFMvU81JlaB1pv0Mwgti2LJ/TP5MKtce4vY=",
         "ref": "refs/heads/main",
-        "rev": "d2dcc8c08231d9fde49d262b5c2d0ee15074667c",
-        "revCount": 8,
+        "rev": "38e98ac2a88af0cf92b7f145b1e9c33b0c136a6f",
+        "revCount": 10,
         "type": "git",
         "url": "https://codeberg.org/marcelmanz/pir"
       },

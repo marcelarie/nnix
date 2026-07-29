@@ -214,22 +214,7 @@ with pkgs; [
   zk
   zoxide
   zsh
-  (pkgs.symlinkJoin {
-    # then install the following:
-    # pi install npm:@mjakl/pi-kagi-search
-    name = "pi-coding-agent";
-    buildInputs = [pkgs.makeWrapper];
-    paths = [pkgs.pi-coding-agent];
-    postBuild = ''
-      wrapProgram $out/bin/pi \
-        --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
-        --prefix PATH : ${
-        pkgs.lib.makeBinPath [
-          pkgs.nodejs_latest
-        ]
-      }
-    '';
-  })
+  pi-coding-agent
   pir
   (pkgs.python3.withPackages (ps:
     with ps; [

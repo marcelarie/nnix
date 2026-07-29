@@ -83,7 +83,6 @@
     username = "marcel";
     hostname = "nixos";
     tmexPkg = tmex.packages.${system}.tmex;
-    pirPkg = pir.packages.${system}.pir;
     pkgs = import nixpkgs {
       inherit system;
       config = {
@@ -99,7 +98,7 @@
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (import ./overlays/myna-font.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
-        (final: prev: {pir = pirPkg;})
+        pir.overlays.default
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (import ./overlays/rust.nix {inherit pkgs crane;})
         (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
