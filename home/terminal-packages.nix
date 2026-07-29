@@ -230,6 +230,7 @@ with pkgs; [
       }
     '';
   })
+  pir
   (pkgs.python3.withPackages (ps:
     with ps; [
       python-lsp-server

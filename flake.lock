@@ -706,6 +706,26 @@
         "type": "github"
       }
     },
+    "pir": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785366029,
+        "narHash": "sha256-84036GaK2wbtt0rnmTVY6nmoGptzNOPxueGk2ii0Zbw=",
+        "ref": "refs/heads/main",
+        "rev": "d2dcc8c08231d9fde49d262b5c2d0ee15074667c",
+        "revCount": 8,
+        "type": "git",
+        "url": "https://codeberg.org/marcelmanz/pir"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://codeberg.org/marcelmanz/pir"
+      }
+    },
     "root": {
       "inputs": {
         "brave-origin-channels": "brave-origin-channels",
@@ -725,6 +745,7 @@
         "nu-alias-converter": "nu-alias-converter",
         "nur": "nur",
         "nvim": "nvim",
+        "pir": "pir",
         "sops-nix": "sops-nix",
         "tmex": "tmex",
         "xelabash": "xelabash",

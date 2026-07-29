@@ -9,6 +9,7 @@
   imports = [
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
+    inputs.pir.nixosModules.pir-server
     ./arr
     ./attic.nix
     ./audiobookshelf.nix
@@ -488,4 +489,9 @@
   };
 
   system.stateVersion = "26.05";
+
+  services.pir = {
+    enable = true;
+    user = "dev";
+  };
 }

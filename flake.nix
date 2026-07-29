@@ -54,6 +54,10 @@
       url = "github:marcelmanz/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    pir = {
+      url = "git+https://codeberg.org/marcelmanz/pir";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -64,6 +68,7 @@
     home-manager,
     nix-on-droid,
     tmex,
+    pir,
     neovim-nightly-overlay,
     nu-alias-converter,
     nur,
@@ -78,6 +83,7 @@
     username = "marcel";
     hostname = "nixos";
     tmexPkg = tmex.packages.${system}.tmex;
+    pirPkg = pir.packages.${system}.pir;
     pkgs = import nixpkgs {
       inherit system;
       config = {
@@ -93,6 +99,7 @@
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (import ./overlays/myna-font.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
+        (final: prev: {pir = pirPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (import ./overlays/rust.nix {inherit pkgs crane;})
         (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
