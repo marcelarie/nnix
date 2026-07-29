@@ -247,6 +247,13 @@ in {
             index = "index.html";
             tryFiles = "$uri $uri/ =404";
           };
+          locations."/_webhook/" = {
+            proxyPass = "http://127.0.0.1:9000";
+            extraConfig = ''
+              proxy_set_header Host $host;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            '';
+          };
         };
 
         "_" = {
