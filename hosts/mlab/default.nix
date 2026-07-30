@@ -480,6 +480,12 @@
           IdentityFile = "/run/secrets/github_ssh_key";
           IdentitiesOnly = "yes";
         };
+        settings."codeberg.org" = {
+          HostName = "codeberg.org";
+          User = "git";
+          IdentityFile = "/run/secrets/codeberg_ssh_key";
+          IdentitiesOnly = "yes";
+        };
       };
     };
 
