@@ -85,6 +85,10 @@ in {
           if [ -f "$CCNET" ]; then
             sed -i 's|http://${domain}|https://${domain}|g' "$CCNET"
           fi
+          SEAFILECONF="$CONF_DIR/seafile.conf"
+          if [ -f "$SEAFILECONF" ]; then
+            sed -i 's/^enabled = false$/enabled = true/' "$SEAFILECONF"
+          fi
         '';
       };
     };
@@ -115,6 +119,7 @@ in {
       environment = {
         SEAFILE_SERVER_HOSTNAME = "${domain}";
         SEAFILE_SERVER_PROTOCOL = "https";
+        FORCE_HTTPS_IN_CONF = "true";
       };
       ports = ["127.0.0.1:${toString services.seafile.port}:80"];
       extraOptions = ["--network=seafile-net"];
