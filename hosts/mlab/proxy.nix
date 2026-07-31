@@ -251,6 +251,8 @@ in {
             locations =
               base.locations
               // {
+                # WebDAV is disabled (seafdav.conf enabled=false, no wsgidav on :8080).
+                "/seafdav".return = "404";
                 # notification-server (separate container in 13.0); strip /notification prefix
                 "/notification" = {
                   proxyPass = "http://127.0.0.1:${toString services.seafile.notifPort}";

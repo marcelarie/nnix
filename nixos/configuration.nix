@@ -182,6 +182,11 @@
   # kde
   services.desktopManager.plasma6.enable = true;
   xdg.portal.enable = true;
+  # xdg-desktop-portal-gtk 1.15.3 does NOT implement org.freedesktop.appearance.color-scheme,
+  # so Brave/Chromium can't read the system dark preference from the portal and falls back to
+  # the (non-live) GTK-theme-name check. The GNOME portal reads org.gnome.desktop.interface
+  # color-scheme and emits SettingChanged live. Used under Hyprland for color-scheme only.
+  xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gnome];
 
   # Configure keymap in X11
   services.xserver.xkb = {
