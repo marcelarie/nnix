@@ -45,6 +45,7 @@
       AddressFamily inet
   '';
 
+  nix.package = pkgs.lixPackageSets.stable.lix;
   nix.settings = {
     # cores = 0; # Use all cores
     builders-use-substitutes = true;

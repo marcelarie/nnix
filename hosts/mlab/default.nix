@@ -376,6 +376,7 @@
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
   nix = {
+    package = pkgs.lixPackageSets.stable.lix;
     gc = {
       automatic = true;
       dates = "weekly";
