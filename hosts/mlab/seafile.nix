@@ -78,6 +78,9 @@ in {
           if ! grep -q "CSRF_TRUSTED_ORIGINS" "$SETTINGS"; then
             echo "CSRF_TRUSTED_ORIGINS = ['https://${domain}']" >> "$SETTINGS"
           fi
+          # setup-seafile-mysql.py is skipped on existing data, so SEAFILE_SERVER_PROTOCOL
+          # never rewrites SERVICE_URL / FILE_SERVER_ROOT -> normalize http -> https ourselves.
+          sed -i 's|http://${domain}|https://${domain}|g' "$SETTINGS"
           CCNET="$CONF_DIR/ccnet.conf"
           if [ -f "$CCNET" ]; then
             sed -i 's|http://${domain}|https://${domain}|g' "$CCNET"
