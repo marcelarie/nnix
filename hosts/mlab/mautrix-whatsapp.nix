@@ -9,6 +9,13 @@
     settings = {
       homeserver.address = "http://localhost:8088";
 
+      network = {
+        history_sync = {
+          request_full_sync = true; # bump sync window from 3 months to 1 year
+          max_initial_conversations = -1; # -1 = create portals for every conversation
+        };
+      };
+
       bridge = {
         # single-user bridge.
         relay.enabled = false;
