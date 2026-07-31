@@ -1,0 +1,27 @@
+--- a/pkg/connector/events.go
++++ b/pkg/connector/events.go
+@@ -260,7 +260,7 @@
+ 	case "edit":
+ 		return bridgev2.RemoteEventEdit
+ 	case "revoke":
+-		return bridgev2.RemoteEventMessageRemove
++		return bridgev2.RemoteEventUnknown // ponytail: keep "delete for everyone" messages in Matrix
+ 	case "ignore":
+ 		return bridgev2.RemoteEventUnknown
+ 	default:
+--- a/pkg/connector/handlewhatsapp.go
++++ b/pkg/connector/handlewhatsapp.go
+@@ -651,12 +651,3 @@
+ func (wa *WhatsAppClient) handleWADeleteForMe(ctx context.Context, evt *events.DeleteForMe) bool {
+-	chatJID := wa.maybeConvertJIDToLID(ctx, evt.ChatJID)
+-	return wa.UserLogin.QueueRemoteEvent(&simplevent.MessageRemove{
+-		EventMeta: simplevent.EventMeta{
+-			Type:      bridgev2.RemoteEventMessageRemove,
+-			PortalKey: wa.makeWAPortalKey(chatJID),
+-			Timestamp: evt.Timestamp,
+-		},
+-		TargetMessage: waid.MakeMessageID(chatJID, evt.SenderJID, evt.MessageID),
+-		OnlyForMe:     true,
+-	}).Success
++	return true // ponytail: keep "delete for me" messages in Matrix
+ }

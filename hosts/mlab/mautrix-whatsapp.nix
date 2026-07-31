@@ -14,6 +14,7 @@
           request_full_sync = true; # bump sync window from 3 months to 1 year
           max_initial_conversations = -1; # -1 = create portals for every conversation
         };
+        disable_view_once = true; # keep view-once media instead of deleting after view
       };
 
       bridge = {
