@@ -126,13 +126,6 @@
     };
   in {
     packages.${system} = {
-      # custom android bootstrap zipball generator
-      android-bootstrap = import ./hosts/android/bootstrap.nix {
-        inherit pkgs nix-on-droid system;
-        targetSystem = "aarch64-linux";
-        sshKeyPath = ./hosts/android/ssh.pub;
-        flakeSource = ./.;
-      };
       lsv = pkgs.lsv;
       "audio-select" = pkgs."audio-select";
       rff = pkgs.rff;

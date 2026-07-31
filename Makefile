@@ -51,3 +51,7 @@ sops:
 	if [ -n "$$selected" ]; then \
 		sops secrets/$$selected; \
 	fi
+
+# bootstrap zip for a fresh nix-on-droid install, impure by upstream design
+bootstrap:
+	nix build --impure --no-link --print-out-paths --expr 'let f = builtins.getFlake (toString ./.); in import ./hosts/android/bootstrap.nix { pkgs = f.inputs.nixpkgs.legacyPackages.x86_64-linux; nix-on-droid = f.inputs.nix-on-droid; system = "x86_64-linux"; targetSystem = "aarch64-linux"; sshKeyPath = ./hosts/android/ssh.pub; flakeSource = ./.; }'
