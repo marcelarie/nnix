@@ -1,12 +1,22 @@
 --- a/pkg/connector/handlewhatsapp.go
 +++ b/pkg/connector/handlewhatsapp.go
-@@ -408,6 +408,23 @@
+@@ -36,6 +36,7 @@
+ 	"maunium.net/go/mautrix/bridgev2/status"
+ 	"maunium.net/go/mautrix/event"
+ 
++	"go.mau.fi/mautrix-whatsapp/pkg/msgconv"
+ 	"go.mau.fi/mautrix-whatsapp/pkg/waid"
+ )
+ 
+@@ -408,6 +409,28 @@
  		return
  	}
  
 +	if parsedMessageType == "revoke" {
-+		// ponytail: keep "delete for everyone" messages; post a notice, leave original intact.
-+		return wa.UserLogin.QueueRemoteEvent(&simplevent.Message[string]{
++		// ponytail: keep "delete for everyone" messages; post an m.notice reply to the
++		// deleted message, leave the original intact. "delete for me" stays stock.
++		targetID := msgconv.KeyToMessageID(ctx, wa.Client, evt.Info.Chat, evt.Info.Sender, evt.Message.GetProtocolMessage().GetKey())
++		return wa.UserLogin.QueueRemoteEvent(&simplevent.Message[revokeNoticeData]{
 +			EventMeta: simplevent.EventMeta{
 +				Type:         bridgev2.RemoteEventMessage,
 +				PortalKey:    wa.getPortalKeyByMessageSource(evt.Info.MessageSource),
@@ -15,7 +25,10 @@
 +				Timestamp:    evt.Info.Timestamp,
 +				StreamOrder:  evt.Info.Timestamp.Unix(),
 +			},
-+			Data:               "Message deleted by sender (kept by bridge)",
++			Data: revokeNoticeData{
++				Text:     "Message deleted by sender (kept by bridge)",
++				TargetID: targetID,
++			},
 +			ID:                 waid.MakeFakeMessageID(evt.Info.Chat, evt.Info.Sender, "revoke-"+evt.Info.ID),
 +			ConvertMessageFunc: convertRevokeNotice,
 +		}).Success
@@ -24,18 +37,29 @@
  	res := wa.UserLogin.QueueRemoteEvent(&WAMessageEvent{
  		MessageInfoWrapper: &MessageInfoWrapper{
  			OrigSource: origSource,
-@@ -423,6 +440,18 @@
+@@ -423,6 +446,29 @@
  	return res.Success
  }
  
-+func convertRevokeNotice(ctx context.Context, portal *bridgev2.Portal, intent bridgev2.MatrixAPI, text string) (*bridgev2.ConvertedMessage, error) {
++type revokeNoticeData struct {
++	Text     string
++	TargetID networkid.MessageID
++}
++
++func convertRevokeNotice(ctx context.Context, portal *bridgev2.Portal, intent bridgev2.MatrixAPI, data revokeNoticeData) (*bridgev2.ConvertedMessage, error) {
++	content := &event.MessageEventContent{
++		MsgType: event.MsgNotice,
++		Body:    data.Text,
++	}
++	if data.TargetID != "" {
++		if msg, err := portal.Bridge.DB.Message.GetFirstPartByID(ctx, portal.Receiver, data.TargetID); err == nil && msg != nil && !msg.HasFakeMXID() {
++			content.RelatesTo = (&event.RelatesTo{}).SetReplyTo(msg.MXID)
++		}
++	}
 +	return &bridgev2.ConvertedMessage{
 +		Parts: []*bridgev2.ConvertedMessagePart{{
-+			Type: event.EventMessage,
-+			Content: &event.MessageEventContent{
-+				MsgType: event.MsgNotice,
-+				Body:    text,
-+			},
++			Type:    event.EventMessage,
++			Content: content,
 +		}},
 +	}, nil
 +}
