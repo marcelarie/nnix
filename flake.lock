@@ -693,11 +693,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1785397155,
-        "narHash": "sha256-8FwI82dDxaJZGLqnarRset25tVSDxb88NZKBfXT2X6Y=",
+        "lastModified": 1785415754,
+        "narHash": "sha256-muZSxEtlUq9WoKJ6b1i06lHMgoMWqkPJ9yDv4Vc27ds=",
         "owner": "marcelmanz",
         "repo": "nvim-lua",
-        "rev": "0b1e35d8eadd6cf9739d406995580eee0195e98f",
+        "rev": "5054cb476d9c546875d915dad798e18ecff8cc09",
         "type": "github"
       },
       "original": {
