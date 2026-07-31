@@ -21,6 +21,7 @@
 
     file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
     file."clones/forks/xelabash".source = inputs.xelabash;
+    file."clones/own/dev-templates".source = inputs.dev-templates;
     file."scripts".source = "${inputs.dots}/scripts";
     file.".config/tmux".source = "${inputs.dots}/.config/tmux";
     file.".config/atuin".source = "${inputs.dots}/.config/atuin";
