@@ -75,6 +75,10 @@
         owner = "dev";
         mode = "0600";
       };
+      "codeberg_dev_ssh_key" = {
+        owner = "dev";
+        mode = "0600";
+      };
       "livekit_api_secret" = {};
       "livekit_api_key" = {};
       "mautrix_whatsapp_pickle_key" = {owner = "mautrix-whatsapp";};
@@ -372,6 +376,7 @@
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
   nix = {
+    package = pkgs.lixPackageSets.stable.lix;
     gc = {
       automatic = true;
       dates = "weekly";
@@ -483,7 +488,7 @@
         settings."codeberg.org" = {
           HostName = "codeberg.org";
           User = "git";
-          IdentityFile = "/run/secrets/codeberg_ssh_key";
+          IdentityFile = "/run/secrets/codeberg_dev_ssh_key";
           IdentitiesOnly = "yes";
         };
       };

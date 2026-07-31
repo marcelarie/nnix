@@ -19,6 +19,7 @@ in {
     flat-remix-icon-theme
     audio-select
     bitwig-studio
+    bitwarden-desktop
     gimagereader
     tesseract
     grayjay
