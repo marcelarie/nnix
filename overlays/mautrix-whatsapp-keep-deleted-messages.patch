@@ -1,27 +1,45 @@
---- a/pkg/connector/events.go
-+++ b/pkg/connector/events.go
-@@ -260,7 +260,7 @@
- 	case "edit":
- 		return bridgev2.RemoteEventEdit
- 	case "revoke":
--		return bridgev2.RemoteEventMessageRemove
-+		return bridgev2.RemoteEventUnknown // ponytail: keep "delete for everyone" messages in Matrix
- 	case "ignore":
- 		return bridgev2.RemoteEventUnknown
- 	default:
 --- a/pkg/connector/handlewhatsapp.go
 +++ b/pkg/connector/handlewhatsapp.go
-@@ -651,12 +651,3 @@
- func (wa *WhatsAppClient) handleWADeleteForMe(ctx context.Context, evt *events.DeleteForMe) bool {
--	chatJID := wa.maybeConvertJIDToLID(ctx, evt.ChatJID)
--	return wa.UserLogin.QueueRemoteEvent(&simplevent.MessageRemove{
--		EventMeta: simplevent.EventMeta{
--			Type:      bridgev2.RemoteEventMessageRemove,
--			PortalKey: wa.makeWAPortalKey(chatJID),
--			Timestamp: evt.Timestamp,
--		},
--		TargetMessage: waid.MakeMessageID(chatJID, evt.SenderJID, evt.MessageID),
--		OnlyForMe:     true,
--	}).Success
-+	return true // ponytail: keep "delete for me" messages in Matrix
+@@ -408,6 +408,23 @@
+ 		return
+ 	}
+ 
++	if parsedMessageType == "revoke" {
++		// ponytail: keep "delete for everyone" messages; post a notice, leave original intact.
++		return wa.UserLogin.QueueRemoteEvent(&simplevent.Message[string]{
++			EventMeta: simplevent.EventMeta{
++				Type:         bridgev2.RemoteEventMessage,
++				PortalKey:    wa.getPortalKeyByMessageSource(evt.Info.MessageSource),
++				Sender:       wa.makeEventSender(ctx, evt.Info.Sender),
++				CreatePortal: false,
++				Timestamp:    evt.Info.Timestamp,
++				StreamOrder:  evt.Info.Timestamp.Unix(),
++			},
++			Data:               "Message deleted by sender (kept by bridge)",
++			ID:                 waid.MakeFakeMessageID(evt.Info.Chat, evt.Info.Sender, "revoke-"+evt.Info.ID),
++			ConvertMessageFunc: convertRevokeNotice,
++		}).Success
++	}
++
+ 	res := wa.UserLogin.QueueRemoteEvent(&WAMessageEvent{
+ 		MessageInfoWrapper: &MessageInfoWrapper{
+ 			OrigSource: origSource,
+@@ -423,6 +440,18 @@
+ 	return res.Success
  }
+ 
++func convertRevokeNotice(ctx context.Context, portal *bridgev2.Portal, intent bridgev2.MatrixAPI, text string) (*bridgev2.ConvertedMessage, error) {
++	return &bridgev2.ConvertedMessage{
++		Parts: []*bridgev2.ConvertedMessagePart{{
++			Type: event.EventMessage,
++			Content: &event.MessageEventContent{
++				MsgType: event.MsgNotice,
++				Body:    text,
++			},
++		}},
++	}, nil
++}
++
+ func (wa *WhatsAppClient) handleWAUndecryptableMessage(ctx context.Context, evt *events.UndecryptableMessage) bool {
+ 	wa.rerouteWAMessage(ctx, "undecryptable message", &evt.Info.MessageSource, evt.Info.ID)
+ 	wa.UserLogin.Log.Debug().
