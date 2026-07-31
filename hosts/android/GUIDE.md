@@ -12,12 +12,11 @@ This script will build the `--impure` zip, host it locally, and instantly expose
 set -e
 
 # building custom bootstrap zip (explain --impure)
-nix build .#android-bootstrap --impure
-
-# staging file for hosting
+# nix-on-droid hardcodes /nix/store proot paths, so this must build impurely
+nix build --impure --no-link --print-out-paths --expr 'let f = builtins.getFlake (toString ./.); in import ./hosts/android/bootstrap.nix { pkgs = f.inputs.nixpkgs.legacyPackages.x86_64-linux; nix-on-droid = f.inputs.nix-on-droid; system = "x86_64-linux"; targetSystem = "aarch64-linux"; sshKeyPath = ./hosts/android/ssh.pub; flakeSource = ./.; }' > /tmp/nix-bootstrap-path
 mkdir -p /tmp/nix-bootstrap
 # the app specifically looks for this filename based on your architecture
-cp ./result /tmp/nix-bootstrap/bootstrap-aarch64.zip
+cp $$(cat /tmp/nix-bootstrap-path) /tmp/nix-bootstrap/bootstrap-aarch64.zip
 
 # starting local python http server on port 8888
 python3 -m http.server 8888 --directory /tmp/nix-bootstrap &
