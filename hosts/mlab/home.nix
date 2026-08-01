@@ -25,7 +25,7 @@
     activation.cloneDevTemplates = lib.hm.dag.entryAfter ["writeBoundary"] ''
       if [ ! -e "$HOME/clones/own/dev-templates/.git" ]; then
         $DRY_RUN_CMD mkdir -p "$HOME/clones/own"
-        $DRY_RUN_CMD ${pkgs.git}/bin/git clone git@github.com:marcelmanz/dev-templates.git \
+        $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/marcelmanz/dev-templates.git \
           "$HOME/clones/own/dev-templates"
       fi
     '';
