@@ -21,7 +21,15 @@
 
     file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
     file."clones/forks/xelabash".source = inputs.xelabash;
-    file."clones/own/dev-templates".source = inputs.dev-templates;
+
+    activation.cloneDevTemplates = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      if [ ! -e "$HOME/clones/own/dev-templates/.git" ]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/clones/own"
+        $DRY_RUN_CMD ${pkgs.git}/bin/git clone git@github.com:themarcel/dev-templates.git \
+          "$HOME/clones/own/dev-templates"
+      fi
+    '';
+
     file."scripts".source = "${inputs.dots}/scripts";
     file.".config/tmux".source = "${inputs.dots}/.config/tmux";
     file.".config/atuin".source = "${inputs.dots}/.config/atuin";
