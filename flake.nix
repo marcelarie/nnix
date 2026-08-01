@@ -104,6 +104,7 @@
         (import ./overlays/myna-font.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         pir.overlays.default
+        (import ./overlays/pi-jiti-cache.nix)
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
         (import ./overlays/rust.nix {inherit pkgs crane;})
         (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
