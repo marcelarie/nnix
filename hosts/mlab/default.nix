@@ -371,6 +371,8 @@
     zoxide
     thunar
     sqlite
+    dua
+    dust
   ];
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
