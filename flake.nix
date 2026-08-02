@@ -128,6 +128,7 @@
       rff = pkgs.rff;
       "pulseaudio-next-output" = pkgs."pulseaudio-next-output";
       "git-commit-search" = pkgs."git-commit-search";
+      mautrix-whatsapp = pkgs.mautrix-whatsapp;
       # Commented out due to cycles
       # Commented out due to cycles
     };
