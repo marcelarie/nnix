@@ -20,6 +20,7 @@ with pkgs; [
   atool
   atuin
   bacon
+  screen
   basedpyright
   bash
   bash-language-server
