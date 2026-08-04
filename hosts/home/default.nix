@@ -16,6 +16,15 @@ in {
     ../../home/i3.nix
   ];
 
+  # Route the portal Settings interface to the GTK backend so Brave/Chromium's read it live
+  xdg.configFile."xdg-desktop-portal/hyprland-portals.conf".text = ''
+    [preferred]
+    default=gtk;hyprland
+    org.freedesktop.impl.portal.ScreenCast=hyprland
+    org.freedesktop.impl.portal.Screenshot=hyprland
+    org.freedesktop.impl.portal.Settings=gtk
+  '';
+
   # nixGL = {
   #   packages = nixGL.packages;
   #   defaultWrapper = "mesa";

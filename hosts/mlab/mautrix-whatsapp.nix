@@ -15,6 +15,7 @@
           max_initial_conversations = -1; # -1 = create portals for every conversation
         };
         disable_view_once = true; # keep view-once media instead of deleting after view
+        keep_revoked_messages = true; # available only in my fork marcelmanz/whatsapp
       };
 
       bridge = {

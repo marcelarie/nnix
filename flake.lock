@@ -70,30 +70,14 @@
         "type": "github"
       }
     },
-    "dev-templates": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1776446952,
-        "narHash": "sha256-S5GLQxgm73QMwRFP+JEw60AhYL90xzUVB7X1POsDR5g=",
-        "owner": "marcelarie",
-        "repo": "dev-templates",
-        "rev": "c64cd382532f4eb3a12eb90661ec9405c505472e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "marcelarie",
-        "repo": "dev-templates",
-        "type": "github"
-      }
-    },
     "dots": {
       "flake": false,
       "locked": {
-        "lastModified": 1785339534,
-        "narHash": "sha256-vZcYEhwxiPfBWgIxfedyPdZPiHpx3tlX6oPC9e8Q6qs=",
+        "lastModified": 1785626782,
+        "narHash": "sha256-KyKcVGEoiAk6qbAiqM+OHM7EW8wC8vd6+yvrjScJF2g=",
         "owner": "marcelmanz",
         "repo": "dots",
-        "rev": "6e2be93f37c1afa499546b50efd4a76127d68452",
+        "rev": "e3fe2dfdb411c8dbb04e6df877f349a6fac267e3",
         "type": "github"
       },
       "original": {
@@ -747,7 +731,6 @@
         "brave-origin-channels": "brave-origin-channels",
         "cliflux": "cliflux",
         "crane": "crane",
-        "dev-templates": "dev-templates",
         "dots": "dots",
         "home-manager": "home-manager",
         "musnix": "musnix",

@@ -972,6 +972,8 @@ in {
       "application/vnd.oasis.opendocument.text" = ["nvim.desktop"];
 
       # Web browser scheme handlers
+      "x-scheme-handler/http" = ["brave-origin-nightly.desktop"];
+      "x-scheme-handler/https" = ["brave-origin-nightly.desktop"];
 
       # Brave-Origin per-container scheme handlers (registerProtocolHandler).
       # force-managed mimeapps.list wipes Brave's runtime registration, so map

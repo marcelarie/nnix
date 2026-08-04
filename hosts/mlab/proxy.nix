@@ -89,6 +89,10 @@
     seafile = {
       port = 8008;
       href = "https://seafile.marcel.cool";
+      # host-side published ports for the 13.0 sibling containers (host nginx
+      # reaches these; container-internal ports are 8083 for notification, 80 for seadoc)
+      notifPort = 8009;
+      seadocPort = 8888;
     };
     seerr = {
       port = 5055;
@@ -222,7 +226,7 @@ in {
     clientMaxBodySize = "0";
 
     virtualHosts =
-      (builtins.removeAttrs serviceVirtualHosts ["auth.marcel.cool"])
+      (builtins.removeAttrs serviceVirtualHosts ["auth" "seafile"])
       // {
         "auth.marcel.cool" = let
           base = mkProxyHost "auth" services.auth;
@@ -236,6 +240,56 @@ in {
                   add_header Content-Type application/jrd+json;
                   return 200 '{"subject":"acct:authelia@auth.marcel.cool","links":[{"rel":"http://openid.net/specs/connect/1.0/issuer","href":"https://auth.marcel.cool"}]}';
                 '';
+              };
+          };
+
+        "seafile.marcel.cool" = let
+          base = mkProxyHost "seafile" services.seafile;
+        in
+          base
+          // {
+            locations =
+              base.locations
+              // {
+                # WebDAV is disabled (seafdav.conf enabled=false, no wsgidav on :8080).
+                "/seafdav".return = "404";
+                # notification-server (separate container in 13.0); strip /notification prefix
+                "/notification" = {
+                  proxyPass = "http://127.0.0.1:${toString services.seafile.notifPort}";
+                  proxyWebsockets = true;
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                  '';
+                };
+                # SeaDoc (separate container); strip /sdoc-server prefix
+                "/sdoc-server/" = {
+                  proxyPass = "http://127.0.0.1:${toString services.seafile.seadocPort}/";
+                  proxyWebsockets = true;
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_set_header X-Forwarded-Host $server_name;
+                    client_max_body_size 100m;
+                  '';
+                };
+                # SeaDoc websocket; keep /socket.io prefix
+                "/socket.io" = {
+                  proxyPass = "http://127.0.0.1:${toString services.seafile.seadocPort}";
+                  proxyWebsockets = true;
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffers 8 32k;
+                    proxy_buffer_size 64k;
+                  '';
+                };
               };
           };
 
