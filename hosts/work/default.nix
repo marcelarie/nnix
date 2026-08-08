@@ -5,6 +5,11 @@
   ...
 }: let
   homeDir = config.home.homeDirectory;
+  # cinny-desktop's wrapper sets GST_PLUGIN_SYSTEM_PATH_1_0 to only the Tauri asset plugin, so WebKitGTK has zero audio decoders.
+  cinnyWithCodecs = pkgs.writeShellScriptBin "cinny" ''
+    export GST_PLUGIN_SYSTEM_PATH_1_0="${pkgs.lib.makeSearchPath "lib/gstreamer-1.0" (with pkgs.gst_all_1; [gstreamer.out gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav])}''${GST_PLUGIN_SYSTEM_PATH_1_0:+:$GST_PLUGIN_SYSTEM_PATH_1_0}"
+    exec ${pkgs.cinny-desktop}/bin/cinny "$@"
+  '';
 in {
   programs.firefox = {
     package = config.lib.nixGL.wrap pkgs.firefox;
@@ -27,7 +32,7 @@ in {
   home.packages = with pkgs; [
     (element-desktop.override {commandLineArgs = "--password-store=gnome-libsecret";})
     _1password-cli
-    (config.lib.nixGL.wrap cinny-desktop)
+    (config.lib.nixGL.wrap cinnyWithCodecs)
     pnpm
     attic-client
     blueman
