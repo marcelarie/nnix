@@ -1,4 +1,4 @@
-.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops
+.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops android-mirror
 
 format:
 	alejandra .
@@ -39,7 +39,7 @@ nixos-nixbuild-mlab:
 		--option builders-use-substitutes true \
 		--option max-jobs 0
 
-# a bit complex but its the only way I (claude) found so the phone does not do the build
+# a bit complex but its the only way to deploy to android that I (claude) found so the phone does not do the build
 droid:
 	nix build .#nixOnDroidConfigurations.default.activationPackage --impure
 	nix copy --to "ssh://nix-on-droid@droid?remote-program=/data/data/com.termux.nix/files/home/.nix-profile/bin/nix-store" ./result
@@ -55,3 +55,13 @@ sops:
 # bootstrap zip for a fresh nix-on-droid install, impure by upstream design
 bootstrap:
 	nix build --impure --no-link --print-out-paths --expr 'let f = builtins.getFlake (toString ./.); in import ./hosts/android/bootstrap.nix { pkgs = f.inputs.nixpkgs.legacyPackages.x86_64-linux; nix-on-droid = f.inputs.nix-on-droid; system = "x86_64-linux"; targetSystem = "aarch64-linux"; sshKeyPath = ./hosts/android/ssh.pub; flakeSource = ./.; }'
+
+android-mirror:
+	@echo "Starting SSH tunnel..."
+	@ssh -N -L 5555:127.0.0.1:5555 root@mlab & \
+	SSH_PID=$$!; \
+	trap "echo '\nCleaning up...'; kill $$SSH_PID 2>/dev/null; adb disconnect 127.0.0.1:5555 2>/dev/null" EXIT INT TERM; \
+	sleep 2; \
+	echo "Connecting ADB to remote device..."; \
+	adb connect 127.0.0.1:5555; \
+	scrcpy --no-audio -s 127.0.0.1:5555

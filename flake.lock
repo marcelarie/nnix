@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785546060,
-        "narHash": "sha256-yq/XGROiBetFpdDLot8oMzGpbxxFz0/pls5DWo8XbcA=",
+        "lastModified": 1785776448,
+        "narHash": "sha256-4zCghnYLGmhEUVsp/3Oc2oUQRpmgsevRemHRapPux2A=",
         "ref": "refs/heads/main",
-        "rev": "adf2641a484c5656fbfd6da2f47253c5dfccbdad",
-        "revCount": 34,
+        "rev": "4427044c007a7bea512aa44a672dae6b610faf0e",
+        "revCount": 37,
         "type": "git",
         "url": "https://codeberg.org/marcelmanz/brave-origin-channels"
       },
@@ -468,22 +468,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-pi082": {
-      "locked": {
-        "lastModified": 1784985783,
-        "narHash": "sha256-hm8/QH1DatxmfTloMCBaEiRe1jlLbpwwbe3twJpTAG4=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "fab21b475263cb9d5a9074924b0ad0bf7d6628c4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "fab21b475263cb9d5a9074924b0ad0bf7d6628c4",
-        "type": "github"
-      }
-    },
     "nixpkgs2405": {
       "locked": {
         "lastModified": 1735563628,
@@ -756,7 +740,6 @@
         "nix-on-droid": "nix-on-droid",
         "nixGL": "nixGL",
         "nixpkgs": "nixpkgs_4",
-        "nixpkgs-pi082": "nixpkgs-pi082",
         "nixpkgs2405": "nixpkgs2405",
         "nixpkgsStable": "nixpkgsStable",
         "nu-alias-converter": "nu-alias-converter",
