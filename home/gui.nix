@@ -73,6 +73,7 @@ in {
     swayosd
     telegram-desktop
     tofi
+    bemenu
     ubuntu-sans-mono
     way-displays
     pkgsStable.waybar

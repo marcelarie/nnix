@@ -127,6 +127,7 @@ with pkgs; [
   nuit
   nushell
   nwg-displays
+  tea
   nix-prefetch-git
   onefetch
   opencode
