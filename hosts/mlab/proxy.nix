@@ -199,7 +199,7 @@
         }
 
         location @authelia_login {
-          return 302 https://auth.marcel.cool/?rm=$request_method;
+          return 302 https://auth.marcel.cool/?rd=$scheme://$http_host$request_uri&rm=$request_method;
         }
       ''}
     '';
