@@ -97,6 +97,7 @@ in {
     thunderbird
     vvvvvv
     pinentry-all
+    libsecret # secret-tool, for the pinentry-rbw keyring lookup
     mullvad-browser
     signal-desktop
     socat
