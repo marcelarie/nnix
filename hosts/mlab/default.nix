@@ -46,7 +46,6 @@
     ./sway.nix
     ./uptime-kuma.nix
     ./vaultwarden.nix
-    ./ytify.nix
   ];
 
   time.timeZone = "Europe/Madrid";
