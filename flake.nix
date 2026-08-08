@@ -33,6 +33,10 @@
       url = "github:marcelmanz/xelabash";
       flake = false;
     };
+    ytify = {
+      url = "github:n-ce/ytify";
+      flake = false;
+    };
     zuban.url = "github:marcelmanz/zuban";
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/master";

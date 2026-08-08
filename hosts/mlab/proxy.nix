@@ -131,9 +131,15 @@
       port = 8086;
       href = "https://jmap.marcel.cool";
     };
+    ytify = {
+      port = 8910;
+      href = "https://ytify.marcel.cool";
+      protected = true;
+    };
     youtube = {
       port = 9800;
       href = "https://yt.marcel.cool";
+      protected = true;
     };
     stalwartadmin = {
       port = 8087;
