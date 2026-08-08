@@ -33,6 +33,12 @@
           groups:
             - admins
             - youtube
+        metube:
+          displayname: "metube"
+          password: "${config.sops.placeholder.ytify_user_password}"
+          email: "metube@auth.marcel.cool"
+          groups:
+            - youtube
     '';
     owner = "authelia-main";
   };
@@ -71,7 +77,7 @@
             subject = ["group:youtube"];
           }
           {
-            domain = "ytify.marcel.cool";
+            domain = "bailatube.marcel.cool";
             policy = "one_factor";
             subject = ["group:youtube"];
           }

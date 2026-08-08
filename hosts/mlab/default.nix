@@ -89,6 +89,7 @@
       };
       "ms01_admin_hash" = {neededForUsers = true;};
       "ms01_dev_hash" = {neededForUsers = true;};
+      "ytify_user_password" = {};
     };
 
     templates."cloudflare-acme.env" = {

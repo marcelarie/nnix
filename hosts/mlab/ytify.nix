@@ -4,10 +4,6 @@
   services,
   ...
 }: let
-  # ytify ships no package-lock.json and uses `.js` imports that point at `.ts`
-  # source (a bundler convention). We bake the vendored lockfile, our tiny API
-  # server, the SSR build config, and a same-origin `app.ts` patch into the
-  # source so fetchNpmDeps + the build both see them.
   ytifySrc = pkgs.runCommand "ytify-src" {} ''
     cp -r ${inputs.ytify} $out
     chmod -R u+w $out
@@ -19,20 +15,14 @@
     substituteInPlace $out/src/lib/stores/app.ts \
       --replace "'https://api.ytify.workers.dev'" "'/api'"
   '';
-
   ytify = pkgs.buildNpmPackage {
     pname = "ytify";
     version = "8.4-pr4";
     src = ytifySrc;
     npmDepsHash = "sha256-Mnmo0muZKAI4qvjkSa5w1qkcOnKaTThLjVi/7uxHD+8=";
-
-    # `npm run build` (tsc typecheck + vite build) produces dist/ (SPA + PWA).
-    # postBuild bundles the standalone API server: youtubei.js + all deps
-    # inlined into one file, no node_modules needed at runtime.
     postBuild = ''
       ./node_modules/.bin/vite build --config vite.server.config.ts --outDir dist-server
     '';
-
     installPhase = ''
       runHook preInstall
       mkdir -p $out/share/ytify
