@@ -21,7 +21,7 @@
     ./graphana.nix
     ./homepage.nix
     ./immich.nix
-    ./invidious.nix
+    ./invidious
     ./jellyfin.nix
     ./livekit.nix
     ./matrix.nix
