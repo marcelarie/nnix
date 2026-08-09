@@ -222,8 +222,33 @@ in {
     clientMaxBodySize = "0";
 
     virtualHosts =
-      (builtins.removeAttrs serviceVirtualHosts ["auth" "seafile"])
+      (builtins.removeAttrs serviceVirtualHosts ["auth" "jellyfin" "seafile"])
       // {
+        "jellyfin.marcel.cool" = let
+          base = mkProxyHost "jellyfin" services.jellyfin;
+        in
+          base
+          // {
+            locations =
+              base.locations
+              // {
+                "/web/" = {
+                  proxyPass = "http://127.0.0.1:${toString services.jellyfin.port}";
+                  proxyWebsockets = true;
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_set_header X-Forwarded-Host $host;
+                    proxy_hide_header Cache-Control;
+                    add_header Cache-Control "no-cache" always;
+                    error_page 502 503 504 = @maintenance;
+                  '';
+                };
+              };
+          };
+
         "auth.marcel.cool" = let
           base = mkProxyHost "auth" services.auth;
         in
