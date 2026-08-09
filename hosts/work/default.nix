@@ -31,7 +31,7 @@ in {
 
   home.packages = with pkgs; [
     (element-desktop.override {commandLineArgs = "--password-store=gnome-libsecret";})
-    _1password-cli
+    # _1password-cli # installed manually
     (config.lib.nixGL.wrap cinnyWithCodecs)
     pnpm
     attic-client

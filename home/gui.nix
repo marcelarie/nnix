@@ -23,6 +23,8 @@ in {
     gimagereader
     tesseract
     grayjay
+    simplex-chat-desktop
+    strawberry
 
     cinny
     # librewolf # no active commiter in nixpkgs

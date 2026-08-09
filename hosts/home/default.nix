@@ -50,6 +50,7 @@ in {
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
     aonsoku
+    _1password-cli
     cinny-desktop
     (pkgs.writeShellScriptBin "vivaldi-stable" ''
       exec -a "$0" ${pkgs.vivaldi}/bin/vivaldi-stable --ozone-platform-hint=wayland --enable-features=WaylandWindowDecorations "$@"

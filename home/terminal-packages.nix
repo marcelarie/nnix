@@ -20,8 +20,9 @@ with pkgs; [
   atool
   atuin
   bacon
-  screen
+  # screen
   basedpyright
+  gurk-rs
   bash
   bash-language-server
   bash-preexec
