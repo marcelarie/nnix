@@ -21,7 +21,7 @@
     ./graphana.nix
     ./homepage.nix
     ./immich.nix
-    ./invidious.nix
+    ./invidious
     ./jellyfin.nix
     ./livekit.nix
     ./matrix.nix
@@ -42,7 +42,6 @@
     ./shoko.nix
     ./slskd.nix
     ./soulbeet.nix
-    ./stalwart.nix
     ./sway.nix
     ./uptime-kuma.nix
     ./vaultwarden.nix
@@ -88,6 +87,7 @@
       };
       "ms01_admin_hash" = {neededForUsers = true;};
       "ms01_dev_hash" = {neededForUsers = true;};
+      "ytify_user_password" = {};
     };
 
     templates."cloudflare-acme.env" = {
@@ -147,7 +147,7 @@
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
     '';
-    ensureDatabases = ["navidrome" "paperless" "stalwart" "matrix"];
+    ensureDatabases = ["navidrome" "paperless" "matrix"];
     ensureUsers = [
       {
         name = "navidrome";
@@ -155,10 +155,6 @@
       }
       {
         name = "paperless";
-        ensureDBOwnership = true;
-      }
-      {
-        name = "stalwart";
         ensureDBOwnership = true;
       }
       {
@@ -371,6 +367,8 @@
     zoxide
     thunar
     sqlite
+    dua
+    dust
   ];
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";

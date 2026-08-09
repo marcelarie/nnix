@@ -127,17 +127,9 @@
       href = "https://search.marcel.cool";
       protected = true;
     };
-    stalwart = {
-      port = 8086;
-      href = "https://jmap.marcel.cool";
-    };
     youtube = {
       port = 9800;
       href = "https://yt.marcel.cool";
-    };
-    stalwartadmin = {
-      port = 8087;
-      href = "https://jmap-admin.marcel.cool";
       protected = true;
     };
     vaultwarden = {
@@ -175,7 +167,11 @@
     };
     extraConfig = ''
       location @maintenance {
-        rewrite ^ https://maintenance.marcel.cool?from=${lib.removePrefix "https://" service.href} redirect;
+        # only redirect top-level browser navigations to the maintenance page.
+        if ($http_sec_fetch_mode = navigate) {
+          rewrite ^ https://maintenance.marcel.cool?from=${lib.removePrefix "https://" service.href} redirect;
+        }
+        return 503;
       }
 
       ${lib.optionalString (service.protected or false) ''
@@ -193,7 +189,7 @@
         }
 
         location @authelia_login {
-          return 302 https://auth.marcel.cool/?rm=$request_method;
+          return 302 https://auth.marcel.cool/?rd=$scheme://$http_host$request_uri&rm=$request_method;
         }
       ''}
     '';
@@ -226,8 +222,33 @@ in {
     clientMaxBodySize = "0";
 
     virtualHosts =
-      (builtins.removeAttrs serviceVirtualHosts ["auth" "seafile"])
+      (builtins.removeAttrs serviceVirtualHosts ["auth" "jellyfin" "seafile"])
       // {
+        "jellyfin.marcel.cool" = let
+          base = mkProxyHost "jellyfin" services.jellyfin;
+        in
+          base
+          // {
+            locations =
+              base.locations
+              // {
+                "/web/" = {
+                  proxyPass = "http://127.0.0.1:${toString services.jellyfin.port}";
+                  proxyWebsockets = true;
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_set_header X-Forwarded-Host $host;
+                    proxy_hide_header Cache-Control;
+                    add_header Cache-Control "no-cache" always;
+                    error_page 502 503 504 = @maintenance;
+                  '';
+                };
+              };
+          };
+
         "auth.marcel.cool" = let
           base = mkProxyHost "auth" services.auth;
         in

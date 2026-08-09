@@ -32,6 +32,13 @@
           email: "authelia@auth.marcel.cool"
           groups:
             - admins
+            - youtube
+        metube:
+          displayname: "metube"
+          password: "${config.sops.placeholder.ytify_user_password}"
+          email: "metube@auth.marcel.cool"
+          groups:
+            - youtube
     '';
     owner = "authelia-main";
   };
@@ -60,7 +67,31 @@
       };
 
       access_control = {
-        default_policy = "one_factor";
+        # Deny by default; every protected service gets an explicit rule below.
+        # To protect a new subdomain, add a rule here too or it will 401.
+        default_policy = "deny";
+        rules = [
+          {
+            domain = "yt.marcel.cool";
+            policy = "one_factor";
+            subject = ["group:youtube"];
+          }
+          {
+            domain = "bailatube.marcel.cool";
+            policy = "one_factor";
+            subject = ["group:youtube"];
+          }
+          {
+            domain = "search.marcel.cool";
+            policy = "one_factor";
+            subject = ["group:admins"];
+          }
+          {
+            domain = "pinchflat.marcel.cool";
+            policy = "one_factor";
+            subject = ["group:admins"];
+          }
+        ];
       };
 
       notifier = {

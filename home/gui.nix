@@ -75,6 +75,7 @@ in {
     swayosd
     telegram-desktop
     tofi
+    bemenu
     ubuntu-sans-mono
     way-displays
     pkgsStable.waybar
@@ -98,6 +99,7 @@ in {
     thunderbird
     vvvvvv
     pinentry-all
+    libsecret # secret-tool, for the pinentry-rbw keyring lookup
     mullvad-browser
     signal-desktop
     socat
