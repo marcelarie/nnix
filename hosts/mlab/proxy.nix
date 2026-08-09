@@ -127,18 +127,9 @@
       href = "https://search.marcel.cool";
       protected = true;
     };
-    stalwart = {
-      port = 8086;
-      href = "https://jmap.marcel.cool";
-    };
     youtube = {
       port = 9800;
       href = "https://yt.marcel.cool";
-      protected = true;
-    };
-    stalwartadmin = {
-      port = 8087;
-      href = "https://jmap-admin.marcel.cool";
       protected = true;
     };
     vaultwarden = {
@@ -176,7 +167,11 @@
     };
     extraConfig = ''
       location @maintenance {
-        rewrite ^ https://maintenance.marcel.cool?from=${lib.removePrefix "https://" service.href} redirect;
+        # only redirect top-level browser navigations to the maintenance page.
+        if ($http_sec_fetch_mode = navigate) {
+          rewrite ^ https://maintenance.marcel.cool?from=${lib.removePrefix "https://" service.href} redirect;
+        }
+        return 503;
       }
 
       ${lib.optionalString (service.protected or false) ''

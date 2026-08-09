@@ -42,7 +42,6 @@
     ./shoko.nix
     ./slskd.nix
     ./soulbeet.nix
-    # ./stalwart.nix
     ./sway.nix
     ./uptime-kuma.nix
     ./vaultwarden.nix
@@ -148,7 +147,7 @@
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
     '';
-    ensureDatabases = ["navidrome" "paperless" "matrix"]; # "stalwart" was here
+    ensureDatabases = ["navidrome" "paperless" "matrix"];
     ensureUsers = [
       {
         name = "navidrome";
@@ -158,10 +157,6 @@
         name = "paperless";
         ensureDBOwnership = true;
       }
-      # {
-      #   name = "stalwart";
-      #   ensureDBOwnership = true;
-      # }
       {
         name = "matrix";
         ensureDBOwnership = true;

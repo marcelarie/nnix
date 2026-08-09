@@ -749,7 +749,6 @@
         "sops-nix": "sops-nix",
         "tmex": "tmex",
         "xelabash": "xelabash",
-        "ytify": "ytify",
         "zuban": "zuban"
       }
     },
@@ -900,22 +899,6 @@
       "original": {
         "owner": "marcelmanz",
         "repo": "xelabash",
-        "type": "github"
-      }
-    },
-    "ytify": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1785051829,
-        "narHash": "sha256-HGNLeGaxakf2yJFH7MxH2xaTnfVIGowELKhErZyFO8k=",
-        "owner": "n-ce",
-        "repo": "ytify",
-        "rev": "2ffd216463fe8eff367102c1548f10e3382661e8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "n-ce",
-        "repo": "ytify",
         "type": "github"
       }
     },

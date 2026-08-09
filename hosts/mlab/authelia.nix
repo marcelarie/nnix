@@ -87,11 +87,6 @@
             subject = ["group:admins"];
           }
           {
-            domain = "jmap-admin.marcel.cool";
-            policy = "one_factor";
-            subject = ["group:admins"];
-          }
-          {
             domain = "pinchflat.marcel.cool";
             policy = "one_factor";
             subject = ["group:admins"];
