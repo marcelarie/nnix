@@ -129,6 +129,12 @@
   services.flatpak.enable = true;
 
   virtualisation = {
+    libvirtd = {
+      enable = true;
+      qemu.swtpm.enable = true;
+    };
+    spiceUSBRedirection.enable = true;
+
     waydroid = {
       enable = true;
     };
@@ -273,6 +279,8 @@
       "wheel"
       "audio"
       "docker"
+      "libvirtd"
+      "kvm"
     ];
     packages = with pkgs; [
       kitty
@@ -325,6 +333,7 @@
 
   environment.systemPackages = with pkgs; [
     attic-client
+    virt-manager
     distrobox
     swaybg
     vim
