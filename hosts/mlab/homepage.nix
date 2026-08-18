@@ -283,6 +283,20 @@
             };
           }
           {
+            Syncthing = {
+              icon = "syncthing";
+              href = services.syncthing.href;
+              description = "File sync";
+            };
+          }
+          {
+            "Bandcamp Sync" = {
+              icon = "bandcamp";
+              href = "https://bcsync.marcel.cool";
+              description = "Last bandcampsync run";
+            };
+          }
+          {
             Status = {
               icon = "uptime-kuma";
               href = "${services.status.href}/status/mlab";

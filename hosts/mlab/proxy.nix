@@ -110,6 +110,11 @@
       port = 8989;
       href = "https://sonarr.marcel.cool";
     };
+    syncthing = {
+      port = 8384;
+      href = "https://sync.marcel.cool";
+      protected = true;
+    };
     soulbeet = {
       port = 9765;
       href = "https://soulbeet.marcel.cool";
