@@ -9,6 +9,7 @@
     my-nixpkgs.url = "github:marcelmanz/nixpkgs";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs2405.url = "github:NixOS/nixpkgs/nixos-24.05";
+    openlogi.url = "github:AprilNEA/OpenLogi";
     nu-alias-converter.url = "github:marcelmanz/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
     # rust-overlay = {
@@ -153,7 +154,9 @@
         inputs.musnix.nixosModules.musnix
         inputs.sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
+        inputs.openlogi.nixosModules.default
         {
+          programs.openlogi.enable = true;
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
@@ -169,6 +172,10 @@
       specialArgs = {inherit inputs;};
       modules = [
         inputs.sops-nix.nixosModules.sops
+        inputs.openlogi.nixosModules.default
+        {
+          programs.openlogi.enable = true;
+        }
         ./hosts/mlab/default.nix
       ];
     };

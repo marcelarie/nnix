@@ -2,7 +2,6 @@
   logDir = "/var/log/bandcampsync";
   htmlDir = "/var/lib/bandcampsync-status";
   genReport = pkgs.writeShellScript "bandcampsync-report" ''
-    set -e
     mkdir -p ${htmlDir}
     SINCE=$(systemctl show -p ExecMainStartTimestamp bandcampsync.service | cut -d= -f2-)
     EXIT=$(systemctl show -p ExecMainStatus bandcampsync.service | cut -d= -f2)
@@ -28,6 +27,13 @@
       fi
       echo '<ul>'
       echo "$ALBUMS" | while IFS= read -r a; do [ -n "$a" ] && echo "<li>$a</li>"; done
+      echo '</ul>'
+      echo '<h2>Library on disk</h2>'
+      echo '<h3>flac (music)</h3><ul>'
+      find /var/lib/media/music -mindepth 2 -maxdepth 2 -type d | sed 's|/var/lib/media/music/||' | sort | sed 's|^|<li>|;s|$|</li>|'
+      echo '</ul>'
+      echo '<h3>aiff (dj)</h3><ul>'
+      find /var/lib/media/dj -mindepth 2 -maxdepth 2 -type d | sed 's|/var/lib/media/dj/||' | sort | sed 's|^|<li>|;s|$|</li>|'
       echo '</ul>'
       echo '<p><a href="last.log">Full log</a></p>'
     } > ${htmlDir}/index.html
