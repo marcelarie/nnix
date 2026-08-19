@@ -15,7 +15,7 @@
       DataFolder = "/var/lib/navidrome";
       Address = "0.0.0.0";
       Port = services.navidrome.port;
-      MusicFolder = "/var/lib/slskd/music/share";
+      MusicFolder = "/var/lib/media/music";
       DB = {
         Type = "postgres";
         Host = "/run/postgresql";
@@ -35,6 +35,6 @@
   users.groups.navidrome = {};
 
   systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = [
-    "/var/lib/slskd/music/share"
+    "/var/lib/media/music"
   ];
 }

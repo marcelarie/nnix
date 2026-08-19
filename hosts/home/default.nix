@@ -14,6 +14,8 @@ in {
     ../../home/terminal.nix
     ../../home/gui.nix
     ../../home/i3.nix
+    ../../home/bandcamp-cookies.nix
+    ../../home/syncthing.nix
   ];
 
   # Route the portal Settings interface to the GTK backend so Brave/Chromium's read it live

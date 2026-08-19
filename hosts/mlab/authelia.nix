@@ -91,6 +91,16 @@
             policy = "one_factor";
             subject = ["group:admins"];
           }
+          {
+            domain = "sync.marcel.cool";
+            policy = "one_factor";
+            subject = ["group:admins"];
+          }
+          {
+            domain = "bcsync.marcel.cool";
+            policy = "one_factor";
+            subject = ["group:admins"];
+          }
         ];
       };
 

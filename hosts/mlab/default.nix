@@ -14,6 +14,7 @@
     ./attic.nix
     ./audiobookshelf.nix
     ./authelia.nix
+    ./bandcampsync.nix
     ./brave-origin-bump.nix
     ./calibre.nix
     ./ddclient.nix
@@ -43,6 +44,7 @@
     ./slskd.nix
     ./soulbeet.nix
     ./sway.nix
+    ./syncthing.nix
     ./uptime-kuma.nix
     ./vaultwarden.nix
   ];
@@ -185,6 +187,11 @@
 
   virtualisation.podman.enable = true;
   virtualisation.oci-containers.backend = "podman";
+
+  virtualisation.libvirtd = {
+    enable = true;
+    qemu.swtpm.enable = true;
+  };
 
   networking = {
     hostName = "mlab";
