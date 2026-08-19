@@ -132,6 +132,7 @@ in {
       ".bash_aliases".source = link "${dots}/.bash_aliases";
       ".bash-preexec.sh".source = link "${dots}/.bash-preexec.sh";
       ".config/starship.toml".source = link "${dots}/.config/starship.toml";
+      ".config/rbw/config.json".source = link "${dots}/.config/rbw/config.json";
       ".config/shellcheckrc".source = link "${dots}/.config/shellcheckrc";
       # ".cargo/env".source = link "${dots}/.cargo/env";
       # ".cargo/env.fish".source = link "${dots}/.cargo/env.fish";
