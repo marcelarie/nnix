@@ -596,6 +596,22 @@
     },
     "nixpkgs_8": {
       "locked": {
+        "lastModified": 1785542685,
+        "narHash": "sha256-sjfvXMbG5pCFgpvw2OZAFcZiTvrppCWvnB6cuGrSY08=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f8e81fc7eb063db454f563cdd596fb96a5ad1497",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_9": {
+      "locked": {
         "lastModified": 1756787288,
         "narHash": "sha256-rw/PHa1cqiePdBxhF66V7R+WAP8WekQ0mCDG4CFqT8Y=",
         "owner": "NixOS",
@@ -706,6 +722,24 @@
         "type": "github"
       }
     },
+    "openlogi": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_8"
+      },
+      "locked": {
+        "lastModified": 1786922166,
+        "narHash": "sha256-FzcvKPmfqpyY669aEXof/tw1dEkFCesKzw3P7Zhk7S0=",
+        "owner": "AprilNEA",
+        "repo": "OpenLogi",
+        "rev": "822c6e4181f0118713473bcc524e6a7fbd51f5a4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AprilNEA",
+        "repo": "OpenLogi",
+        "type": "github"
+      }
+    },
     "pir": {
       "inputs": {
         "nixpkgs": [
@@ -745,6 +779,7 @@
         "nu-alias-converter": "nu-alias-converter",
         "nur": "nur",
         "nvim": "nvim",
+        "openlogi": "openlogi",
         "pir": "pir",
         "sops-nix": "sops-nix",
         "tmex": "tmex",
@@ -904,7 +939,7 @@
     },
     "zuban": {
       "inputs": {
-        "nixpkgs": "nixpkgs_8"
+        "nixpkgs": "nixpkgs_9"
       },
       "locked": {
         "lastModified": 1757198100,
