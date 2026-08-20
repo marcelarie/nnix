@@ -1,44 +1,6 @@
-{pkgs, config, ...}: let
-  logDir = "/var/log/bandcampsync";
+{pkgs, ...}: let
   htmlDir = "/var/lib/bandcampsync-status";
-  genReport = pkgs.writeShellScript "bandcampsync-report" ''
-    mkdir -p ${htmlDir}
-    SINCE=$(systemctl show -p ExecMainStartTimestamp bandcampsync.service | cut -d= -f2-)
-    EXIT=$(systemctl show -p ExecMainStatus bandcampsync.service | cut -d= -f2)
-    journalctl -u bandcampsync.service -n 2000 --no-pager -o cat > /run/bcs.lastlog || true
-    FLAC=$(grep -c 'Moving extracted file.*\.flac' /run/bcs.lastlog || true)
-    AIFF=$(grep -c 'Moving extracted file.*\.aiff' /run/bcs.lastlog || true)
-    ALBUMS=$(grep -oP 'Downloading item "\K[^"]+' /run/bcs.lastlog | sort -u || true)
-    SKIP_PRE=$(grep -c 'preorder, skipping' /run/bcs.lastlog || true)
-    AUTH=$([ "$EXIT" = "0" ] && echo OK || echo FAILED)
-    {
-      echo '<!doctype html><meta charset="utf-8"><title>bandcampsync</title>'
-      echo '<style>body{font:14px system-ui;max-width:60em;margin:3em auto;padding:0 1em}'
-      echo '.ok{color:green}.bad{color:red}li{margin:.2em 0}</style>'
-      echo "<h1>bandcampsync — last run</h1>"
-      echo "<p><b>Auth:</b> <span class=$([ "$AUTH" = OK ] && echo ok || echo bad)>$AUTH</span> "
-      echo "(exit $EXIT)</p>"
-      echo "<p><b>Started:</b> $SINCE</p>"
-      echo "<p><b>Tracks synced:</b> flac $FLAC · aiff $AIFF "
-      echo "· skipped preorders $SKIP_PRE</p>"
-      echo "<h2>Albums</h2>"
-      if [ -z "$ALBUMS" ]; then
-        echo '<p class=ok>Collection up to date — nothing new to sync.</p>'
-      fi
-      echo '<ul>'
-      echo "$ALBUMS" | while IFS= read -r a; do [ -n "$a" ] && echo "<li>$a</li>"; done
-      echo '</ul>'
-      echo '<h2>Library on disk</h2>'
-      echo '<h3>flac (music)</h3><ul>'
-      find /var/lib/media/music -mindepth 2 -maxdepth 2 -type d | sed 's|/var/lib/media/music/||' | sort | sed 's|^|<li>|;s|$|</li>|'
-      echo '</ul>'
-      echo '<h3>aiff (dj)</h3><ul>'
-      find /var/lib/media/dj -mindepth 2 -maxdepth 2 -type d | sed 's|/var/lib/media/dj/||' | sort | sed 's|^|<li>|;s|$|</li>|'
-      echo '</ul>'
-      echo '<p><a href="last.log">Full log</a></p>'
-    } > ${htmlDir}/index.html
-    cp /run/bcs.lastlog ${htmlDir}/last.log
-  '';
+  reportPy = ./bandcampsync_report.py;
 in {
   # bandcamp cookies arrive via syncthing from laptop (see syncthing.nix)
 
@@ -58,6 +20,8 @@ in {
       # filter to bandcamp-only cookies (full-profile exports break the tool)
       grep bandcamp /var/lib/syncthing/bandcamp-cookies/cookies.txt > /run/bandcamp_cookies_filtered.txt
       chmod 400 /run/bandcamp_cookies_filtered.txt
+      # fetch real bandcamp album URLs (id -> item_url) from collection metadata
+      pipx run --spec bandcampsync python3 ${reportPy} fetch-urls
       pipx run bandcampsync -c /run/bandcamp_cookies_filtered.txt -d /var/lib/media/music -f flac --skip-hidden
       pipx run bandcampsync -c /run/bandcamp_cookies_filtered.txt -d /var/lib/media/dj -f aiff-lossless --skip-hidden
       rm /run/bandcamp_cookies_filtered.txt
@@ -69,9 +33,10 @@ in {
     serviceConfig = {
       Type = "oneshot";
       User = "root";
+      Environment = "PYTHONTZPATH=${pkgs.tzdata}/share/zoneinfo";
     };
-    path = [pkgs.bash pkgs.coreutils pkgs.gnugrep pkgs.systemd];
-    script = toString genReport;
+    path = [pkgs.bash pkgs.python313 pkgs.systemd];
+    script = "${pkgs.python313}/bin/python3 ${reportPy} generate";
   };
 
   # static status page at https://bcsync.marcel.cool (added to proxy.nix)
@@ -85,7 +50,7 @@ in {
   systemd.timers.bandcampsync = {
     wantedBy = ["timers.target"];
     timerConfig = {
-      OnCalendar = "daily";
+      OnCalendar = ["08:00" "16:00" "00:00"];
       Persistent = true;
       RandomizedDelaySec = "30m";
     };

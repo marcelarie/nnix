@@ -336,6 +336,20 @@ in {
           };
         };
 
+        # Catch-all static host for *.marcel.cool subdomains not listed above.
+        # Serves /var/www/pages/<sub>/index.html — used by `pir report --page`
+        # (and anything else that drops a self-contained HTML file there).
+        # Regex server_name is lowest priority, so explicit vhosts above win.
+        "~^(?<sub>[^.]+)\\.marcel\\.cool$" = {
+          forceSSL = true;
+          useACMEHost = "marcel.cool";
+          root = "/var/www/pages/$sub";
+          locations."/" = {
+            index = "index.html";
+            tryFiles = "$uri $uri/ =404";
+          };
+        };
+
         "_" = {
           default = true;
           listen = [
@@ -350,6 +364,12 @@ in {
         };
       };
   };
+
+  # /var/www/pages is the docroot for the catch-all *.marcel.cool vhost above.
+  # Owned by dev (who runs `pir report` on this host); 0755 so nginx can traverse+read.
+  systemd.tmpfiles.rules = [
+    "d /var/www/pages 0755 dev users -"
+  ];
 
   users.users.nginx.extraGroups = ["acme"];
 }
