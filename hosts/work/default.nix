@@ -2,6 +2,7 @@
   config,
   pkgs,
   pkgsStable,
+  inputs,
   ...
 }: let
   homeDir = config.home.homeDirectory;
@@ -50,6 +51,7 @@ in {
     (config.lib.nixGL.wrap localsend)
     (config.lib.nixGL.wrap proton-authenticator)
     (config.lib.nixGL.wrap brave-origin)
+    (config.lib.nixGL.wrap inputs.openlogi.packages.${pkgs.system}.default)
   ];
 
   # Fix FiiO LDAC: pin A2DP/LDAC codec order and drop hfp/hsp so opening a
@@ -100,6 +102,24 @@ in {
     };
   };
 
+  systemd.user.services.openlogi-agent = {
+    Unit = {
+      Description = "OpenLogi background agent (Logitech HID++ device control)";
+      After = ["graphical-session.target"];
+      PartOf = ["graphical-session.target"];
+    };
+
+    Install = {
+      WantedBy = ["graphical-session.target"];
+    };
+
+    Service = {
+      ExecStart = "${inputs.openlogi.packages.${pkgs.system}.default}/bin/openlogi-agent";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
+
   nix.package = pkgs.nix;
   nix.distributedBuilds = true;
   nix.buildMachines = [
@@ -142,6 +162,8 @@ in {
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".config/hypr/devices/WS0277.conf".source =
       link "${dots}/.config/hypr/devices/WS0277.conf";
+    ".local/state/udev-rules/70-openlogi.rules".source =
+      "${inputs.openlogi.packages.${pkgs.system}.default}/lib/udev/rules.d/70-openlogi.rules";
     ".config/xdg-desktop-portal/hyprland-portals.conf".source =
       link "${dots}/.config/xdg-desktop-portal/hyprland-portals.conf";
     ".mozilla/native-messaging-hosts/passff.json".source = "${pkgs.passff-host}/lib/mozilla/native-messaging-hosts/passff.json";
