@@ -73,11 +73,11 @@
     "dots": {
       "flake": false,
       "locked": {
-        "lastModified": 1786295055,
-        "narHash": "sha256-5VYIuNN2sdTj4wYIEMB6Xwq+9MugzT2Ho/p3+hymfJ8=",
+        "lastModified": 1787151671,
+        "narHash": "sha256-83eqGDD7qZRKPqzv13GdhWJVt6FiUnW9QBJExjZuWG4=",
         "owner": "marcelmanz",
         "repo": "dots",
-        "rev": "7420d64c7f5f40f911af5b968460f6953acda5ab",
+        "rev": "da53eac66425a3c31d8aaacc015e436ab3ae04f5",
         "type": "github"
       },
       "original": {
@@ -747,11 +747,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787239933,
-        "narHash": "sha256-Vz/duhdhDWT550qUTU3cvRUxAq2i0u8xVpidiC2rUdc=",
+        "lastModified": 1787310805,
+        "narHash": "sha256-u/t+2slHFGCO5KL69/4UFl0OGAbZONlDrWwBFxNbiWI=",
         "ref": "refs/heads/main",
-        "rev": "b7cbd896a105302e7f3c87d67b16c240ce88c2a9",
-        "revCount": 14,
+        "rev": "71331f26ade889f559f5b87e6aafaf1e83e36095",
+        "revCount": 15,
         "type": "git",
         "url": "https://codeberg.org/marcelmanz/pir"
       },
