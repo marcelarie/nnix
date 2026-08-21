@@ -36,7 +36,7 @@
 
     # tea: log into codeberg using the sops token.
     activation.teaLogin = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      if [ -s /run/secrets/codeberg_dev_token ]; then
+      if [ -r /run/secrets/codeberg_dev_token ]; then
         token="$(cat /run/secrets/codeberg_dev_token)"
         new="$(printf %s "$token" | ${pkgs.coreutils}/bin/sha256sum | ${pkgs.coreutils}/bin/cut -d' ' -f1)"
         marker="$HOME/.cache/tea-codeberg.sha"
@@ -45,7 +45,7 @@
         if [ "$old" != "$new" ]; then
           $DRY_RUN_CMD ${pkgs.tea}/bin/tea login rm codeberg 2>/dev/null || true
           if $DRY_RUN_CMD ${pkgs.tea}/bin/tea login add --name codeberg --url https://codeberg.org --token "$token"; then
-            if [ -z "$DRY_RUN" ]; then
+            if [[ ! -v DRY_RUN ]]; then
               mkdir -p "$HOME/.cache"
               printf %s "$new" > "$marker"
             fi
