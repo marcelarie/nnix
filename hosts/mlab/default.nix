@@ -351,7 +351,6 @@
     bottom
     btop
     carapace
-    direnv
     duf
     erdtree
     ethtool

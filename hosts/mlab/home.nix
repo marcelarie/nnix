@@ -13,12 +13,15 @@
       pass
       pi-coding-agent
       opencode
+      pir
       gh
       fastfetch
       firefox
       brave-origin
       tea
     ];
+
+    file.".config/direnv/direnv.toml".source = "${inputs.dots}/.config/direnv/direnv.toml";
 
     file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
     file."clones/forks/xelabash".source = inputs.xelabash;
@@ -83,6 +86,8 @@
     file.".bash-preexec.sh".source = "${inputs.dots}/.bash-preexec.sh";
     file.".inputrc".source = "${inputs.dots}/.inputrc";
   };
+
+  programs.direnv.enable = true;
 
   programs.bash = {
     enable = true;
