@@ -80,6 +80,10 @@
         owner = "dev";
         mode = "0600";
       };
+      "codeberg_dev_token" = {
+        owner = "dev";
+        mode = "0400";
+      };
       "livekit_api_secret" = {};
       "livekit_api_key" = {};
       "mautrix_whatsapp_pickle_key" = {owner = "mautrix-whatsapp";};

@@ -17,6 +17,7 @@
       fastfetch
       firefox
       brave-origin
+      tea
     ];
 
     file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
@@ -27,6 +28,26 @@
         $DRY_RUN_CMD mkdir -p "$HOME/clones/own"
         $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/marcelmanz/dev-templates.git \
           "$HOME/clones/own/dev-templates"
+      fi
+    '';
+
+    # tea: log into codeberg using the sops token.
+    activation.teaLogin = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      if [ -s /run/secrets/codeberg_dev_token ]; then
+        token="$(cat /run/secrets/codeberg_dev_token)"
+        new="$(printf %s "$token" | ${pkgs.coreutils}/bin/sha256sum | ${pkgs.coreutils}/bin/cut -d' ' -f1)"
+        marker="$HOME/.cache/tea-codeberg.sha"
+        old=""
+        [ -f "$marker" ] && old="$(cat "$marker" 2>/dev/null)"
+        if [ "$old" != "$new" ]; then
+          $DRY_RUN_CMD ${pkgs.tea}/bin/tea login rm codeberg 2>/dev/null || true
+          if $DRY_RUN_CMD ${pkgs.tea}/bin/tea login add --name codeberg --url https://codeberg.org --token "$token"; then
+            if [ -z "$DRY_RUN" ]; then
+              mkdir -p "$HOME/.cache"
+              printf %s "$new" > "$marker"
+            fi
+          fi
+        fi
       fi
     '';
 
