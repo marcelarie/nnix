@@ -18,6 +18,7 @@
       fastfetch
       firefox
       brave-origin
+      jaq
     ];
 
     file.".config/direnv/direnv.toml".source = "${inputs.dots}/.config/direnv/direnv.toml";
