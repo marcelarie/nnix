@@ -111,6 +111,8 @@ in {
     browserpass
   ];
 
+  services.kanshi.enable = true;
+
   services.swaync = {
     enable = true;
     settings = {
