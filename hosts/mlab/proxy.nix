@@ -332,6 +332,12 @@ in {
             locations =
               base.locations
               // {
+                # Serve the public page at the clean root — internal rewrite,
+                # not a 302, so the URL bar stays radio.marcel.cool (no /public/radio_marcel).
+                # Safe because the page's assets/API are all absolute server-rooted (AzuraCast base_url is set).
+                "= /" = {
+                  extraConfig = "rewrite ^ /public/radio_marcel last;";
+                };
                 "/admin" = {
                   return = "302 https://studio.marcel.cool$request_uri";
                 };
