@@ -14,6 +14,7 @@
     ./attic.nix
     ./audiobookshelf.nix
     ./authelia.nix
+    ./azuracast.nix
     ./bandcampsync.nix
     ./brave-origin-bump.nix
     ./calibre.nix
@@ -142,7 +143,14 @@
     # Media Folders
     "d /var/lib/media/tv 0775 root media -"
     "d /var/lib/media/movies 0775 root media -"
-    "d /var/lib/media/music 0775 root media -"
+    # Owner 1000 (dev on host == azuracast in the container): AzuraCast writes
+    # .albumart/.covers cache dot-dirs at this root. The container's UID 1000
+    # worker can't use the media group for write — podman --group-add=986 only
+    # reaches PID 1; supervisord's setuid workers call initgroups("azuracast")
+    # which resets to the container /etc/group (no 986 entry). Owner-write avoids
+    # that; group media (986) is preserved so navidrome/slskd/bandcampsync keep
+    # access. Music files inside stay 0644 root:root (read-only to all).
+    "d /var/lib/media/music 0775 1000 media -"
   ];
 
   services.postgresql = {

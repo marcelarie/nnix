@@ -17,6 +17,10 @@
       port = 9091;
       href = "https://auth.marcel.cool";
     };
+    azuracast = {
+      port = 8280;
+      href = "https://radio.marcel.cool";
+    };
     bazarr = {
       port = 6767;
       href = "https://bazarr.marcel.cool";
