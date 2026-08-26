@@ -29,15 +29,15 @@
     cleanup();
     // if the gesture landed on the volume/mute control, let its own click toggle (avoid a double-toggle)
     if (e && e.target && e.target.closest && e.target.closest('.radio-control-volume')) return;
-    var a = au();
-    if (!a) return;
     if (!isPlaying()) {                  // muted autoplay was blocked -> must start inside this user gesture
       started = true;                    // cancel any pending async start() so it won't fire and double-toggle
       clearInterval(iv);
       var b = pb(); if (b) b.click();    // play() within the gesture is always allowed by autoplay policy
     }
-    a.muted = false;                     // unmute the element
-    var m = mb(); if (m) m.click();      // toggleMute -> store isMuted=false -> icon + audio stay in sync
+    if (isMuted()) {                     // only toggle if actually muted (avoids re-muting an already-unmuted store)
+      var a = au(); if (a) a.muted = false;  // best-effort; AzuraCast uses a detached Audio (no <audio> in DOM),
+      var m = mb(); if (m) m.click();        // so the store toggle (m.click) is what actually unmutes
+    }
   }
   ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (ev) {
     window.addEventListener(ev, unmute, { capture: true, passive: true });
@@ -50,6 +50,14 @@
     if (!b) return false;
     var p = b.querySelector('path');
     return !!(p && (p.getAttribute('d') || '').indexOf('H8V8') !== -1);
+  }
+  // Read mute state from the volume button's SVG icon (locale-independent):
+  // volume-off icon (path has "4.27 3L3 4.27") = muted; volume-down/up = unmuted.
+  function isMuted() {
+    var m = mb();
+    if (!m) return false;
+    var p = m.querySelector('path');
+    return !!(p && (p.getAttribute('d') || '').indexOf('4.27 3L3 4.27') !== -1);
   }
 
   // Album art overlay: flashing PLAY/PAUSE text (center) + ZOOM corner.
@@ -90,12 +98,14 @@
         return;
       }
       e.stopPropagation(); e.preventDefault();             // block <a> lightbox; image click toggles play
-      if (!isPlaying()) {                                  // paused -> start + unmute within this gesture
+      if (!isPlaying()) {                                  // paused -> start; unmute only if still muted (first start)
         started = true; clearInterval(iv);
         b.click();
-        var a = au(); if (a) a.muted = false;
-        var m = mb(); if (m) m.click();
-        cleanup();
+        if (isMuted()) {
+          var a = au(); if (a) a.muted = false;
+          var m = mb(); if (m) m.click();
+          cleanup();
+        }
       } else {
         b.click();                                         // playing -> pause
       }
