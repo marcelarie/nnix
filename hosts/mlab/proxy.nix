@@ -231,7 +231,7 @@ in {
     clientMaxBodySize = "0";
 
     virtualHosts =
-      (builtins.removeAttrs serviceVirtualHosts ["auth" "jellyfin" "seafile"])
+      (builtins.removeAttrs serviceVirtualHosts ["auth" "jellyfin" "seafile" "azuracast"])
       // {
         "jellyfin.marcel.cool" = let
           base = mkProxyHost "jellyfin" services.jellyfin;
@@ -319,6 +319,56 @@ in {
                     proxy_buffers 8 32k;
                     proxy_buffer_size 64k;
                   '';
+                };
+              };
+          };
+
+        # azuracast public face, admin/login routes bounce to the studio host
+        "radio.marcel.cool" = let
+          base = mkProxyHost "azuracast" services.azuracast;
+        in
+          base
+          // {
+            locations =
+              base.locations
+              // {
+                "/admin" = {
+                  return = "302 https://studio.marcel.cool$request_uri";
+                };
+                "/login" = {
+                  return = "302 https://studio.marcel.cool$request_uri";
+                };
+                "/logout" = {
+                  return = "302 https://studio.marcel.cool$request_uri";
+                };
+                "= /stream" = {
+                  proxyPass = "http://127.0.0.1:${toString services.azuracast.port}/listen/radio_marcel/radio.mp3";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_request_buffering off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
+              };
+          };
+        "studio.marcel.cool" = let
+          base = mkProxyHost "studio" {
+            port = services.azuracast.port;
+            href = "https://studio.marcel.cool";
+          };
+        in
+          base
+          // {
+            locations =
+              base.locations
+              // {
+                "= /" = {
+                  return = "302 /admin";
                 };
               };
           };
