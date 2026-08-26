@@ -53,57 +53,116 @@ body.page-minimal .public-page .card-body {
   display: none;
 }
 
-/* Bigger responsive white text */
+/* Big responsive now-playing text: sized by container query (cqw) on its own
+   column, not the viewport, so it fills whatever space sits next to / below the
+   album art. One line; if it overflows, JS adds .az-marquee for a seamless scroll. */
+.radio-player-widget .now-playing-main {
+  container-type: inline-size;
+  min-width: 0;
+  overflow: hidden;
+}
 .radio-player-widget .now-playing-title,
 .radio-player-widget .now-playing-artist {
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1.1;
 }
 .radio-player-widget .now-playing-title {
-  font-size: clamp(1.5em, 5vw, 3em);
+  font-size: clamp(1.8rem, 14cqw, 5rem);
   font-weight: 700;
 }
 .radio-player-widget .now-playing-artist {
-  font-size: clamp(1em, 3vw, 1.8em);
+  font-size: clamp(1.1rem, 8cqw, 3rem);
   font-weight: 500;
+  line-height: 1.2;
+  margin-top: 0.15em;
+}
+/* Seamless marquee: copy 1 is the Vue text node, copy 2 is ::after (attr).
+   --az-shift = -(textWidth + gap), set by JS, so the loop resets invisibly. */
+.radio-player-widget .az-marquee::after {
+  content: attr(data-az-text);
+  padding-left: 48px;
+}
+.radio-player-widget .az-marquee {
+  animation: azscroll var(--az-dur, 12s) linear infinite;
+  will-change: transform;
+}
+@keyframes azscroll {
+  0%, 8%    { transform: translateX(0); }                          /* hold at start so it's readable */
+  92%, 100% { transform: translateX(var(--az-shift, -50%)); }      /* hold at end (== start: invisible reset) */
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-player-widget .az-marquee { animation: none; }
 }
 [data-bs-theme] body.page-minimal {
   background-image: url('/static/uploads/background.1787776802.jpg');
 }
 
-/* Overlay play button inside album art (bottom, semi-transparent, show on hover / when paused) */
+/* Overlay play button inside album art: flashing PLAY/PAUSE text (blue+yellow, border letters) */
 .radio-player-widget .now-playing-art {
   position: relative;
+  cursor: pointer;                       /* whole art is the play/pause click target */
 }
 .radio-player-widget .now-playing-art .az-overlay-play {
   position: absolute;
-  bottom: 10px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  color: #fff;
-  font-size: 32px;
+  transform: translate(-50%, -50%);
+  width: auto;
+  height: auto;
+  padding: 4px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-family: 'Arial Black', 'Arial Bold', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.4rem, 6vw, 2.6rem);
+  letter-spacing: 3px;
+  line-height: 1;
+  color: #1e40ff;                      /* blue fill */
+  -webkit-text-stroke: 2px #ffe600;     /* yellow letter border */
+  text-stroke: 2px #ffe600;
+  text-shadow: 0 0 10px rgba(255, 230, 0, 0.9);
   opacity: 0;
   transition: opacity 0.2s ease;
+  animation: azflash 0.7s infinite steps(1, end);
+  pointer-events: none;                /* purely visual; .now-playing-art click handler toggles */
+  z-index: 2;
 }
+/* show on hover, always show when paused */
 .radio-player-widget .now-playing-art:hover .az-overlay-play,
 .radio-player-widget .now-playing-art.az-paused .az-overlay-play {
   opacity: 1;
 }
-.radio-player-widget .now-playing-art .az-overlay-play:focus {
-  outline: none;
+/* ZOOM corner (top-right) - opens the album art lightbox */
+.radio-player-widget .now-playing-art .az-zoom {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  z-index: 3;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
 }
-/* Play button icon pulse effect when paused */
-@keyframes azpulse {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45); }
-  70%  { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+.radio-player-widget .now-playing-art .az-zoom:hover {
+  opacity: 1;
 }
-.radio-player-widget .now-playing-art.az-paused .az-overlay-play {
-  animation: azpulse 2s infinite;
+/* play/pause now lives in the album art overlay; hide the duplicate in the controls bar */
+.radio-player-widget .radio-controls .radio-control-play-button {
+  display: none;
+}
+/* flashing lights: swap blue/yellow fill + border each tick */
+@keyframes azflash {
+  0%, 49%   { color: #1e40ff; -webkit-text-stroke-color: #ffe600; text-shadow: 0 0 10px rgba(255,230,0,0.9); }
+  50%, 100% { color: #ffe600; -webkit-text-stroke-color: #1e40ff; text-shadow: 0 0 14px rgba(30,64,255,0.9); }
 }
 /* Volume bar - white/semi-transparent to match new style */
 .radio-player-widget .radio-control-volume {

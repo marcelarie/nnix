@@ -23,6 +23,9 @@
     });
   }
   function unmute(e) {
+    // pointer/touch on the album art precede a click handled by the art click handler (start+unmute); defer those.
+    if ((e.type === 'pointerdown' || e.type === 'touchstart') &&
+        e && e.target && e.target.closest && e.target.closest('.now-playing-art')) return;
     cleanup();
     // if the gesture landed on the volume/mute control, let its own click toggle (avoid a double-toggle)
     if (e && e.target && e.target.closest && e.target.closest('.radio-control-volume')) return;
@@ -40,17 +43,58 @@
     window.addEventListener(ev, unmute, { capture: true, passive: true });
   });
 
-  // Move play button inside album art as a bottom overlay; show on hover, always show when paused.
+  // Album art overlay: flashing PLAY/PAUSE text (center) + ZOOM corner.
+  // Clicking the art toggles play/pause (the <a> lightbox is blocked); the zoom corner opens the lightbox.
   function relocate() {
     var art = document.querySelector('.radio-player-widget .now-playing-art');
-    var b = pb(), a = au();
-    if (!art || !b || !a || art.contains(b)) return false;
-    art.appendChild(b);
-    b.classList.add('az-overlay-play');
-    function sync() { art.classList.toggle('az-paused', a.paused); }
-    a.addEventListener('play', sync);
-    a.addEventListener('pause', sync);
+    if (!art || art._azInit) return !!art;
+    art._azInit = true;
+
+    var ov = document.createElement('div');
+    ov.className = 'az-overlay-play';
+    art.appendChild(ov);
+
+    var zm = document.createElement('div');
+    zm.className = 'az-zoom';
+    zm.textContent = 'ZOOM';
+    art.appendChild(zm);
+
+    // One source of truth: re-query audio each tick (element may be recreated), set label directly.
+    function sync() {
+      var a = au();
+      if (!a) return;
+      var label = a.paused ? 'PLAY' : 'PAUSE';
+      if (ov.textContent !== label) ov.textContent = label;
+      art.classList.toggle('az-paused', a.paused);
+    }
+    // events drive immediate updates; the poll is a self-correcting safety net (cheap, runs forever)
+    document.addEventListener('play', sync, true);
+    document.addEventListener('pause', sync, true);
+    setInterval(sync, 500);
     sync();
+
+    var triggeringZoom = false;
+    art.addEventListener('click', function (e) {
+      if (triggeringZoom) return;                          // synthetic click from zoom corner -> let <a> lightbox fire
+      if (e.target.closest('.az-zoom')) {                  // zoom corner -> open lightbox via the <a>
+        e.stopPropagation(); e.preventDefault();
+        var link = art.querySelector('a.album-art');
+        if (link) { triggeringZoom = true; link.click(); triggeringZoom = false; }
+        return;
+      }
+      e.stopPropagation(); e.preventDefault();             // block <a> lightbox; image click toggles play
+      var a = au(), b = pb();
+      if (!b) return;
+      if (a && a.paused) {                                 // start + unmute within this gesture
+        started = true; clearInterval(iv);
+        b.click();
+        a.muted = false; var m = mb(); if (m) m.click();
+        cleanup();
+      } else {
+        b.click();                                         // pause
+      }
+      setTimeout(sync, 0);                                 // reflect the new state immediately
+    }, true);
     return true;
   }
   var riv = setInterval(function () { if (relocate()) clearInterval(riv); }, 200);
