@@ -31,23 +31,33 @@
     if (e && e.target && e.target.closest && e.target.closest('.radio-control-volume')) return;
     var a = au();
     if (!a) return;
-    if (a.paused) {                    // muted autoplay was blocked on mobile -> must start inside this user gesture
-      started = true;                  // cancel any pending async start() so it won't fire and double-toggle pause
+    if (!isPlaying()) {                  // muted autoplay was blocked -> must start inside this user gesture
+      started = true;                    // cancel any pending async start() so it won't fire and double-toggle
       clearInterval(iv);
-      var b = pb(); if (b) b.click();   // play() within the gesture is always allowed by autoplay policy
+      var b = pb(); if (b) b.click();    // play() within the gesture is always allowed by autoplay policy
     }
-    a.muted = false;                    // unmute the element
-    var m = mb(); if (m) m.click();     // toggleMute -> store isMuted=false -> icon + audio stay in sync
+    a.muted = false;                     // unmute the element
+    var m = mb(); if (m) m.click();      // toggleMute -> store isMuted=false -> icon + audio stay in sync
   }
   ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (ev) {
     window.addEventListener(ev, unmute, { capture: true, passive: true });
   });
 
+  // Read play state from the real button's SVG icon (the store's isPlaying, locale-independent):
+  // stop-circle icon (path has "H8V8") = playing; play-circle icon (triangle) = paused.
+  function isPlaying() {
+    var b = pb();
+    if (!b) return false;
+    var p = b.querySelector('path');
+    return !!(p && (p.getAttribute('d') || '').indexOf('H8V8') !== -1);
+  }
+
   // Album art overlay: flashing PLAY/PAUSE text (center) + ZOOM corner.
   // Clicking the art toggles play/pause (the <a> lightbox is blocked); the zoom corner opens the lightbox.
   function relocate() {
     var art = document.querySelector('.radio-player-widget .now-playing-art');
-    if (!art || art._azInit) return !!art;
+    var b = pb();
+    if (!art || !b || art._azInit) return !!(art && b);
     art._azInit = true;
 
     var ov = document.createElement('div');
@@ -59,18 +69,15 @@
     zm.textContent = 'ZOOM';
     art.appendChild(zm);
 
-    // One source of truth: re-query audio each tick (element may be recreated), set label directly.
     function sync() {
-      var a = au();
-      if (!a) return;
-      var label = a.paused ? 'PLAY' : 'PAUSE';
+      var playing = isPlaying();
+      var label = playing ? 'PAUSE' : 'PLAY';
       if (ov.textContent !== label) ov.textContent = label;
-      art.classList.toggle('az-paused', a.paused);
+      art.classList.toggle('az-paused', !playing);
     }
-    // events drive immediate updates; the poll is a self-correcting safety net (cheap, runs forever)
-    document.addEventListener('play', sync, true);
-    document.addEventListener('pause', sync, true);
-    setInterval(sync, 500);
+    // MutationObserver: the button's icon swaps when isPlaying changes -> update immediately.
+    new MutationObserver(sync).observe(b, { childList: true, subtree: true, attributes: true });
+    setInterval(sync, 500);              // safety-net poll
     sync();
 
     var triggeringZoom = false;
@@ -83,15 +90,14 @@
         return;
       }
       e.stopPropagation(); e.preventDefault();             // block <a> lightbox; image click toggles play
-      var a = au(), b = pb();
-      if (!b) return;
-      if (a && a.paused) {                                 // start + unmute within this gesture
+      if (!isPlaying()) {                                  // paused -> start + unmute within this gesture
         started = true; clearInterval(iv);
         b.click();
-        a.muted = false; var m = mb(); if (m) m.click();
+        var a = au(); if (a) a.muted = false;
+        var m = mb(); if (m) m.click();
         cleanup();
       } else {
-        b.click();                                         // pause
+        b.click();                                         // playing -> pause
       }
       setTimeout(sync, 0);                                 // reflect the new state immediately
     }, true);
@@ -99,4 +105,32 @@
   }
   var riv = setInterval(function () { if (relocate()) clearInterval(riv); }, 200);
   setTimeout(function () { clearInterval(riv); }, 10000);
+
+  // Marquee: scroll title/artist side-to-side when text overflows its column.
+  var GAP = 48, SPEED = 60; // px/s
+  function updateMarquee(el) {
+    var text = (el.textContent || '').trim();
+    if (text !== el.getAttribute('data-az-text')) el.setAttribute('data-az-text', text);
+    el.classList.remove('az-marquee');          // measure in block state (no ::after)
+    var textW = el.scrollWidth, cw = el.clientWidth;
+    if (textW > cw + 1) {                        // overflow -> scroll
+      el.style.setProperty('--az-shift', -(textW + GAP) + 'px');
+      el.style.setProperty('--az-dur', Math.max(6, Math.min(20, (textW + GAP) / SPEED)) + 's');
+      el.classList.add('az-marquee');
+    }
+  }
+  function setupMarquee() {
+    ['.now-playing-title', '.now-playing-artist'].forEach(function (sel) {
+      var el = document.querySelector('.radio-player-widget ' + sel);
+      if (!el || el._azMarquee) return;
+      el._azMarquee = true;
+      updateMarquee(el);
+      // Vue updates the text node -> re-measure. attributes (class/style) excluded -> no self-loop.
+      new MutationObserver(function () { updateMarquee(el); }).observe(el, { childList: true, subtree: true, characterData: true });
+    });
+  }
+  var miv = setInterval(function () { if (document.querySelector('.radio-player-widget .now-playing-title')) { setupMarquee(); clearInterval(miv); } }, 300);
+  setTimeout(function () { clearInterval(miv); }, 10000);
+  var rt;
+  window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(setupMarquee, 150); });
 })();

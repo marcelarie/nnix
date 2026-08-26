@@ -82,15 +82,20 @@ body.page-minimal .public-page .card-body {
   line-height: 1.2;
   margin-top: 0.15em;
 }
-/* Seamless marquee: copy 1 is the Vue text node, copy 2 is ::after (attr).
-   --az-shift = -(textWidth + gap), set by JS, so the loop resets invisibly. */
+/* Marquee: when title/artist overflow their column, scroll side-to-side.
+   JS measures text width, sets --az-shift (-(textW+gap) px) and --az-dur, toggles .az-marquee.
+   inline-block + overflow:visible make the element shrink to content so transform scrolls it
+   under the parent .now-playing-main (overflow:hidden) clipper; ::after duplicates the text so
+   the loop resets invisibly when the duplicate reaches the start position. */
+.radio-player-widget .az-marquee {
+  display: inline-block;
+  overflow: visible !important;
+  animation: azscroll var(--az-dur, 12s) linear infinite;
+  will-change: transform;
+}
 .radio-player-widget .az-marquee::after {
   content: attr(data-az-text);
   padding-left: 48px;
-}
-.radio-player-widget .az-marquee {
-  animation: azscroll var(--az-dur, 12s) linear infinite;
-  will-change: transform;
 }
 @keyframes azscroll {
   0%, 8%    { transform: translateX(0); }                          /* hold at start so it's readable */
