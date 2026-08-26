@@ -1,0 +1,123 @@
+/* Hide Radio Marcel header */
+body.page-minimal .public-page .card-title {
+  display: none;
+}
+
+/* Page layout - 1000px card */
+body.page-minimal .public-page .card {
+  width: 1000px;
+  margin: auto;
+}
+
+/* Player card background - lighter (transparent) */
+body.page-minimal .public-page .card,
+body.page-minimal .public-page .card-body {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* No padding - use as much space as available */
+body.page-minimal .public-page .card-body {
+  padding: 0;
+}
+
+/* Bigger album art - desktop: 280px square */
+.radio-player-widget .now-playing-details .now-playing-art img {
+  width: 280px;
+  height: 280px;
+  max-width: 300px;
+  object-fit: cover;
+}
+
+/* Mobile: stack vertically, album cover fills available width */
+@media (max-width: 768px) {
+  .radio-player-widget .now-playing-details {
+    flex-direction: column;
+  }
+  .radio-player-widget .now-playing-details .now-playing-art {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .radio-player-widget .now-playing-details .now-playing-art img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    max-width: 100%;
+  }
+  .radio-player-widget .now-playing-details .now-playing-main {
+    width: 100%;
+  }
+}
+
+/* Hide station history button */
+#station-history {
+  display: none;
+}
+
+/* Bigger responsive white text */
+.radio-player-widget .now-playing-title,
+.radio-player-widget .now-playing-artist {
+  color: #fff;
+}
+.radio-player-widget .now-playing-title {
+  font-size: clamp(1.5em, 5vw, 3em);
+  font-weight: 700;
+}
+.radio-player-widget .now-playing-artist {
+  font-size: clamp(1em, 3vw, 1.8em);
+  font-weight: 500;
+}
+[data-bs-theme] body.page-minimal {
+  background-image: url('/static/uploads/background.1787776802.jpg');
+}
+
+/* Overlay play button inside album art (bottom, semi-transparent, show on hover / when paused) */
+.radio-player-widget .now-playing-art {
+  position: relative;
+}
+.radio-player-widget .now-playing-art .az-overlay-play {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  font-size: 32px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.radio-player-widget .now-playing-art:hover .az-overlay-play,
+.radio-player-widget .now-playing-art.az-paused .az-overlay-play {
+  opacity: 1;
+}
+.radio-player-widget .now-playing-art .az-overlay-play:focus {
+  outline: none;
+}
+/* Play button icon pulse effect when paused */
+@keyframes azpulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45); }
+  70%  { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+.radio-player-widget .now-playing-art.az-paused .az-overlay-play {
+  animation: azpulse 2s infinite;
+}
+/* Volume bar - white/semi-transparent to match new style */
+.radio-player-widget .radio-control-volume {
+  color: #fff;
+}
+.radio-player-widget .radio-control-volume .btn {
+  fill: currentColor;
+}
+.radio-player-widget .radio-control-volume .form-range {
+  color: #fff;
+}
+.radio-player-widget .radio-control-volume .form-range::-webkit-slider-thumb {
+  background: rgba(255, 255, 255, 0.6);
+}
+.radio-player-widget .radio-control-volume .form-range::-moz-range-thumb {
+  background: rgba(255, 255, 255, 0.6);
+}

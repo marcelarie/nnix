@@ -35,6 +35,7 @@
   };
 
   # declarative azuracast settings, applied via the app's own cli so they survive fresh installs and resist ui drift.
+  # public_custom_css / public_custom_js are loaded from standalone files (see ./azuracast-public.{css,js}).
   systemd.services.azuracast-settings = {
     description = "Apply declarative AzuraCast settings";
     after = ["podman-azuracast.service"];
@@ -45,9 +46,19 @@
       RemainAfterExit = true;
     };
     script = ''
+      CSS_FILE=${./azuracast-public.css}
+      JS_FILE=${./azuracast-public.js}
+
       for i in $(seq 1 60); do
         if podman exec azuracast azuracast_cli azuracast:settings:set homepage_redirect_url /public/radio_marcel 2>/dev/null; then
           echo "azuracast-settings: homepage_redirect_url=/public/radio_marcel"
+
+          podman exec azuracast azuracast_cli azuracast:settings:set public_custom_css "$(cat "$CSS_FILE")" 2>/dev/null \
+            && echo "azuracast-settings: public_custom_css (from $CSS_FILE)"
+
+          podman exec azuracast azuracast_cli azuracast:settings:set public_custom_js "$(cat "$JS_FILE")" 2>/dev/null \
+            && echo "azuracast-settings: public_custom_js (from $JS_FILE)"
+
           exit 0
         fi
         sleep 5
