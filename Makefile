@@ -1,4 +1,4 @@
-.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops android-mirror
+.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops android-mirror whatsapp-register
 
 format:
 	alejandra .
@@ -57,6 +57,20 @@ bootstrap:
 	nix build --impure --no-link --print-out-paths --expr 'let f = builtins.getFlake (toString ./.); in import ./hosts/android/bootstrap.nix { pkgs = f.inputs.nixpkgs.legacyPackages.x86_64-linux; nix-on-droid = f.inputs.nix-on-droid; system = "x86_64-linux"; targetSystem = "aarch64-linux"; sshKeyPath = ./hosts/android/ssh.pub; flakeSource = ./.; }'
 
 android-mirror:
+	@echo "Disconnecting stale ADB connections..."
+	@adb disconnect 127.0.0.1:5555 2>/dev/null || true
+	@echo "Starting SSH tunnel..."
+	@ssh -N -L 5555:127.0.0.1:5555 -o ServerAliveInterval=15 -o ExitOnForwardFailure=yes root@mlab & \
+	SSH_PID=$$!; \
+	trap "echo '\nCleaning up...'; kill $$SSH_PID 2>/dev/null; adb disconnect 127.0.0.1:5555 2>/dev/null" EXIT INT TERM; \
+	echo "Waiting for SSH port forward..."; \
+	while ! nc -z 127.0.0.1 5555 2>/dev/null; do sleep 0.2; done; \
+	echo "Connecting ADB..."; \
+	until adb connect 127.0.0.1:5555 | grep -q "already connected to\|connected to"; do sleep 0.5; done; \
+	adb -s 127.0.0.1:5555 wait-for-device; \
+	scrcpy --no-audio -s 127.0.0.1:5555 --keyboard=uhid --mouse=sdk --max-fps 30
+
+android-mirror-old:
 	@echo "Starting SSH tunnel..."
 	@ssh -N -L 5555:127.0.0.1:5555 root@mlab & \
 	SSH_PID=$$!; \
@@ -65,3 +79,8 @@ android-mirror:
 	echo "Connecting ADB to remote device..."; \
 	adb connect 127.0.0.1:5555; \
 	scrcpy --no-audio -s 127.0.0.1:5555
+
+whatsapp-register:
+	@adb connect 127.0.0.1:5555 | grep -q "already connected to\|connected to" \
+		|| { echo "ADB connect failed — is 'make android-mirror' running?"; exit 1; }
+	uv run --python python3 --with uiautomator2 python scripts/whatsapp-register.py
