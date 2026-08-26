@@ -61,20 +61,24 @@ body.page-minimal .public-page .card-body {
   min-width: 0;
   overflow: hidden;
 }
+/* !important: AzuraCast sets .radio-player-widget .now-playing-details h4{font-size:15px}
+   at 0,3,1 specificity; our class selector (0,2,0) loses. !important wins regardless.
+   white-space:nowrap !important also blocks AzuraCast's :hover{white-space:normal;word-break:break-all}
+   which would otherwise wrap text and break the marquee. */
 .radio-player-widget .now-playing-title,
 .radio-player-widget .now-playing-artist {
   color: #fff;
-  white-space: nowrap;
+  white-space: nowrap !important;
   overflow: hidden;
   line-height: 1.1;
 }
 .radio-player-widget .now-playing-title {
-  font-size: clamp(1.8rem, 14cqw, 5rem);
-  font-weight: 700;
+  font-size: clamp(1.8rem, 14cqw, 5rem) !important;
+  font-weight: 700 !important;
 }
 .radio-player-widget .now-playing-artist {
-  font-size: clamp(1.1rem, 8cqw, 3rem);
-  font-weight: 500;
+  font-size: clamp(1.1rem, 8cqw, 3rem) !important;
+  font-weight: 500 !important;
   line-height: 1.2;
   margin-top: 0.15em;
 }
@@ -102,6 +106,10 @@ body.page-minimal .public-page .card-body {
 /* Overlay play button inside album art: flashing PLAY/PAUSE text (blue+yellow, border letters) */
 .radio-player-widget .now-playing-art {
   position: relative;
+}
+.radio-player-widget .now-playing-art,
+.radio-player-widget .now-playing-art a,
+.radio-player-widget .now-playing-art img {
   cursor: pointer;                       /* whole art is the play/pause click target */
 }
 .radio-player-widget .now-playing-art .az-overlay-play {
