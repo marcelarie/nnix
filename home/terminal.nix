@@ -87,6 +87,13 @@ in {
         identitiesOnly = true;
         serverAliveInterval = 60;
       };
+      "x4" = {
+        hostname = "192.168.7.2";
+        user = "root";
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+        serverAliveInterval = 60;
+      };
     };
   };
 

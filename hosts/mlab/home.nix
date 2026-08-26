@@ -18,6 +18,7 @@
       fastfetch
       firefox
       brave-origin
+      jaq
       tea
     ];
 
