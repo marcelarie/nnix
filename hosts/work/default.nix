@@ -54,16 +54,18 @@ in {
     (config.lib.nixGL.wrap inputs.openlogi.packages.${pkgs.system}.default)
   ];
 
-  # Fix FiiO LDAC: pin A2DP/LDAC codec order and drop hfp/hsp so opening a
-  # mic-using app can't autoswitch the headset off the high-quality profile.
-  xdg.configFile."wireplumber/wireplumber.conf.d/50-bluez.conf".text = ''
-    monitor.bluez.properties = {
-      bluez5.enable-sbc-xq = true
-      bluez5.codecs = [ ldac aac sbc_xq sbc ]
-      bluez5.roles = [ a2dp_sink a2dp_source ]
-      bluez5.enable-hw-volume = true
-    }
+  # Fix FiiO EH11: drop hfp/hsp roles so BlueZ never opens the Hands-Free
+  # gateway connect that wedges the FiiO's A2DP channel ("Host is down").
+  # Must be lua syntax for WirePlumber 0.4.x; the 0.5 monitor.bluez.properties
+  # form is silently ignored here.
+  xdg.configFile."wireplumber/bluetooth.lua.d/51-a2dp-only.lua".text = ''
+    bluez_monitor.properties["bluez5.roles"] = "[ a2dp_sink a2dp_source ]"
+    bluez_monitor.properties["bluez5.codecs"] = "[ ldac aac sbc_xq sbc ]"
+    bluez_monitor.properties["bluez5.enable-sbc-xq"] = true
+    bluez_monitor.properties["bluez5.enable-hw-volume"] = true
   '';
+  # ponytail: also keep the broken 0.5-syntax file from coming back if some
+  # other config layer re-adds it; roles lua above wins on conflict.
 
   sops = {
     defaultSopsFile = ../../secrets/work.yaml;

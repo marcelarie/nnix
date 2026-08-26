@@ -101,7 +101,14 @@ in {
     pinentry-all
     libsecret # secret-tool, for the pinentry-rbw keyring lookup
     mullvad-browser
-    signal-desktop
+    (symlinkJoin {
+      name = "signal-desktop-tray";
+      paths = [signal-desktop];
+      nativeBuildInputs = [makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/signal-desktop --add-flags "--use-tray-icon"
+      '';
+    })
     socat
     jq
     llama-cpp
