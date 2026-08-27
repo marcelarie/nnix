@@ -329,6 +329,13 @@ in {
         in
           base
           // {
+            # AzuraCast sends `Permissions-Policy: autoplay=*, fullscreen=*, interest-cohort=()`.
+            # interest-cohort is the dead FLoC token; Brave logs it as an unrecognized
+            # directive. Drop the upstream header and re-issue a clean one without it.
+            extraConfig = base.extraConfig + ''
+              proxy_hide_header Permissions-Policy;
+              add_header Permissions-Policy "autoplay=*, fullscreen=*" always;
+            '';
             locations =
               base.locations
               // {

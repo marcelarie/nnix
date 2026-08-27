@@ -1,17 +1,48 @@
 (function () {
-  // Muted autoplay + unmute on first user gesture.
-  // Browsers block unmuted autoplay without a prior gesture; muted play is always allowed.
-  // Boot the AzuraCast player store muted (localStorage "player_muted" = "true", read once at boot),
-  // start on load (muted), then unmute on the first pointer/keydown/wheel/touch via the mute button
-  // so the store + mute-button UI stay in sync.
+  // Muted-autoplay-where-allowed + unmute on first user gesture.
+  // Chrome/Firefox allow muted autoplay without a gesture; Brave (and Chromium with autoplay
+  // disabled) block even muted play() until the user interacts. We probe (see below) and only
+  // attempt load-time muted play where it will succeed; where it's blocked we stay paused
+  // (flashing PLAY overlay) and start on the first gesture, which is always allowed. The store
+  // boots muted (localStorage "player_muted" = "true") so a successful muted autoplay is silent
+  // until the user clicks to unmute via the mute button, keeping store + UI in sync.
   try { localStorage.setItem('player_muted', 'true'); } catch (e) {}
 
   var pb = function () { return document.querySelector('.radio-control-play-button'); };
   var mb = function () { return document.querySelector('.radio-control-volume .btn'); };
   var au = function () { return document.querySelector('audio'); };
 
-  var started = false, iv;
-  function start() { if (started) return; var b = pb(); if (!b) return; started = true; clearInterval(iv); b.click(); }
+  // Brave (and Chromium with autoplay disabled) block even muted play() until the user
+  // interacts. AzuraCast flips isPlaying=true *before* play() resolves, so a blocked
+  // muted-autoplay desyncs the store (play button shows "pause", but audio is silent) and
+  // the gesture handler below trusts that icon and never restarts -> dead silence.
+  // So: probe muted autoplay first, and only attempt load-time play where it will succeed.
+  // Where it's blocked we stay paused (flashing PLAY overlay) and start on the first user
+  // gesture, which is always allowed. Any NotAllowedError that slips past is swallowed so
+  // the console stays clean; the gesture handler recovers playback regardless.
+  window.addEventListener('unhandledrejection', function (e) {
+    if (e && e.reason && e.reason.name === 'NotAllowedError') e.preventDefault();
+  });
+
+  var started = false, iv, autoplayOk = null;  // null = probe pending; true/false once resolved
+  (function probe() {
+    try {
+      var a = new Audio();
+      a.muted = true;
+      a.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAAQABAAZGF0YQIAAAAAAA==';
+      var p = a.play();
+      if (p && p.then) p.then(
+        function () { autoplayOk = true; },
+        function (err) {
+          if (err && err.name === 'NotAllowedError') { autoplayOk = false; clearInterval(iv); }
+          else autoplayOk = true;   // any other failure (e.g. bad src) isn't an autoplay block
+        }
+      );
+      else autoplayOk = true;
+    } catch (e) { autoplayOk = false; clearInterval(iv); }
+  })();
+
+  function start() { if (started) return; if (autoplayOk !== true) return; var b = pb(); if (!b) return; started = true; clearInterval(iv); b.click(); }
   // AzuraCast fires 'now-playing' on the document when stream metadata arrives (same hook native autoplay uses).
   document.addEventListener('now-playing', function () { setTimeout(start, 0); }, { once: true });
   iv = setInterval(function () { if (pb()) setTimeout(start, 0); }, 300);
