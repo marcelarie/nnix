@@ -631,19 +631,22 @@
       label();
       b.setAttribute('aria-pressed', String(calm));
       // Idle timer: the button only screams while you're near it. .az-calm-idle (see CSS) fades
-      // it to a near-invisible still ghost 2s after the pointer leaves, and it starts idle so an
-      // untouched page never has it strobing in the corner.
-      var idleTimer;
+      // it to a near-invisible still ghost 2s after the pointer leaves. EXCEPT when the music is
+      // stopped - then it stays fully visible always (see syncPlay below), so a paused page can't
+      // hide the one control that kills the strobing.
+      var idleTimer, hovering = false;
       function idle(on) {
         clearTimeout(idleTimer);
-        if (on) idleTimer = setTimeout(function () { b.classList.add('az-calm-idle'); }, 2000);
+        if (on) idleTimer = setTimeout(function () {
+          if (!isPlaying()) return;   // stopped -> never go idle, stay fully visible
+          b.classList.add('az-calm-idle');
+        }, 2000);
         else b.classList.remove('az-calm-idle');
       }
-      b.addEventListener('pointerenter', function () { idle(false); });
-      b.addEventListener('pointerleave', function () { idle(true); });
-      b.addEventListener('focus', function () { idle(false); });
-      b.addEventListener('blur', function () { idle(true); });
-      b.classList.add('az-calm-idle');
+      b.addEventListener('pointerenter', function () { hovering = true; idle(false); });
+      b.addEventListener('pointerleave', function () { hovering = false; idle(true); });
+      b.addEventListener('focus', function () { hovering = true; idle(false); });
+      b.addEventListener('blur', function () { hovering = false; idle(true); });
       b.addEventListener('click', function () {
         calm = !calm;
         document.documentElement.classList.toggle('az-calm', calm);
@@ -653,6 +656,18 @@
         idle(false);   // touch has no hover: a tap must reveal it, then re-idle on leave
       });
       document.body.appendChild(b);
+      // Music stopped -> button stays fully visible (no idle fade); playing -> usual hover/idle.
+      // Polled: isPlaying() reads the play-button icon, which fires no event we can hook here.
+      var wasStopped = null;
+      function syncPlay() {
+        var stopped = !isPlaying();
+        if (stopped === wasStopped) return;
+        wasStopped = stopped;
+        if (stopped) b.classList.remove('az-calm-idle');   // paused -> always show
+        else if (!hovering) idle(true);                     // resumed -> fade after 2s (unless hovering)
+      }
+      syncPlay();
+      setInterval(syncPlay, 300);
     }
     if (document.body) addCalmButton();
     else document.addEventListener('DOMContentLoaded', addCalmButton);

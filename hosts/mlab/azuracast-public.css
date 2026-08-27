@@ -555,10 +555,11 @@ body.page-minimal .public-page .card-body {
   from { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.45), inset 0 0 12px rgba(255, 61, 240, 0.2); }
   to   { border-color: #ff3df0; box-shadow: 0 0 26px rgba(255, 61, 240, 0.75), inset 0 0 16px rgba(0, 229, 255, 0.3); }
 }
-/* Idle: JS adds .az-calm-idle a couple of seconds after the pointer leaves (and on load), so
-   the loud version is only there while you're actually reaching for it - the rest of the time
-   it's a still, near-invisible ghost that doesn't compete with the player. Always fully back
-   on hover/focus so it stays findable and keyboard-reachable. */
+/* Idle: JS adds .az-calm-idle a couple of seconds after the pointer leaves (only while
+   music is playing; stopped keeps it fully visible), so the loud version is only there while
+   you're actually reaching for it - the rest of the time it's a still, near-invisible ghost
+   that doesn't compete with the player. Always fully back on hover/focus so it stays findable
+   and keyboard-reachable. */
 .az-calm-btn.az-calm-idle {
   opacity: 0.12;
   animation: none;
