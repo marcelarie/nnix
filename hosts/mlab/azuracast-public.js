@@ -502,6 +502,9 @@
     buildEqDom(); // safety: ensure DOM exists even if the poll hasn't fired yet
     try {
       eqCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // iOS: resume() must fire inside the user gesture that created the context; a resume() from
+      // the RAF loop (eqFrame) is ignored, leaving it suspended -> analyser returns zeros.
+      if (eqCtx.state === 'suspended' && eqCtx.resume) eqCtx.resume();
       eqAn = eqCtx.createAnalyser();
       eqAn.fftSize = 256; // 128 bins -> enough to slice into 3 bands
       eqAn.smoothingTimeConstant = 0; // raw -> per-track smoothing in JS (each line its own feel)
