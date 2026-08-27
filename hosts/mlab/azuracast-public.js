@@ -35,6 +35,59 @@
     return d;
   })();
 
+  // --- stream auto-recovery ---
+  // A network interruption (confirmed via ?azdebug: net::ERR_NETWORK_CHANGED -> audio
+  // 'waiting' -> 'stalled') can kill the stream without the browser or AzuraCast ever
+  // reconnecting on their own - and since it's the same underlying network change, it often
+  // takes the SSE metadata feed down with it too (title/art then look frozen). First try
+  // what already works manually (toggle the real play button); if sound still isn't flowing
+  // after that, fall back to a full reload - matches "sometimes only a reload fixes it".
+  var streamHealthy = true, recoveryStage = 0, recoveryTimer = null;
+  function markStreamHealthy() {
+    streamHealthy = true;
+    recoveryStage = 0;
+    clearTimeout(recoveryTimer);
+  }
+  function scheduleRecoveryCheck(delay) {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = setTimeout(runRecoveryCheck, delay);
+  }
+  // Keep soft-retrying (toggle play) until it lands - no reload fallback: a full page
+  // navigation doesn't recover anything a retry can't, and on top of that it drops the
+  // page's autoplay activation, so on a browser that blocks autoplay it just trades "stream
+  // stalled" for "stream stalled AND needs a manual click" - worse for the listener, not better.
+  function runRecoveryCheck() {
+    if (streamHealthy) return;                // a later 'playing' event already cleared it
+    var a = au();
+    if (!a || a.paused) return;                // user paused on purpose - not ours to "fix"
+    recoveryStage++;
+    DBG('recovery: soft retry #' + recoveryStage + ' (toggle play)');
+    var b = pb();
+    if (b) { b.click(); setTimeout(function () { var b2 = pb(); if (b2) b2.click(); }, 300); }
+    scheduleRecoveryCheck(8000);               // give the retry a window to land before re-checking
+  }
+  (function () {
+    function attachRecoveryWatch() {
+      var a = au();
+      if (!a || a._azRecoveryBound) return;
+      a._azRecoveryBound = true;
+      a.addEventListener('playing', markStreamHealthy);
+      ['stalled', 'error'].forEach(function (ev) {
+        // The soft retry's own b.click() toggle deliberately drives the element through
+        // abort/error (readyState 0) as a normal side effect - if a recovery is already in
+        // flight (recoveryStage > 0), that self-inflicted error must NOT reschedule the
+        // timer: doing so replaces the 8s window given for the retry to land with a fresh
+        // 5s one, and since the stage is already elevated the next check goes straight to
+        // reload - even when the retry was about to succeed a moment later.
+        a.addEventListener(ev, function () {
+          streamHealthy = false;
+          if (recoveryStage === 0) scheduleRecoveryCheck(5000);
+        });
+      });
+    }
+    setInterval(attachRecoveryWatch, 500);     // <audio> gets swapped across pause/play - keep rebinding to whatever's current
+  })();
+
   // Brave (and Chromium with autoplay disabled) block even muted play() until the user
   // interacts. AzuraCast flips isPlaying=true *before* play() resolves, so a blocked
   // muted-autoplay desyncs the store (play button shows "pause", but audio is silent) and
@@ -106,6 +159,9 @@
     // pointer/touch on the album art precede a click handled by the art click handler (start+unmute); defer those.
     if ((e.type === 'pointerdown' || e.type === 'touchstart') &&
         e && e.target && e.target.closest && e.target.closest('.now-playing-art')) { DBG('unmute: defer to art handler'); return; }
+    // Anti-seizure button: a UI toggle, not a "start the radio" gesture. Return BEFORE cleanup()
+    // so the listeners stay bound and the next real gesture still starts playback.
+    if (e && e.target && e.target.closest && e.target.closest('.az-calm-btn')) { DBG('unmute: on calm btn, skip'); return; }
     cleanup();
     if (e && e.target && e.target.closest) {
       // let the volume/mute control and the play button run their OWN real click (avoids a
@@ -323,8 +379,9 @@
     }, true);
     return true;
   }
-  var riv = setInterval(function () { if (relocate()) clearInterval(riv); }, 200);
-  setTimeout(function () { clearInterval(riv); }, 10000);
+  // Persistent: .now-playing-art is behind a v-if on song.art, so an art-less track destroys
+  // the container and the overlay/click handlers along with it. Guarded per node by art._azInit.
+  setInterval(relocate, 200);
 
   // --- real audio-reactive equalizer, multiple LINES (placeholder; custom visualizer later) ---
   // One Web Audio AnalyserNode taps the <audio>; several SVG path ribbons trace different frequency
@@ -514,8 +571,14 @@
       new MutationObserver(function () { updateMarquee(el); if (isArtist) applyArtistLink(); }).observe(el, { childList: true, subtree: true, characterData: true });
     });
   }
-  var miv = setInterval(function () { if (document.querySelector('.radio-player-widget .now-playing-title')) { setupMarquee(); clearInterval(miv); } }, 300);
-  setTimeout(function () { clearInterval(miv); }, 10000);
+  // Persistent for the same reason as the art watcher: Player.vue renders the title/artist in
+  // one of three keyed v-if branches (offline / title+artist / text-only), so whenever
+  // is_online or song.title changes truthiness Vue throws the h4/h5 away and builds new ones.
+  // That happens on every stream interruption - precisely when the uplink flaps. Stopping the
+  // poll after 10s left the marquee observer bound to a detached node, so from then on the
+  // title never re-measured: long names silently stopped scrolling and the bandcamp artist link
+  // stopped being re-applied. setupMarquee is a guarded no-op per node (el._azMarquee).
+  setInterval(setupMarquee, 300);
   var rt;
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(setupMarquee, 150); });
 
@@ -537,41 +600,129 @@
   var hiv = setInterval(function () { if (setupHint()) clearInterval(hiv); }, 300);
   setTimeout(function () { clearInterval(hiv); }, 10000);
 
-  // --- art cache-bust ---
+  // --- anti-seizure toggle ---
+  // Everything it disables (background zoom/shake, beat glow, animated text colors) is driven
+  // by CSS, so one class on <html> is the whole switch - see html.az-calm in the CSS. The class
+  // is applied before the button exists so a reloaded page never flashes the effects first.
+  (function () {
+    var CALM_KEY = 'az_calm';
+    var calm = false;
+    try { calm = localStorage.getItem(CALM_KEY) === '1'; } catch (e) {}
+    document.documentElement.classList.toggle('az-calm', calm);
+    function addCalmButton() {
+      if (!document.body || document.querySelector('.az-calm-btn')) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'az-calm-btn';
+      b.textContent = 'Anti Seizure Button';
+      b.setAttribute('aria-pressed', String(calm));
+      b.addEventListener('click', function () {
+        calm = !calm;
+        document.documentElement.classList.toggle('az-calm', calm);
+        b.setAttribute('aria-pressed', String(calm));
+        try { localStorage.setItem(CALM_KEY, calm ? '1' : '0'); } catch (e) {}
+      });
+      document.body.appendChild(b);
+    }
+    if (document.body) addCalmButton();
+    else document.addEventListener('DOMContentLoaded', addCalmButton);
+  })();
+
+  // --- art change watcher ---
   // AzuraCast's own SSE (now that the reverse proxy streams it unbuffered - see proxy.nix
   // /live/ location) drives title/artist/art reactively; no app-level polling needed for those.
-  // The image URL itself still needs busting on a track change so the browser actually re-fetches:
-  //   A. now-playing custom event (AzuraCast fires on every SSE update) -> bust immediately
-  //   B. img[src] MutationObserver -> re-bust when Vue's render strips our _az param
-  var artBust = 0;
-
-  function bustArtCache() {
-    var img = document.querySelector('.radio-player-widget .now-playing-art img');
-    if (!img) return;
-    var src = img.getAttribute('src') || '';
-    var base = src.replace(/[?&]_az=\d+/, '').replace(/[?&]$/, '');
-    img.setAttribute('src', base + (base.indexOf('?') >= 0 ? '&' : '?') + '_az=' + (++artBust));
-  }
-
-  // A. SSE event -> bust art the instant AzuraCast fires it
-  document.addEventListener('now-playing', function () { bustArtCache(); });
-
-  // B. img[src] watcher -> re-bust when Vue's re-render strips our _az param
+  //
+  // There is deliberately NO cache-busting here. AzuraCast's art URLs are already unique and
+  // immutable per track (/api/station/radio_marcel/art/<media-id>-<mtime>.jpg) and are served
+  // with "cache-control: public, max-age=31536000". An earlier version appended a rising _az=N
+  // param on every now-playing event, which defeated that cache completely: the cover is ~390KB,
+  // SSE ticks about every 13s, so each listener re-downloaded 390KB every 13s (more bandwidth
+  // than the 128kbps audio stream itself), and a track change fetched the new cover TWICE under
+  // two different URLs (bare for the push clone, ?_az=N for the real img). While each of those
+  // fetches was in flight the <img> had no frame to paint - which is exactly the "art takes ages
+  // to change" / "no animation" symptom. Unique URL in, browser cache does the rest.
   (function () {
     function attachImgWatch() {
       var img = document.querySelector('.radio-player-widget .now-playing-art img');
       if (!img || img._azCacheWatch) return !!img;
       img._azCacheWatch = true;
+      // AzuraCast's AlbumArt.vue renders loading="lazy". On a track change that lets the browser
+      // defer the new cover's fetch to a later rendering opportunity (indefinitely in a
+      // background tab), so the art lagged the title by seconds for no reason. This image is
+      // always in view and is the point of the page - fetch it eagerly.
+      img.loading = 'eager';
+      img.setAttribute('fetchpriority', 'high');
       new MutationObserver(function (muts) {
         muts.forEach(function (mut) {
-          if (mut.attributeName === 'src' && (img.getAttribute('src') || '').indexOf('_az=') === -1) bustArtCache();
+          if (mut.attributeName !== 'src') return;
+          var newSrc = img.getAttribute('src') || '';
+          DBG('img src mutation', 'old=' + mut.oldValue, 'new=' + newSrc);
+          if (mut.oldValue && newSrc && mut.oldValue !== newSrc) playArtPush(mut.oldValue, newSrc);
         });
-      }).observe(img, { attributes: true, attributeFilter: ['src'] });
+      }).observe(img, { attributes: true, attributeFilter: ['src'], attributeOldValue: true });
       return true;
     }
-    var wiv = setInterval(function () { if (attachImgWatch()) clearInterval(wiv); }, 300);
-    setTimeout(function () { clearInterval(wiv); }, 15000);
+    // Persistent, not "poll until found then stop": .now-playing-art is behind a v-if on
+    // song.art in Player.vue, so a track with no cover art destroys the whole container and the
+    // next track with art builds a NEW <img>. The old version stopped polling after 15s, so
+    // after one art-less track the observer was orphaned on a detached node and the push
+    // transition never fired again for the rest of the session. attachImgWatch is a guarded
+    // no-op per node (img._azCacheWatch), so re-checking costs a querySelector.
+    setInterval(attachImgWatch, 300);
   })();
+
+  // Track-change "push": two throwaway <img> clones (old cover + new cover) layered above the
+  // real <img> - which already has the new src by the time this runs, so it needs no changes
+  // itself, just to be covered while the clones slide. See .az-art-slide/-incoming/-outgoing
+  // in CSS for the movement itself.
+  var PUSH_MS = 1400;
+  var PUSH_WAIT_MS = 600;
+  // Don't animate a cover that has no pixels yet. The clone used to get its src at the same
+  // moment it started sliding, so on any slow fetch the "push" played out as an empty rectangle
+  // and the real cover just popped in afterwards - read as "the animation didn't happen".
+  // preloadArt() below normally has the next cover cached already, so decode resolves in the
+  // same tick and there's no added latency; PUSH_WAIT_MS caps the wait for a cold fetch so a
+  // slow/failed load degrades to the old behavior instead of dropping the transition entirely.
+  function playArtPush(oldSrc, newSrc) {
+    var pre = new Image();
+    pre.src = newSrc;
+    if (pre.complete) { startArtPush(oldSrc, newSrc); return; }
+    var fired = false;
+    var go = function () {
+      if (fired) return;
+      fired = true;
+      DBG('playArtPush: new cover ready=' + pre.complete);
+      startArtPush(oldSrc, newSrc);
+    };
+    pre.onload = pre.onerror = go;
+    setTimeout(go, PUSH_WAIT_MS);
+  }
+  function startArtPush(oldSrc, newSrc) {
+    var art = document.querySelector('.radio-player-widget .now-playing-art');
+    var img = art && art.querySelector('img');
+    if (!art || !img) return;
+
+    DBG('playArtPush', art._azPushTimer ? 'RESTART (previous push still in flight)' : 'start');
+    if (art._azPushTimer) clearTimeout(art._azPushTimer);   // a transition was already mid-flight -> its cleanup must not fire late and cut this one short
+    var leftover = art.querySelectorAll('.az-art-slide');
+    for (var i = 0; i < leftover.length; i++) leftover[i].remove();
+
+    var outgoing = document.createElement('img');
+    outgoing.src = oldSrc;
+    outgoing.className = 'az-art-slide az-art-outgoing';
+    art.appendChild(outgoing);
+
+    var incoming = document.createElement('img');
+    incoming.src = newSrc;
+    incoming.className = 'az-art-slide az-art-incoming';
+    art.appendChild(incoming);
+
+    art._azPushTimer = setTimeout(function () {
+      art._azPushTimer = null;
+      outgoing.remove();
+      incoming.remove();
+    }, PUSH_MS);
+  }
 
   // --- artist name -> bandcamp album link ---
   // bandcampsync publishes an exact "artist|album" -> bandcamp url map (the real url from
@@ -615,10 +766,21 @@
     // against location.pathname never fires there. Single-station page -> just hardcode it,
     // matching homepage_redirect_url in azuracast.nix.
     var apiUrl = location.origin + '/api/nowplaying/radio_marcel';
+    // Warm the browser cache with the NEXT track's cover while the current one is still playing.
+    // The response already carries playing_next.song.art, and art URLs are immutable per track
+    // (see the art change watcher), so by the time Vue swaps the src the bytes are local: the
+    // push transition starts instantly with real pixels instead of racing a ~390KB download.
+    var preloaded = {};
+    function preloadArt(url) {
+      if (!url || preloaded[url]) return;
+      preloaded[url] = new Image();
+      preloaded[url].src = url;
+    }
     function fetchSong() {
       fetch(apiUrl, { cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (data) {
+          if (data && data.playing_next && data.playing_next.song) preloadArt(data.playing_next.song.art);
           var song = data && data.now_playing && data.now_playing.song;
           if (!song) return;
           lastSong = song;

@@ -365,6 +365,26 @@ in {
                     proxy_send_timeout 1h;
                   '';
                 };
+                # The player itself requests /listen/<station>/radio.mp3 directly (not via
+                # /stream above), which otherwise falls through to base "/" - no
+                # proxy_buffering off there, so nginx tries to buffer this endless stream
+                # instead of flushing it straight through. Same bug class /stream and /live/
+                # were already fixed for, just missed on the path actually in use; likely
+                # cause of the audio randomly stalling (?azdebug: net::ERR_NETWORK_CHANGED /
+                # waiting / stalled, recurring across fresh browser contexts).
+                "/listen/" = {
+                  proxyPass = "http://127.0.0.1:${toString services.azuracast.port}";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_request_buffering off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
                 # Centrifugo-backed SSE (now-playing live updates). Base "/" location has no
                 # proxy_buffering off, so nginx buffers the event stream instead of flushing it
                 # -> updates arrive up to ~15s late / look dead. SSE needs the same no-buffering

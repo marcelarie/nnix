@@ -20,7 +20,14 @@ body.page-minimal .public-page .card-body {
   padding: 0;
 }
 
-/* Bigger album art - desktop: 280px square */
+/* Bigger album art - desktop: 280px square. Size is set on the CONTAINER too (not just the
+   img) so it holds its box during the push transition, where the real <img> briefly becomes
+   position:absolute (out of flow) and would otherwise leave nothing for the container to
+   size itself by, collapsing it to 0 height. */
+.radio-player-widget .now-playing-details .now-playing-art {
+  width: 280px;
+  height: 280px;
+}
 .radio-player-widget .now-playing-details .now-playing-art img {
   width: 280px;
   height: 280px;
@@ -41,6 +48,9 @@ body.page-minimal .public-page .card-body {
   .radio-player-widget .now-playing-details .now-playing-art {
     flex: 1 1 auto;
     width: 100%;
+    height: auto;
+    aspect-ratio: 1;   /* overrides the desktop fixed height above; keeps the container
+                           sized (square, from width alone) during the push transition too */
   }
   .radio-player-widget .now-playing-details .now-playing-art img {
     width: 100%;
@@ -227,6 +237,46 @@ body.page-minimal .public-page .card-body {
 /* Overlay play button inside album art: flashing PLAY/PAUSE text (blue+yellow, border letters) */
 .radio-player-widget .now-playing-art {
   position: relative;
+  overflow: hidden;   /* clips the push-transition slides (see .az-art-slide below) */
+}
+/* Track-change "push" transition (see playArtPush in JS): on a track change, JS drops in
+   two throwaway <img> clones - the old cover as .az-art-outgoing, the new one as
+   .az-art-incoming (the real <img> underneath is updated directly, not animated). Both are
+   absolutely stacked full-bleed and slide in the SAME direction at the SAME time, so the new
+   cover reads as shoving the old one out rather than two independent slides. The keyframes'
+   overshoot-then-settle (in past 0%, out past 100%) is the "forces a bit" impact beat before
+   the old cover is fully displaced. JS removes both clones on a timeout matching the duration
+   below. !important: needed to beat the more specific px width/height rule above on source order. */
+.radio-player-widget .now-playing-art img.az-art-slide {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+.radio-player-widget .now-playing-art img.az-art-incoming {
+  z-index: 3;
+  animation: az-art-push-in 1.4s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
+.radio-player-widget .now-playing-art img.az-art-outgoing {
+  z-index: 2;
+  animation: az-art-push-out 1.4s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
+@keyframes az-art-push-in {
+  0%   { transform: translateX(100%); }
+  60%  { transform: translateX(-3%); }   /* slight overshoot = the "force" on impact */
+  100% { transform: translateX(0); }
+}
+@keyframes az-art-push-out {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(3%); }    /* nudged by the impact before being fully shoved out */
+  100% { transform: translateX(-100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-player-widget .now-playing-art img.az-art-incoming,
+  .radio-player-widget .now-playing-art img.az-art-outgoing {
+    animation: none;
+  }
 }
 .radio-player-widget .now-playing-art,
 .radio-player-widget .now-playing-art a,
@@ -430,7 +480,7 @@ body.page-minimal .public-page .card-body {
   bottom: 8px;
   right: 12px;
   color: rgba(255, 255, 255, 0.65);
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 0.5px;
   white-space: nowrap;
   user-select: none;
@@ -458,4 +508,73 @@ body.page-minimal .public-page .card-body {
 }
 .radio-player-widget .az-eq path {
   filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));   /* soft neutral glow -> contrast on dark bg, works for all track colors */
+}
+
+/* Anti-seizure toggle: JS puts .az-calm on <html> (see azuracast-public.js) and the rules
+   below freeze the music-driven background zoom/shake, kill the pulsing glow layer and stop
+   the animated text colors (rainbow title/artist hover, flashing PLAY/PAUSE) - the same
+   opt-out prefers-reduced-motion already gets, on demand. */
+.az-calm-btn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  padding: 8px 18px;
+  border: 3px solid #ffe600;
+  border-radius: 999px 6px 999px 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #1e40ff;
+  font-family: 'Arial Black', 'Arial Bold', Impact, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  -webkit-text-stroke: 1px #ffe600;
+  text-stroke: 1px #ffe600;
+  cursor: pointer;
+  transform-origin: center;
+  animation: az-calm-btn-flash 0.7s infinite steps(1, end), az-text-wiggle 0.5s ease-in-out infinite;
+}
+.az-calm-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  animation-duration: 0.25s, 0.2s;   /* hover = even more unhinged */
+}
+/* Same blue/yellow strobe as the PLAY/PAUSE overlay, plus a border that swaps with it. */
+@keyframes az-calm-btn-flash {
+  0%, 49%   { color: #1e40ff; -webkit-text-stroke-color: #ffe600; border-color: #ffe600; box-shadow: 0 0 16px rgba(255, 230, 0, 0.9), inset 0 0 10px rgba(30, 64, 255, 0.6); }
+  50%, 100% { color: #ffe600; -webkit-text-stroke-color: #ff3df0; border-color: #ff3df0; box-shadow: 0 0 16px rgba(255, 61, 240, 0.9), inset 0 0 10px rgba(255, 230, 0, 0.6); }
+}
+/* Toggled ON = calm: the button is the one thing that must stop screaming, so it drops the
+   strobe/wiggle entirely and goes flat green. */
+html.az-calm .az-calm-btn,
+html.az-calm .az-calm-btn:hover {
+  animation: none;
+  border-color: #2ee62e;
+  color: #2ee62e;
+  -webkit-text-stroke: 0;
+  text-stroke: 0;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .az-calm-btn, .az-calm-btn:hover { animation: none; }
+}
+html.az-calm body.page-minimal::before {
+  transition: none;
+  transform: none !important;
+}
+html.az-calm body.page-minimal::after {
+  display: none;
+}
+html.az-calm .radio-player-widget .now-playing-title:hover,
+html.az-calm .radio-player-widget .now-playing-artist:hover {
+  animation: none;
+  color: #fff;
+}
+html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
+  animation: none;
+  color: #fff;
+  -webkit-text-stroke: 0;
+  text-stroke: 0;
+  text-shadow: none;
 }

@@ -258,6 +258,13 @@
           DHCP = "ipv6"; # SLAAC/DHCPv6 only; static IPv4 (was dhcpcd noipv4)
           # RFC 7217 opaque addr (no MAC leak). Was dhcpcd "slaac private".
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+          # This USB 10G adapter drops carrier for ~5s several times a day (kernel:
+          # "atlantic: link change old 10000 new 0"). By default networkd tears the whole IP
+          # config down on carrier loss and re-acquires on return ("DHCPv6 lease lost"),
+          # which turns a 5s physical blip into a much longer outage for every established
+          # connection - listeners' audio streams included. Ride out short flaps instead:
+          # keep addresses/routes/leases across a carrier loss up to 60s.
+          IgnoreCarrierLoss = "60s";
         };
       };
       "20-lan2g5" = {
