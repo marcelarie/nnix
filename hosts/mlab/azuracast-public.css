@@ -686,3 +686,122 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   text-stroke: 0;
   text-shadow: none;
 }
+
+/* Stream-link info "?" button (top-left) + popover. Mirrors the calm button's HUD silhouette
+   (notched corners, neon border, dark translucent panel) but STATIC - it's an info control, not
+   an alert, so no glitch/breathe animation. Click toggles; outside click or Esc dismisses
+   (see azuracast-public.js). URL derived from location.origin -> https://radio.marcel.cool/stream. */
+.az-stream-btn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid #00e5ff;
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  background: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
+  color: #00e5ff;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.az-stream-btn:hover,
+.az-stream-btn:focus-visible {
+  border-color: #ff3df0;
+  color: #ff3df0;
+  box-shadow: 0 0 16px rgba(255, 61, 240, 0.6);
+  outline: none;
+}
+.az-stream-btn.az-open {
+  border-color: #ffe600;
+  color: #ffe600;
+  box-shadow: 0 0 16px rgba(255, 230, 0, 0.6);
+}
+.az-stream-pop {
+  position: fixed;
+  top: 50px;
+  left: 10px;
+  z-index: 1000;
+  max-width: min(86vw, 360px);
+  margin: 0;
+  padding: 14px 16px;
+  border: 2px solid #00e5ff;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  background: linear-gradient(120deg, rgba(10, 0, 25, 0.96), rgba(0, 22, 38, 0.96));
+  color: #cfeefb;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.3);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.az-stream-pop.az-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.az-stream-pop-title {
+  margin: 0 0 6px;
+  color: #00e5ff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+}
+.az-stream-pop-text {
+  margin: 0 0 10px;
+  color: #b8d6e0;
+}
+.az-stream-pop-url {
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid #ff3df0;
+  background: rgba(255, 61, 240, 0.08);
+  color: #ff3df0;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  word-break: break-all;
+  text-shadow: 0 0 6px rgba(255, 61, 240, 0.4);
+  transition: background 0.15s ease;
+}
+.az-stream-pop-url:hover,
+.az-stream-pop-url:focus-visible {
+  background: rgba(255, 61, 240, 0.2);
+  outline: none;
+}
+/* "Copied!" flash after a click-to-copy: link flips green for ~1.3s (JS toggles .az-copied). */
+.az-stream-pop-url.az-copied {
+  border-color: #2ee62e;
+  background: rgba(46, 230, 46, 0.12);
+  color: #2ee62e;
+  text-shadow: 0 0 6px rgba(46, 230, 46, 0.5);
+}
+/* Anti-seizure / calm mode: drop the glows to match the flat green-terminal calm button. */
+html.az-calm .az-stream-btn,
+html.az-calm .az-stream-pop {
+  border-color: #2ee62e;
+  box-shadow: none;
+}
+html.az-calm .az-stream-btn,
+html.az-calm .az-stream-pop-title,
+html.az-calm .az-stream-pop-url {
+  text-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .az-stream-pop { transition: none; transform: none; }
+}
+@media (max-width: 767px) {
+  .az-stream-btn { width: 30px; height: 30px; font-size: 16px; top: 8px; left: 8px; }
+  .az-stream-pop { top: 46px; left: 8px; font-size: 12px; }
+}

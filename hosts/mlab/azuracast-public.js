@@ -894,4 +894,90 @@
     document.addEventListener('now-playing', function () { setTimeout(fetchSong, 0); });
     fetchSong();
   })();
+
+  // --- stream-link info popover ---
+  // A "?" button fixed top-left (mirrors the calm button's top-right) reveals a small popover
+  // with the direct stream URL, so listeners can add this station to internet-radio apps
+  // (TuneIn / VLC / Sonos / Apple Music radio / etc). Toggle: click "?" again or click anywhere
+  // outside to dismiss; Esc also closes. URL is derived from location.origin so it's correct on
+  // any deployment (radio.marcel.cool -> https://radio.marcel.cool/stream).
+  (function () {
+    function addStreamInfo() {
+      if (!document.body || document.querySelector('.az-stream-btn')) return;
+      var streamUrl = location.origin + '/stream';
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'az-stream-btn';
+      btn.textContent = '?';
+      btn.setAttribute('aria-label', 'How to listen in a radio app');
+      btn.setAttribute('aria-expanded', 'false');
+
+      var pop = document.createElement('div');
+      pop.className = 'az-stream-pop';
+      pop.setAttribute('role', 'dialog');
+      pop.setAttribute('aria-label', 'Stream link for radio apps');
+      pop.innerHTML =
+        '<p class="az-stream-pop-title">Listen in any radio app</p>' +
+        '<p class="az-stream-pop-text">Add this URL as a station in VLC, mpv, RadioDroid, Strawberry, or any internet-radio player:</p>' +
+        '<a class="az-stream-pop-url" href="' + streamUrl + '" target="_blank" rel="noopener">' + streamUrl + '</a>';
+
+      // Click the link -> copy to clipboard (don't navigate). href stays so right-click / open-in-new-tab
+      // and a no-JS fallback still work. navigator.clipboard needs a secure context + gesture (both
+      // true on https radio.marcel.cool); the execCommand fallback covers older iOS Safari / http LAN.
+      function copyText(text, cb) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { cb(true); }, fallback);
+        } else { fallback(); }
+        function fallback() {
+          try {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            var ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            cb(ok);
+          } catch (e) { cb(false); }
+        }
+      }
+      var urlEl = pop.querySelector('.az-stream-pop-url');
+      urlEl.addEventListener('click', function (e) {
+        e.preventDefault();
+        var orig = urlEl.textContent;
+        copyText(streamUrl, function (ok) {
+          urlEl.textContent = ok ? 'Copied!' : 'Copy failed - select & \u2318C';
+          urlEl.classList.toggle('az-copied', ok);
+          setTimeout(function () { urlEl.textContent = orig; urlEl.classList.remove('az-copied'); }, 1300);
+        });
+      });
+
+      function setOpen(on) {
+        btn.classList.toggle('az-open', on);
+        pop.classList.toggle('az-open', on);
+        btn.setAttribute('aria-expanded', String(on));
+      }
+      btn.addEventListener('click', function () {
+        setOpen(!btn.classList.contains('az-open'));
+      });
+      // Dismiss on outside click (not on the button, not inside the popover). Bubble phase so the
+      // button's own click toggles first; a click that lands elsewhere closes.
+      document.addEventListener('click', function (e) {
+        if (!btn.classList.contains('az-open')) return;
+        if (e.target === btn || pop.contains(e.target)) return;
+        setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && btn.classList.contains('az-open')) setOpen(false);
+      });
+
+      document.body.appendChild(btn);
+      document.body.appendChild(pop);
+    }
+    if (document.body) addStreamInfo();
+    else document.addEventListener('DOMContentLoaded', addStreamInfo);
+  })();
 })();
