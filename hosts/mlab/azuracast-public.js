@@ -32,6 +32,18 @@
       new MutationObserver(function () { d(label, 'icon-> isPlaying=' + isPlaying() + ' isMuted=' + isMuted()); }).observe(b, { childList: true, subtree: true, attributes: true });
     }
     setInterval(function () { watchBtn('.radio-control-play-button', 'PLAYBTN'); watchBtn('.radio-control-volume .btn', 'MUTEBTN'); }, 200);
+    // attachAudio only ever instruments document.querySelector('audio') - the FIRST one. If
+    // AzuraCast ever leaves a stale element behind while playing through a new one, every event
+    // on the live element is invisible above, so report the count whenever it changes.
+    var lastCount = -1;
+    setInterval(function () {
+      var els = document.querySelectorAll('audio');
+      if (els.length === lastCount) return;
+      lastCount = els.length;
+      var st = [];
+      for (var i = 0; i < els.length; i++) st.push(i + ':paused=' + els[i].paused + ',t=' + els[i].currentTime.toFixed(1) + ',rs=' + els[i].readyState);
+      d('AUDIO ELEMENTS n=' + els.length, st.join(' | '));
+    }, 250);
     return d;
   })();
 
@@ -39,54 +51,55 @@
   // A network interruption (confirmed via ?azdebug: net::ERR_NETWORK_CHANGED -> audio
   // 'waiting' -> 'stalled') can kill the stream without the browser or AzuraCast ever
   // reconnecting on their own - and since it's the same underlying network change, it often
-  // takes the SSE metadata feed down with it too (title/art then look frozen). First try
-  // what already works manually (toggle the real play button); if sound still isn't flowing
-  // after that, fall back to a full reload - matches "sometimes only a reload fixes it".
-  var streamHealthy = true, recoveryStage = 0, recoveryTimer = null;
-  function markStreamHealthy() {
-    streamHealthy = true;
-    recoveryStage = 0;
-    clearTimeout(recoveryTimer);
+  // takes the SSE metadata feed down with it too (title/art then look frozen). Recovery is
+  // what already works manually: toggle the real play button.
+  //
+  // Liveness is judged by currentTime ADVANCING, not by media events. The previous version
+  // listened for 'playing' to decide the stream was healthy again, bound via a 500ms poll
+  // because AzuraCast swaps the <audio> element on every play toggle. That was a race it lost
+  // constantly: the retry's own b.click() swaps in a new element, and when that element fired
+  // 'playing' inside the 500ms window the event was missed, "healthy" was never set, and 8s
+  // later the watchdog retried - swapping the element and re-losing the event, forever. Icecast's
+  // access log showed the result: a new radio.mp3 connection every 8s, each killed at exactly
+  // 8s, each delivering ~31KB/s of a 24KB/s stream. It was strangling a perfectly healthy
+  // stream, at 20-40 reconnects per 10 minutes against an actual fault rate of ~1 uplink flap
+  // per day. A stream that is playing always advances currentTime, so polling progress has no
+  // event to miss and cannot misfire on a healthy stream.
+  var lastEl = null, lastT = -1, seenProgress = false, stalledSince = 0;
+  var STALL_MS = 10000;   // zero progress this long while unpaused = a real outage, not a blip
+  function resetProgress(a) {
+    lastEl = a;
+    lastT = a ? a.currentTime : -1;
+    seenProgress = false;
+    stalledSince = 0;
   }
-  function scheduleRecoveryCheck(delay) {
-    clearTimeout(recoveryTimer);
-    recoveryTimer = setTimeout(runRecoveryCheck, delay);
-  }
-  // Keep soft-retrying (toggle play) until it lands - no reload fallback: a full page
-  // navigation doesn't recover anything a retry can't, and on top of that it drops the
-  // page's autoplay activation, so on a browser that blocks autoplay it just trades "stream
-  // stalled" for "stream stalled AND needs a manual click" - worse for the listener, not better.
-  function runRecoveryCheck() {
-    if (streamHealthy) return;                // a later 'playing' event already cleared it
+  setInterval(function () {
     var a = au();
-    if (!a || a.paused) return;                // user paused on purpose - not ours to "fix"
-    recoveryStage++;
-    DBG('recovery: soft retry #' + recoveryStage + ' (toggle play)');
+    // paused is the user's choice, not ours to "fix"; no element yet means nothing to watch
+    if (!a || a.paused) { resetProgress(a); return; }
+    // element swapped -> rebase, don't compare currentTime across two different elements
+    // (the new one restarts near 0, which would read as a huge backwards jump)
+    if (a !== lastEl) { resetProgress(a); return; }
+    // abs(), not >: a backward jump (the browser reconnecting internally on the same element
+    // restarts currentTime near 0) also proves the element is alive and doing something. With a
+    // forward-only test, lastT would stay stuck at the old high-water mark and every subsequent
+    // second would read as "no progress" -> a retry on a stream that is in fact playing fine.
+    if (Math.abs(a.currentTime - lastT) > 0.1) {  // moving at all -> healthy, by definition
+      lastT = a.currentTime;
+      seenProgress = true;
+      stalledSince = 0;
+      return;
+    }
+    // Only ever act on "was playing, then stopped". A stream that never started at all belongs
+    // to the autoplay / ensurePlaying() path below, and clicking at it from here would fight it.
+    if (!seenProgress) return;
+    if (!stalledSince) stalledSince = performance.now();
+    if (performance.now() - stalledSince < STALL_MS) return;
+    stalledSince = 0;                           // give this retry a full fresh window
+    DBG('recovery: soft retry (no progress for ' + STALL_MS + 'ms)');
     var b = pb();
     if (b) { b.click(); setTimeout(function () { var b2 = pb(); if (b2) b2.click(); }, 300); }
-    scheduleRecoveryCheck(8000);               // give the retry a window to land before re-checking
-  }
-  (function () {
-    function attachRecoveryWatch() {
-      var a = au();
-      if (!a || a._azRecoveryBound) return;
-      a._azRecoveryBound = true;
-      a.addEventListener('playing', markStreamHealthy);
-      ['stalled', 'error'].forEach(function (ev) {
-        // The soft retry's own b.click() toggle deliberately drives the element through
-        // abort/error (readyState 0) as a normal side effect - if a recovery is already in
-        // flight (recoveryStage > 0), that self-inflicted error must NOT reschedule the
-        // timer: doing so replaces the 8s window given for the retry to land with a fresh
-        // 5s one, and since the stage is already elevated the next check goes straight to
-        // reload - even when the retry was about to succeed a moment later.
-        a.addEventListener(ev, function () {
-          streamHealthy = false;
-          if (recoveryStage === 0) scheduleRecoveryCheck(5000);
-        });
-      });
-    }
-    setInterval(attachRecoveryWatch, 500);     // <audio> gets swapped across pause/play - keep rebinding to whatever's current
-  })();
+  }, 1000);
 
   // Brave (and Chromium with autoplay disabled) block even muted play() until the user
   // interacts. AzuraCast flips isPlaying=true *before* play() resolves, so a blocked
@@ -614,13 +627,30 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'az-calm-btn';
-      b.textContent = 'Anti Seizure Button';
+      function label() { b.textContent = calm ? 'Anti Seizure Mode' : 'I am having a seizure'; }
+      label();
       b.setAttribute('aria-pressed', String(calm));
+      // Idle timer: the button only screams while you're near it. .az-calm-idle (see CSS) fades
+      // it to a near-invisible still ghost 2s after the pointer leaves, and it starts idle so an
+      // untouched page never has it strobing in the corner.
+      var idleTimer;
+      function idle(on) {
+        clearTimeout(idleTimer);
+        if (on) idleTimer = setTimeout(function () { b.classList.add('az-calm-idle'); }, 2000);
+        else b.classList.remove('az-calm-idle');
+      }
+      b.addEventListener('pointerenter', function () { idle(false); });
+      b.addEventListener('pointerleave', function () { idle(true); });
+      b.addEventListener('focus', function () { idle(false); });
+      b.addEventListener('blur', function () { idle(true); });
+      b.classList.add('az-calm-idle');
       b.addEventListener('click', function () {
         calm = !calm;
         document.documentElement.classList.toggle('az-calm', calm);
+        label();
         b.setAttribute('aria-pressed', String(calm));
         try { localStorage.setItem(CALM_KEY, calm ? '1' : '0'); } catch (e) {}
+        idle(false);   // touch has no hover: a tap must reveal it, then re-idle on leave
       });
       document.body.appendChild(b);
     }

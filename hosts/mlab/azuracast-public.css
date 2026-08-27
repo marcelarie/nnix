@@ -519,45 +519,80 @@ body.page-minimal .public-page .card-body {
   top: 10px;
   right: 10px;
   z-index: 1000;
-  padding: 8px 18px;
-  border: 3px solid #ffe600;
-  border-radius: 999px 6px 999px 6px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #1e40ff;
-  font-family: 'Arial Black', 'Arial Bold', Impact, sans-serif;
-  font-size: 18px;
-  font-weight: 900;
-  font-style: italic;
+  padding: 9px 20px;
+  border: 2px solid #00e5ff;
+  border-radius: 0;
+  /* notched corners: the neon-sign / HUD-panel silhouette, cut straight through the border */
+  clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px));
+  background: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
+  color: #00e5ff;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 17px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
-  -webkit-text-stroke: 1px #ffe600;
-  text-stroke: 1px #ffe600;
   cursor: pointer;
-  transform-origin: center;
-  animation: az-calm-btn-flash 0.7s infinite steps(1, end), az-text-wiggle 0.5s ease-in-out infinite;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+  /* chromatic split (magenta left / cyan right) = the badly-tuned-CRT look */
+  text-shadow: -2px 0 #ff3df0, 2px 0 #00e5ff;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.45), inset 0 0 12px rgba(255, 61, 240, 0.2);
+  animation: az-calm-btn-glitch 2.4s steps(1, end) infinite, az-calm-btn-neon 1.1s ease-in-out infinite alternate;
 }
 .az-calm-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
-  animation-duration: 0.25s, 0.2s;   /* hover = even more unhinged */
+  animation-duration: 0.7s, 0.35s;   /* hover = the sign is about to blow */
+  color: #ffe600;
 }
-/* Same blue/yellow strobe as the PLAY/PAUSE overlay, plus a border that swaps with it. */
-@keyframes az-calm-btn-flash {
-  0%, 49%   { color: #1e40ff; -webkit-text-stroke-color: #ffe600; border-color: #ffe600; box-shadow: 0 0 16px rgba(255, 230, 0, 0.9), inset 0 0 10px rgba(30, 64, 255, 0.6); }
-  50%, 100% { color: #ffe600; -webkit-text-stroke-color: #ff3df0; border-color: #ff3df0; box-shadow: 0 0 16px rgba(255, 61, 240, 0.9), inset 0 0 10px rgba(255, 230, 0, 0.6); }
+/* Mostly still, then a short burst of tearing - a glitch, not a strobe. */
+@keyframes az-calm-btn-glitch {
+  0%, 87% { transform: none;                              text-shadow: -2px 0 #ff3df0, 2px 0 #00e5ff; }
+  90%     { transform: translate(-3px, 1px) skewX(-7deg);  text-shadow: -5px 0 #ff3df0, 5px 0 #ffe600; }
+  93%     { transform: translate(3px, -1px) skewX(7deg);   text-shadow: 4px 0 #00e5ff, -4px 0 #ff3df0; }
+  96%     { transform: translate(-1px, 0) skewX(-2deg);    text-shadow: -2px 0 #ffe600, 2px 0 #ff3df0; }
+}
+/* Border/bloom breathe cyan <-> magenta, the same two colors the beat glow uses. */
+@keyframes az-calm-btn-neon {
+  from { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.45), inset 0 0 12px rgba(255, 61, 240, 0.2); }
+  to   { border-color: #ff3df0; box-shadow: 0 0 26px rgba(255, 61, 240, 0.75), inset 0 0 16px rgba(0, 229, 255, 0.3); }
+}
+/* Idle: JS adds .az-calm-idle a couple of seconds after the pointer leaves (and on load), so
+   the loud version is only there while you're actually reaching for it - the rest of the time
+   it's a still, near-invisible ghost that doesn't compete with the player. Always fully back
+   on hover/focus so it stays findable and keyboard-reachable. */
+.az-calm-btn.az-calm-idle {
+  opacity: 0.12;
+  animation: none;
+  transform: none;
+  box-shadow: none;
+}
+.az-calm-btn:hover,
+.az-calm-btn:focus-visible {
+  opacity: 1;
+}
+.az-calm-btn.az-calm-idle:focus-visible {
+  animation: none;
 }
 /* Toggled ON = calm: the button is the one thing that must stop screaming, so it drops the
-   strobe/wiggle entirely and goes flat green. */
+   glitch/bloom entirely and goes flat green-terminal. */
 html.az-calm .az-calm-btn,
 html.az-calm .az-calm-btn:hover {
   animation: none;
+  transform: none;
+  background: rgba(0, 14, 4, 0.8);
   border-color: #2ee62e;
   color: #2ee62e;
-  -webkit-text-stroke: 0;
-  text-stroke: 0;
-  box-shadow: none;
+  text-shadow: 0 0 8px rgba(46, 230, 46, 0.7);
+  box-shadow: 0 0 12px rgba(46, 230, 46, 0.35), inset 0 0 10px rgba(46, 230, 46, 0.12);
 }
 @media (prefers-reduced-motion: reduce) {
-  .az-calm-btn, .az-calm-btn:hover { animation: none; }
+  .az-calm-btn, .az-calm-btn:hover { animation: none; transform: none; }
+}
+@media (max-width: 767px) {
+  .az-calm-btn {
+    font-size: 11px;
+    padding: 6px 12px;
+    letter-spacing: 1px;
+  }
 }
 html.az-calm body.page-minimal::before {
   transition: none;
