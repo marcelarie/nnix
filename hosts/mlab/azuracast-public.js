@@ -381,6 +381,12 @@
 
   // Album art overlay: flashing PLAY/PAUSE text (center) + ZOOM corner.
   // Clicking the art toggles play/pause (the <a> lightbox is blocked); the zoom corner opens the lightbox.
+  // artObserver/artSyncTimer track the PREVIOUS art node's watchers so relocate() can tear them
+  // down before attaching new ones. Without this, every art-less track (Player.vue destroys and
+  // rebuilds .now-playing-art on a v-if) left the old observer+interval running forever on a
+  // detached node - a MutationObserver keeps its target alive even with no JS references to it,
+  // so this was an unbounded leak over a long listening session.
+  var artObserver = null, artSyncTimer = null;
   function relocate() {
     var art = document.querySelector('.radio-player-widget .now-playing-art');
     var playBtn = getPlayButton();
@@ -388,6 +394,9 @@
     if (volInput && !volInput._azVolSynced) { volInput._azVolSynced = true; syncVolVar(volInput); }
     if (!art || !playBtn || art._azInit) return !!(art && playBtn);
     art._azInit = true;
+
+    if (artObserver) { artObserver.disconnect(); artObserver = null; }
+    if (artSyncTimer) { clearInterval(artSyncTimer); artSyncTimer = null; }
 
     var overlay = document.createElement('div');
     overlay.className = 'az-overlay-play';
@@ -405,8 +414,9 @@
       art.classList.toggle('az-paused', !playing);
     }
     // MutationObserver: the button's icon swaps when isPlaying changes -> update immediately.
-    new MutationObserver(sync).observe(playBtn, { childList: true, subtree: true, attributes: true });
-    setInterval(sync, 500); // safety-net poll
+    artObserver = new MutationObserver(sync);
+    artObserver.observe(playBtn, { childList: true, subtree: true, attributes: true });
+    artSyncTimer = setInterval(sync, 500); // safety-net poll
     sync();
 
     art.addEventListener('click', function (e) {
@@ -569,11 +579,15 @@
   }
   if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     window.addEventListener('mousemove', function (e) {
+      if (document.documentElement.classList.contains('az-calm')) return; // hidden by CSS in calm mode - skip the trig
       bgMouseX = e.clientX; bgMouseY = e.clientY;
       applyGlowPos();
     });
   }
   function setBgFx(punch, bassN, midN, highN) {
+    // Anti-seizure mode hides zoom/shake/glow entirely via CSS (html.az-calm) - none of the
+    // work below has any visible effect while it's on, so skip it rather than compute for nothing.
+    if (document.documentElement.classList.contains('az-calm')) return;
     bgBassAvg = bgBassAvg * 0.97 + bassN * 0.03;
     var now = performance.now();
     if (bassN > 0.35 && bassN > bgBassAvg * 1.35 && now - bgLastHit > 120) {
@@ -605,6 +619,10 @@
       el.classList.add('az-marquee');
     }
   }
+  // marqueeObservers tracks the PREVIOUS title/artist node's observer per selector, so a Vue
+  // rebuild (title/artist live in one of three keyed v-if branches - see below) can disconnect
+  // the stale one instead of leaking it forever on a detached node (same leak class as relocate()'s art watcher).
+  var marqueeObservers = {};
   function setupMarquee() {
     ['.now-playing-title', '.now-playing-artist'].forEach(function (sel) {
       var el = document.querySelector('.radio-player-widget ' + sel);
@@ -613,8 +631,10 @@
       var isArtist = sel === '.now-playing-artist';
       if (isArtist) applyArtistLink();
       updateMarquee(el);
+      if (marqueeObservers[sel]) marqueeObservers[sel].disconnect();
       // Vue updates the text node -> re-measure. attributes (class/style) excluded -> no self-loop.
-      new MutationObserver(function () { updateMarquee(el); if (isArtist) applyArtistLink(); }).observe(el, { childList: true, subtree: true, characterData: true });
+      marqueeObservers[sel] = new MutationObserver(function () { updateMarquee(el); if (isArtist) applyArtistLink(); });
+      marqueeObservers[sel].observe(el, { childList: true, subtree: true, characterData: true });
     });
   }
   // Persistent for the same reason as the art watcher: Player.vue renders title/artist in one of
