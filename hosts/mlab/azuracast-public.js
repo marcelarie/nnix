@@ -136,16 +136,18 @@
   }
 
   // Spacebar toggles play/pause; ArrowUp/ArrowDown raise/lower volume; z toggles the album
-  // art zoom lightbox. Registered BEFORE the window 'unmute' keydown (capture, passive) so
-  // stopImmediatePropagation stops it also firing ensurePlaying (which would re-start right
-  // after a pause). preventDefault stops the page scrolling on Space / arrow keys. Skipped
-  // while focus is in an input/textarea/contenteditable so we don't hijack typing a space/z —
-  // and so a focused volume slider keeps its native arrow handling instead of double-applying.
+  // art zoom lightbox; m toggles mute (same as clicking the mute button). Registered BEFORE
+  // the window 'unmute' keydown (capture, passive) so stopImmediatePropagation stops it also
+  // firing ensurePlaying (which would re-start right after a pause). preventDefault stops the
+  // page scrolling on Space / arrow keys. Skipped while focus is in an input/textarea/
+  // contenteditable so we don't hijack typing a space/z/m — and so a focused volume slider
+  // keeps its native arrow handling instead of double-applying.
   window.addEventListener('keydown', function (e) {
     var isSpace = (e.key === ' ' || e.code === 'Space');
     var isVol = (e.key === 'ArrowUp' || e.key === 'ArrowDown');
     var isZoom = (e.key === 'z' || e.key === 'Z');
-    if (!isSpace && !isVol && !isZoom) return;
+    var isMute = (e.key === 'm' || e.key === 'M');
+    if (!isSpace && !isVol && !isZoom && !isMute) return;
     var t = e.target;
     // Only defer to a REAL text-entry control. The old check also matched the volume
     // <input type=range> whenever it had focus (e.g. right after dragging it), silently
@@ -161,6 +163,9 @@
     } else if (isZoom) {
       if (e.repeat) return;
       triggerZoom();
+    } else if (isMute) {
+      if (e.repeat) return;
+      var m = mb(); if (m) m.click();  // same real click the mute button itself would get
     } else {
       bumpVolume(e.key === 'ArrowUp' ? 5 : -5);   // repeats allowed: hold to ramp volume
     }
@@ -522,7 +527,7 @@
     if (!host || host.querySelector('.az-hint')) return !!host;
     var h = document.createElement('div');
     h.className = 'az-hint';
-    h.textContent = '↑/↓ volume  ·  space play/pause  ·  z zoom';
+    h.textContent = '↑/↓ volume  ·  space play/pause  ·  m mute  ·  z zoom';
     host.appendChild(h);
     return true;
   }

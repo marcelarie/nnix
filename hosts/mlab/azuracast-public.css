@@ -51,6 +51,23 @@ body.page-minimal .public-page .card-body {
   .radio-player-widget .now-playing-details .now-playing-main {
     width: 100%;
   }
+  /* Volume control is desktop-only corner-pinned (position:absolute, see below); on mobile
+     it drops into normal flow, reordered (via now-playing-main as a flex column) to sit
+     below the equalizer lines instead of overlapping the album art in the top corner. */
+  .radio-player-widget .now-playing-main {
+    display: flex;
+    flex-direction: column;
+  }
+  .radio-player-widget .az-eq {
+    order: 1;
+  }
+  .radio-player-widget .radio-controls {
+    order: 2;
+  }
+  .radio-player-widget .radio-control-volume {
+    position: static;
+    margin-top: 8px;
+  }
 }
 
 /* Hide station history button */
@@ -101,6 +118,36 @@ body.page-minimal .public-page .card-body {
 }
 .radio-player-widget .now-playing-artist a:hover {
   text-decoration: underline;
+}
+/* Crazy-colors hover: title/artist cycle through the page's neon palette and wiggle.
+   :hover on the artist bubbles up from its <a> too, so the bandcamp link gets this for free
+   on top of its own underline above. */
+.radio-player-widget .now-playing-title,
+.radio-player-widget .now-playing-artist {
+  transform-origin: left center;
+}
+.radio-player-widget .now-playing-title:hover,
+.radio-player-widget .now-playing-artist:hover {
+  cursor: default;
+  animation: az-rainbow-text 1.2s linear infinite, az-text-wiggle 0.4s ease-in-out infinite;
+}
+@keyframes az-rainbow-text {
+  0%   { color: #00e5ff; text-shadow: 0 0 14px rgba(0, 229, 255, 0.9); }
+  25%  { color: #ff3df0; text-shadow: 0 0 14px rgba(255, 61, 240, 0.9); }
+  50%  { color: #ffe600; text-shadow: 0 0 14px rgba(255, 230, 0, 0.9); }
+  75%  { color: #1e40ff; text-shadow: 0 0 14px rgba(30, 64, 255, 0.9); }
+  100% { color: #00e5ff; text-shadow: 0 0 14px rgba(0, 229, 255, 0.9); }
+}
+@keyframes az-text-wiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25%      { transform: rotate(-1.5deg) scale(1.04); }
+  75%      { transform: rotate(1.5deg) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-player-widget .now-playing-title:hover,
+  .radio-player-widget .now-playing-artist:hover {
+    animation: none;
+  }
 }
 /* Marquee: when title/artist overflow their column, scroll side-to-side.
    JS measures text width, sets --az-shift (-(textW+gap) px) and --az-dur, toggles .az-marquee.
