@@ -147,7 +147,12 @@
     var isZoom = (e.key === 'z' || e.key === 'Z');
     if (!isSpace && !isVol && !isZoom) return;
     var t = e.target;
-    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    // Only defer to a REAL text-entry control. The old check also matched the volume
+    // <input type=range> whenever it had focus (e.g. right after dragging it), silently
+    // swallowing Space/z. The range input still keeps its own native arrow-key handling
+    // when focused (isVol below), just not at the cost of blocking the other keys too.
+    if (t && (t.isContentEditable || /^(TEXTAREA|SELECT)$/.test(t.tagName) || (t.tagName === 'INPUT' && t.type !== 'range'))) return;
+    if (isVol && t && t.tagName === 'INPUT' && t.type === 'range') return;
     e.preventDefault();
     e.stopImmediatePropagation();      // block the 'unmute' keydown (same target+phase, reg'd later)
     if (isSpace) {
@@ -202,6 +207,34 @@
     }
   }
 
+  // Drives the mushroom<->mouth volume-bar theme (see CSS): --vol (0-1) on the volume
+  // control lets the track fill and the mouth glow react to the SAME number. Delegated on
+  // document (bubbles) so it works regardless of when Vue mounts the input; bumpVolume's
+  // synthetic 'input' event triggers it too. Rising edge into max (mushroom reaches the
+  // mouth) spawns the "1UP" (see .az-1up in CSS); falling edge just resets the flag so it
+  // can fire again next time volume is pushed back to max.
+  function syncVolVar(input) {
+    var vol = document.querySelector('.radio-control-volume');
+    if (!vol) return;
+    var frac = (Number(input.value) || 0) / 100;
+    vol.style.setProperty('--vol', frac);
+    if (frac >= 1) {
+      if (!input._azMaxed) { input._azMaxed = true; spawn1Up(vol); }
+    } else {
+      input._azMaxed = false;
+    }
+  }
+  function spawn1Up(vol) {
+    var el = document.createElement('span');
+    el.className = 'az-1up';
+    el.textContent = '1UP';
+    el.addEventListener('animationend', function () { el.remove(); });
+    vol.appendChild(el);
+  }
+  document.addEventListener('input', function (e) {
+    if (e.target.matches && e.target.matches('.radio-control-volume .form-range')) syncVolVar(e.target);
+  }, true);
+
   // Unmute WITHOUT racing play(). AzuraCast's play() runs in a Vue nextTick and reads isMuted
   // at that moment. If we toggle the store (m.click) before that nextTick, Vue flushes the
   // isMuted watcher first -> play() is called UNMUTED -> blocked on mobile (unmuted play needs
@@ -247,6 +280,8 @@
   function relocate() {
     var art = document.querySelector('.radio-player-widget .now-playing-art');
     var b = pb();
+    var vi = document.querySelector('.radio-control-volume .form-range');
+    if (vi && !vi._azVolSynced) { vi._azVolSynced = true; syncVolVar(vi); }
     if (!art || !b || art._azInit) return !!(art && b);
     art._azInit = true;
 
@@ -404,14 +439,41 @@
   // bgDropEnergy, which exponentially decays over the next ~0.3-0.5s -> a punch, not a toggle.
   var bgFxRoot = document.documentElement.style;
   var bgBassAvg = 0, bgDropEnergy = 0, bgLastHit = 0;
+  // Glow dodges the cursor: bgGlowBaseX/Y is where a bass hit relocated it to; applyGlowPos
+  // pushes that point away from the last known mouse position when the cursor gets close,
+  // so the light "escapes" instead of sitting under it. Skipped entirely as pure motion under
+  // prefers-reduced-motion (CSS already hides the ::after layer there).
+  var bgGlowBaseX = 50, bgGlowBaseY = 35, bgMouseX = -9999, bgMouseY = -9999;
+  var GLOW_DODGE_R = 260; // px
+  function applyGlowPos() {
+    var w = window.innerWidth, h = window.innerHeight;
+    var bx = bgGlowBaseX / 100 * w, by = bgGlowBaseY / 100 * h;
+    var dx = bx - bgMouseX, dy = by - bgMouseY;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var fx = bx, fy = by;
+    if (dist < GLOW_DODGE_R && dist > 0.01) {
+      var push = GLOW_DODGE_R - dist;
+      fx = bx + (dx / dist) * push;
+      fy = by + (dy / dist) * push;
+    }
+    bgFxRoot.setProperty('--az-glow-x', Math.max(0, Math.min(100, fx / w * 100)).toFixed(1) + '%');
+    bgFxRoot.setProperty('--az-glow-y', Math.max(0, Math.min(100, fy / h * 100)).toFixed(1) + '%');
+  }
+  if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.addEventListener('mousemove', function (e) {
+      bgMouseX = e.clientX; bgMouseY = e.clientY;
+      applyGlowPos();
+    });
+  }
   function setBgFx(punch, bassN, midN, highN) {
     bgBassAvg = bgBassAvg * 0.97 + bassN * 0.03;
     var now = performance.now();
     if (bassN > 0.35 && bassN > bgBassAvg * 1.35 && now - bgLastHit > 120) {
       bgLastHit = now;
       bgDropEnergy = 1;
-      bgFxRoot.setProperty('--az-glow-x', (15 + Math.random() * 70).toFixed(1) + '%');
-      bgFxRoot.setProperty('--az-glow-y', (15 + Math.random() * 60).toFixed(1) + '%');
+      bgGlowBaseX = 15 + Math.random() * 70;
+      bgGlowBaseY = 15 + Math.random() * 60;
+      applyGlowPos();
     } else {
       bgDropEnergy *= 0.90;
     }
