@@ -365,6 +365,24 @@ in {
                     proxy_send_timeout 1h;
                   '';
                 };
+                # Centrifugo-backed SSE (now-playing live updates). Base "/" location has no
+                # proxy_buffering off, so nginx buffers the event stream instead of flushing it
+                # -> updates arrive up to ~15s late / look dead. SSE needs the same no-buffering
+                # treatment as /stream.
+                "/live/" = {
+                  proxyPass = "http://127.0.0.1:${toString services.azuracast.port}";
+                  proxyWebsockets = true;   # Centrifugo can fall back to a websocket transport under this prefix
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_cache off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
               };
           };
         "studio.marcel.cool" = let

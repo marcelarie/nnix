@@ -12,7 +12,7 @@ body.page-minimal .public-page .card {
 /* Player card background - lighter (transparent) */
 body.page-minimal .public-page .card,
 body.page-minimal .public-page .card-body {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.45);
 }
 
 /* No padding - use as much space as available */
@@ -30,6 +30,11 @@ body.page-minimal .public-page .card-body {
 
 /* Mobile: stack vertically, album cover fills available width */
 @media (max-width: 768px) {
+  /* desktop keeps card-body at 0 padding (edge-to-edge, see rule above); mobile needs
+     breathing room so the art/text don't sit flush against the card's edges. */
+  body.page-minimal .public-page .card-body {
+    padding: 16px;
+  }
   .radio-player-widget .now-playing-details {
     flex-direction: column;
   }
@@ -51,6 +56,13 @@ body.page-minimal .public-page .card-body {
 /* Hide station history button */
 #station-history {
   display: none;
+}
+
+/* Hide the track "length bar" (elapsed · progress · total) — keeps the card lean.
+   !important: AzuraCast sets .radio-player-widget .now-playing-details .time-display{display:flex}
+   at 0,3,0 specificity; our class selector (0,2,0) loses. !important wins regardless. */
+.radio-player-widget .time-display {
+  display: none !important;
 }
 
 /* Big responsive now-playing text: sized by container query (cqw) on its own
@@ -82,6 +94,14 @@ body.page-minimal .public-page .card-body {
   line-height: 1.2;
   margin-top: 0.15em;
 }
+/* Artist name links to the track's bandcamp page (JS wraps it when a link is known). */
+.radio-player-widget .now-playing-artist a {
+  color: inherit;
+  text-decoration: none;
+}
+.radio-player-widget .now-playing-artist a:hover {
+  text-decoration: underline;
+}
 /* Marquee: when title/artist overflow their column, scroll side-to-side.
    JS measures text width, sets --az-shift (-(textW+gap) px) and --az-dur, toggles .az-marquee.
    inline-block + overflow:visible make the element shrink to content so transform scrolls it
@@ -104,8 +124,49 @@ body.page-minimal .public-page .card-body {
 @media (prefers-reduced-motion: reduce) {
   .radio-player-widget .az-marquee { animation: none; }
 }
+/* Background image lives on a fixed, oversized ::before layer (not directly on body) so the
+   music-driven zoom/shake transform never shifts real page content or triggers a scrollbar.
+   ::after is a colored glow that pulses with the beat. Both driven by CSS vars
+   (--az-bg-scale/-x/-y, --az-glow-opacity/-color) set every audio frame in JS from the same
+   analyser that feeds the equalizer (see eqFrame in azuracast-public.js); reset to neutral
+   when paused/muted so the background goes still. */
 [data-bs-theme] body.page-minimal {
+  position: relative;
+}
+[data-bs-theme] body.page-minimal::before {
+  content: '';
+  position: fixed;
+  inset: -6%;
+  z-index: -2;
   background-image: url('/static/uploads/background.1787776802.jpg');
+  background-size: cover;
+  background-position: center;
+  transform: scale(var(--az-bg-scale, 1)) translate(var(--az-bg-x, 0px), var(--az-bg-y, 0px));
+  transition: transform 0.05s linear;
+  will-change: transform;
+  pointer-events: none;
+}
+[data-bs-theme] body.page-minimal::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  /* position jumps to a new spot on each detected bass hit (see bgDropEnergy in JS) - a
+     discrete relocate reads as a flash landing somewhere new, not a smooth drift. */
+  background: radial-gradient(circle at var(--az-glow-x, 50%) var(--az-glow-y, 35%), var(--az-glow-color, #ff3df0), transparent 60%);
+  opacity: var(--az-glow-opacity, 0);
+  transition: opacity 0.08s linear;
+  mix-blend-mode: difference;   /* inverts the background under the glow rather than just adding light */
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-bs-theme] body.page-minimal::before {
+    transition: none;
+    transform: none !important;
+  }
+  [data-bs-theme] body.page-minimal::after {
+    display: none;
+  }
 }
 
 /* Overlay play button inside album art: flashing PLAY/PAUSE text (blue+yellow, border letters) */
@@ -177,19 +238,120 @@ body.page-minimal .public-page .card-body {
   0%, 49%   { color: #1e40ff; -webkit-text-stroke-color: #ffe600; text-shadow: 0 0 10px rgba(255,230,0,0.9); }
   50%, 100% { color: #ffe600; -webkit-text-stroke-color: #1e40ff; text-shadow: 0 0 14px rgba(30,64,255,0.9); }
 }
-/* Volume bar - white/semi-transparent to match new style */
+/* Volume control - pinned to the card's top-right corner. padding-top on the widget
+   clears the corner slot so it doesn't overlap the title/artist text. */
+.radio-player-widget {
+  position: relative;
+  padding-top: 40px;
+}
 .radio-player-widget .radio-control-volume {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 124px;
+  box-sizing: border-box;
+  padding: 3px 22px 3px 8px;   /* extra right padding reserves room for the mouth (::after) */
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 4;
+  margin: 0;
   color: #fff;
+}
+/* Mouth waits at the track's max end - the mushroom thumb below "walks" toward it as
+   volume rises (just the native range thumb sliding - no JS needed). */
+.radio-player-widget .radio-control-volume::after {
+  content: '👄';
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  pointer-events: none;
 }
 .radio-player-widget .radio-control-volume .btn {
+  color: #fff;
   fill: currentColor;
+  opacity: 0.9;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.radio-player-widget .radio-control-volume .btn:hover {
+  color: #fff;
+  opacity: 1;
 }
 .radio-player-widget .radio-control-volume .form-range {
-  color: #fff;
+  accent-color: #ff3df0;
 }
+/* Rainbow gradient track (cyan/magenta/yellow - same palette as the equalizer + play flash),
+   punky glowing thumb - louder look to match the rest of the page. */
+.radio-player-widget .radio-control-volume .form-range::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, #00e5ff, #ff3df0, #ffe600);
+  border-radius: 4px;
+  height: 5px;
+}
+.radio-player-widget .radio-control-volume .form-range::-moz-range-track {
+  background: linear-gradient(90deg, #00e5ff, #ff3df0, #ffe600);
+  border-radius: 4px;
+  height: 5px;
+}
+/* Thumb = a mushroom emoji (SVG data-uri, so it's the real glyph, not hand-drawn) that
+   walks along the track toward the mouth (::after on the container) as volume rises. */
 .radio-player-widget .radio-control-volume .form-range::-webkit-slider-thumb {
-  background: rgba(255, 255, 255, 0.6);
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%8D%84%3C/text%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: none;
 }
 .radio-player-widget .radio-control-volume .form-range::-moz-range-thumb {
-  background: rgba(255, 255, 255, 0.6);
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%8D%84%3C/text%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: none;
+}
+/* Keyboard-hint: pinned to the card's bottom-right corner, plain text (no chip
+   background) - desktop only. */
+.radio-player-widget .az-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 3;
+}
+@media (max-width: 767px) {
+  .radio-player-widget .az-hint {
+    display: none;
+  }
+}
+
+/* Real audio-reactive equalizer (Web Audio AnalyserNode -> SVG path ribbons). Each ribbon traces
+   real frequency data; the strip is hidden unless the <audio> is playing, unmuted AND carrying
+   sound, so it's never fake. Placeholder for a custom visualizer later. */
+.radio-player-widget .az-eq {
+  height: 64px;
+  margin: 6px 0 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.radio-player-widget .az-eq svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.radio-player-widget .az-eq path {
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));   /* soft neutral glow -> contrast on dark bg, works for all track colors */
 }

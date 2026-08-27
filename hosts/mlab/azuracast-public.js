@@ -101,6 +101,7 @@
   }
 
   function unmute(e) {
+    initEq();   // first user gesture -> boot the Web Audio analyser (needs a gesture)
     DBG('unmute', e.type, 'isPlaying=' + isPlaying(), 'isMuted=' + isMuted(), 'audioPaused=' + (au() ? au().paused : 'no-audio'), 'target=' + (e.target && (e.target.className || e.target.tagName)));
     // pointer/touch on the album art precede a click handled by the art click handler (start+unmute); defer those.
     if ((e.type === 'pointerdown' || e.type === 'touchstart') &&
@@ -118,23 +119,46 @@
   // Pauses only when actually playing AND unmuted; otherwise starts/unmutes,
   // trusting the real <audio> state (not the play-button icon) -> same logic as the art click.
   function togglePlayPause() {
+    initEq();   // spacebar gesture -> boot analyser (idempotent)
     cleanup();
     var a = au(), b = pb();
     if (a && !a.paused && !isMuted()) { if (b) b.click(); }   // playing+unmuted -> pause
     else { ensurePlaying(); }                                 // paused or muted -> start/unmute
   }
-  // Spacebar toggles play/pause. Registered BEFORE the window 'unmute' keydown (capture, passive)
-  // so stopImmediatePropagation stops it also firing ensurePlaying (which would re-start right
-  // after a pause). preventDefault stops the page scrolling on Space. Skipped while focus is in
-  // an input/textarea/contenteditable so we don't hijack typing a space.
+  // Zoom lightbox trigger, shared between the ZOOM corner click and the 'z' keydown below.
+  // triggeringZoom guards against double-handling: link.click() bubbles a click back up through
+  // .now-playing-art, which the art click handler (see relocate()) would otherwise also catch.
+  var triggeringZoom = false;
+  function triggerZoom() {
+    var link = document.querySelector('.radio-player-widget .now-playing-art a.album-art');
+    if (!link) return;
+    triggeringZoom = true; link.click(); triggeringZoom = false;
+  }
+
+  // Spacebar toggles play/pause; ArrowUp/ArrowDown raise/lower volume; z toggles the album
+  // art zoom lightbox. Registered BEFORE the window 'unmute' keydown (capture, passive) so
+  // stopImmediatePropagation stops it also firing ensurePlaying (which would re-start right
+  // after a pause). preventDefault stops the page scrolling on Space / arrow keys. Skipped
+  // while focus is in an input/textarea/contenteditable so we don't hijack typing a space/z —
+  // and so a focused volume slider keeps its native arrow handling instead of double-applying.
   window.addEventListener('keydown', function (e) {
-    if (e.key !== ' ' && e.code !== 'Space') return;
+    var isSpace = (e.key === ' ' || e.code === 'Space');
+    var isVol = (e.key === 'ArrowUp' || e.key === 'ArrowDown');
+    var isZoom = (e.key === 'z' || e.key === 'Z');
+    if (!isSpace && !isVol && !isZoom) return;
     var t = e.target;
     if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
     e.preventDefault();
     e.stopImmediatePropagation();      // block the 'unmute' keydown (same target+phase, reg'd later)
-    if (e.repeat) return;              // held Space: still block scroll, but don't toggle again
-    togglePlayPause();
+    if (isSpace) {
+      if (e.repeat) return;            // held Space: still block scroll, but don't toggle again
+      togglePlayPause();
+    } else if (isZoom) {
+      if (e.repeat) return;
+      triggerZoom();
+    } else {
+      bumpVolume(e.key === 'ArrowUp' ? 5 : -5);   // repeats allowed: hold to ramp volume
+    }
   }, true);
   ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (ev) {
     window.addEventListener(ev, unmute, { capture: true, passive: true });
@@ -155,6 +179,27 @@
     if (!m) return false;
     var p = m.querySelector('path');
     return !!(p && (p.getAttribute('d') || '').indexOf('4.27 3L3 4.27') !== -1);
+  }
+
+  // Arrow keys adjust volume by setting the range input's value and dispatching an 'input' event,
+  // which Vue's v-model picks up and updates the store's `volume` ref. The store synchronously
+  // sets `audio.volume` (via logVolume) and persists to localStorage. If muted, unmute on up so
+  // the change is audible; down on a muted stream does nothing (already silent).
+  var VOL_STEP = 5;
+  function bumpVolume(delta) {
+    var input = document.querySelector('.radio-control-volume .form-range');
+    if (!input) return;                       // iOS: volume controls disabled (audio.volume not settable)
+    var raw = Number(input.value);
+    var cur = isNaN(raw) ? 50 : raw;             // NOT `|| 50` -> that treats a real 0 as falsy and jumps to 50
+    var nv = Math.max(0, Math.min(100, cur + delta));
+    if (nv === cur) return;
+    input.value = nv;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    // unmute first on up so the change is audible (volume change while muted is silent)
+    if (delta > 0 && nv > 0 && isMuted()) {
+      var m = mb();
+      if (m) m.click();
+    }
   }
 
   // Unmute WITHOUT racing play(). AzuraCast's play() runs in a Vue nextTick and reads isMuted
@@ -225,13 +270,11 @@
     setInterval(sync, 500);              // safety-net poll
     sync();
 
-    var triggeringZoom = false;
     art.addEventListener('click', function (e) {
-      if (triggeringZoom) return;                          // synthetic click from zoom corner -> let <a> lightbox fire
+      if (triggeringZoom) return;                          // synthetic click from zoom corner/'z' key -> let <a> lightbox fire
       if (e.target.closest('.az-zoom')) {                  // zoom corner -> open lightbox via the <a>
         e.stopPropagation(); e.preventDefault();
-        var link = art.querySelector('a.album-art');
-        if (link) { triggeringZoom = true; link.click(); triggeringZoom = false; }
+        triggerZoom();
         return;
       }
       e.stopPropagation(); e.preventDefault();             // block <a> lightbox; image click toggles play
@@ -242,6 +285,142 @@
   }
   var riv = setInterval(function () { if (relocate()) clearInterval(riv); }, 200);
   setTimeout(function () { clearInterval(riv); }, 10000);
+
+  // --- real audio-reactive equalizer, multiple LINES (placeholder; custom visualizer later) ---
+  // One Web Audio AnalyserNode taps the <audio>; several SVG path ribbons trace different frequency
+  // bands, each its own color + granularity + smoothing -> layered, never fake. DOM is built
+  // eagerly (polled) so the 44px slot is reserved from page load -> no layout shift on fade.
+  // AudioContext is lazy (needs a gesture) so muted autoplay isn't blocked. Same-origin guard: a
+  // cross-origin stream bound to MediaElementSource taints it -> silence, so we skip (audio safe).
+  // Per-track smoothing is done in JS (analyser smoothing is global): analyser reads raw (0), each
+  // track keeps its own smoothed buffer -> bass smooth, mids spiky, highs very spiky. Max-per-point
+  // sampling preserves peaks (granularity). Reliability: eqFrame re-binds each new <audio>
+  // (AzuraCast swaps it across pause/play; binding is one-shot per element) and resumes a
+  // Chrome-auto-suspended context so data doesn't go flat.
+  var eqCtx, eqAn, eqSrc, eqData, eqRAF, eqInit, eqBoundEl, eqBox, eqLastSound = 0;
+  // band = fraction of frequency bins [lo,hi]; pts = granularity; smooth = per-track smoothing
+  // (0=raw/spiky, 1=frozen); amp = vertical amplitude (fraction of half-height).
+  var EQ_TRACKS = [
+    { color: '#00e5ff', band: [0.00, 0.15], pts: 24, smooth: 0.6,  amp: 0.7 },  // bass -> smooth,       cyan
+    { color: '#ff3df0', band: [0.15, 0.50], pts: 56, smooth: 0.12, amp: 0.9 },  // mid  -> grainier,     magenta
+    { color: '#ffe600', band: [0.50, 1.00], pts: 90, smooth: 0.03, amp: 1.0 }   // high -> very grainy,  yellow
+  ];
+  function buildEqDom() {
+    if (eqBox) return;
+    var host = document.querySelector('.radio-player-widget');
+    if (!host) return;
+    eqBox = document.createElement('div'); eqBox.className = 'az-eq';
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 100 40');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    EQ_TRACKS.forEach(function (t, i) {
+      t.el = document.createElementNS(NS, 'path');
+      t.el.setAttribute('fill', t.color);
+      t.el.style.opacity = 0.9 - i * 0.12;            // back lines slightly fainter so the front reads
+      svg.appendChild(t.el);
+      t.sm = new Float32Array(t.pts);                  // per-track smoothed buffer
+    });
+    eqBox.appendChild(svg);
+    var main = host.querySelector('.now-playing-main');   // same column as title/artist, where the time-display bar used to sit
+    if (main) main.appendChild(eqBox);
+    else {
+      var ctrl = host.querySelector('.radio-controls');
+      if (ctrl) host.insertBefore(eqBox, ctrl); else host.appendChild(eqBox);
+    }
+  }
+  var eqdiv = setInterval(function () { if (document.querySelector('.radio-player-widget')) { buildEqDom(); clearInterval(eqdiv); } }, 200);
+  setTimeout(function () { clearInterval(eqdiv); }, 10000);
+  function initEq() {
+    if (eqInit) return; eqInit = true;
+    buildEqDom();                       // safety: ensure DOM exists even if the poll hasn't fired yet
+    try {
+      eqCtx = new (window.AudioContext || window.webkitAudioContext)();
+      eqAn = eqCtx.createAnalyser();
+      eqAn.fftSize = 256;               // 128 bins -> enough to slice into 3 bands
+      eqAn.smoothingTimeConstant = 0;   // raw -> per-track smoothing in JS (each line its own feel)
+      eqAn.connect(eqCtx.destination);
+      eqData = new Uint8Array(eqAn.frequencyBinCount);
+    } catch (e) { eqCtx = null; return; }
+    if (!eqRAF) eqFrame();
+  }
+  function attachEqSource(a) {
+    if (!eqCtx || !a || a === eqBoundEl) return;
+    if (a._azEqSrc) { eqBoundEl = a; return; }          // already bound -> just record
+    a._azEqSrc = 1;
+    try {
+      if (new URL(a.src || '', location.href).origin !== location.origin) { eqBoundEl = a; return; }  // cross-origin -> skip (would silence)
+      eqSrc = eqCtx.createMediaElementSource(a);
+      eqSrc.connect(eqAn);
+      a.addEventListener('play', function () { if (eqCtx && eqCtx.state === 'suspended') eqCtx.resume(); });
+    } catch (e) { /* already bound to another context / unavailable -> no viz */ }
+    eqBoundEl = a;
+  }
+  function eqFrame() {
+    eqRAF = requestAnimationFrame(eqFrame);
+    var a = au();
+    if (a && a !== eqBoundEl) attachEqSource(a);         // <audio> swapped across pause/play -> rebind
+    if (eqCtx && eqCtx.state === 'suspended') eqCtx.resume();   // Chrome auto-suspends idle contexts
+    if (!eqAn || !a || a.paused || isMuted() || !eqBox || !EQ_TRACKS[0].el) {
+      if (eqBox) eqBox.style.opacity = 0;
+      setBgFx(0, 0, 0, 0);                // paused/muted -> background goes still
+      return;
+    }
+    eqAn.getByteFrequencyData(eqData);
+    var len = eqData.length, gmax = 0, peaks = [0, 0, 0];
+    for (var k = 0; k < EQ_TRACKS.length; k++) {
+      var t = EQ_TRACKS[k];
+      var b0 = Math.floor(t.band[0] * len);
+      var b1 = Math.max(b0 + 1, Math.floor(t.band[1] * len));
+      var span = b1 - b0, top = [], bot = [];
+      for (var i = 0; i < t.pts; i++) {
+        var s0 = b0 + Math.floor(i / t.pts * span);
+        var s1 = Math.max(s0 + 1, b0 + Math.floor((i + 1) / t.pts * span));
+        var v = 0;
+        for (var j = s0; j < s1 && j < b1; j++) if (eqData[j] > v) v = eqData[j];   // max -> spikes (granularity)
+        v = Math.min(255, v * 1.3);                                                   // gain -> lift detail
+        if (v > gmax) gmax = v;
+        t.sm[i] = t.sm[i] * t.smooth + v * (1 - t.smooth);                           // per-track smoothing
+        if (t.sm[i] > peaks[k]) peaks[k] = t.sm[i];                                  // per-band peak this frame -> drives the background fx
+        var x = i / (t.pts - 1) * 100;
+        var cy = 20 - (t.sm[i] / 255) * (t.amp * 15);                                // centerline (baseline y=20, rises with level)
+        var th = 1.5 + (t.sm[i] / 255) * 5;                                          // thickness ∝ level: loud = fat, quiet = thin (real, sound-driven)
+        top.push(x.toFixed(1) + ',' + (cy - th / 2).toFixed(1));
+        bot.unshift(x.toFixed(1) + ',' + (cy + th / 2).toFixed(1));                  // reverse order -> path closes cleanly R-to-L
+      }
+      t.el.setAttribute('d', 'M' + top.join(' L') + ' L' + bot.join(' L') + ' Z');
+    }
+    if (gmax > 8) eqLastSound = performance.now();
+    eqBox.style.opacity = (performance.now() - eqLastSound < 250) ? '1' : '0';
+    setBgFx(gmax / 255, peaks[0] / 255, peaks[1] / 255, peaks[2] / 255);
+  }
+  // Background vibrate + glow, driven by the same analyser data as the equalizer:
+  // bass -> zoom pulse, mid/high -> a small shake offset, overall loudness -> glow strength.
+  // Color follows whichever band is loudest (matches the eq track colors).
+  //
+  // Drop detection: bgBassAvg is a slow rolling average of the bass band ("what's normal
+  // right now"). A frame where bass suddenly jumps well above that average is a hit (kick/drop),
+  // not just a loud sustained bassline. Each hit relocates the glow to a random spot and injects
+  // bgDropEnergy, which exponentially decays over the next ~0.3-0.5s -> a punch, not a toggle.
+  var bgFxRoot = document.documentElement.style;
+  var bgBassAvg = 0, bgDropEnergy = 0, bgLastHit = 0;
+  function setBgFx(punch, bassN, midN, highN) {
+    bgBassAvg = bgBassAvg * 0.97 + bassN * 0.03;
+    var now = performance.now();
+    if (bassN > 0.35 && bassN > bgBassAvg * 1.35 && now - bgLastHit > 120) {
+      bgLastHit = now;
+      bgDropEnergy = 1;
+      bgFxRoot.setProperty('--az-glow-x', (15 + Math.random() * 70).toFixed(1) + '%');
+      bgFxRoot.setProperty('--az-glow-y', (15 + Math.random() * 60).toFixed(1) + '%');
+    } else {
+      bgDropEnergy *= 0.90;
+    }
+    bgFxRoot.setProperty('--az-bg-scale', (1 + bassN * 0.045 + bgDropEnergy * 0.14).toFixed(4));
+    bgFxRoot.setProperty('--az-bg-x', ((midN - 0.5) * 14).toFixed(2) + 'px');
+    bgFxRoot.setProperty('--az-bg-y', ((highN - 0.5) * 10).toFixed(2) + 'px');
+    bgFxRoot.setProperty('--az-glow-opacity', Math.min(0.75, punch * 0.5 + bgDropEnergy * 0.5).toFixed(3));
+    bgFxRoot.setProperty('--az-glow-color', bassN >= midN && bassN >= highN ? '#1e40ff' : (midN >= highN ? '#ff3df0' : '#ffe600'));
+  }
 
   // Marquee: scroll title/artist side-to-side when text overflows its column.
   var GAP = 48, SPEED = 60; // px/s
@@ -261,13 +440,123 @@
       var el = document.querySelector('.radio-player-widget ' + sel);
       if (!el || el._azMarquee) return;
       el._azMarquee = true;
+      var isArtist = sel === '.now-playing-artist';
+      if (isArtist) applyArtistLink();
       updateMarquee(el);
       // Vue updates the text node -> re-measure. attributes (class/style) excluded -> no self-loop.
-      new MutationObserver(function () { updateMarquee(el); }).observe(el, { childList: true, subtree: true, characterData: true });
+      new MutationObserver(function () { updateMarquee(el); if (isArtist) applyArtistLink(); }).observe(el, { childList: true, subtree: true, characterData: true });
     });
   }
   var miv = setInterval(function () { if (document.querySelector('.radio-player-widget .now-playing-title')) { setupMarquee(); clearInterval(miv); } }, 300);
   setTimeout(function () { clearInterval(miv); }, 10000);
   var rt;
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(setupMarquee, 150); });
+
+  // Keyboard-shortcut hint: pinned to the card's bottom-right corner (see CSS .az-hint)
+  // instead of its own row below the controls, so it adds no extra card height.
+  // Desktop only — CSS hides it under 768px (touch devices have no arrow keys).
+  function setupHint() {
+    var host = document.querySelector('.radio-player-widget');
+    if (!host || host.querySelector('.az-hint')) return !!host;
+    var h = document.createElement('div');
+    h.className = 'az-hint';
+    h.textContent = '↑/↓ volume  ·  space play/pause  ·  z zoom';
+    host.appendChild(h);
+    return true;
+  }
+  var hiv = setInterval(function () { if (setupHint()) clearInterval(hiv); }, 300);
+  setTimeout(function () { clearInterval(hiv); }, 10000);
+
+  // --- art cache-bust ---
+  // AzuraCast's own SSE (now that the reverse proxy streams it unbuffered - see proxy.nix
+  // /live/ location) drives title/artist/art reactively; no app-level polling needed for those.
+  // The image URL itself still needs busting on a track change so the browser actually re-fetches:
+  //   A. now-playing custom event (AzuraCast fires on every SSE update) -> bust immediately
+  //   B. img[src] MutationObserver -> re-bust when Vue's render strips our _az param
+  var artBust = 0;
+
+  function bustArtCache() {
+    var img = document.querySelector('.radio-player-widget .now-playing-art img');
+    if (!img) return;
+    var src = img.getAttribute('src') || '';
+    var base = src.replace(/[?&]_az=\d+/, '').replace(/[?&]$/, '');
+    img.setAttribute('src', base + (base.indexOf('?') >= 0 ? '&' : '?') + '_az=' + (++artBust));
+  }
+
+  // A. SSE event -> bust art the instant AzuraCast fires it
+  document.addEventListener('now-playing', function () { bustArtCache(); });
+
+  // B. img[src] watcher -> re-bust when Vue's re-render strips our _az param
+  (function () {
+    function attachImgWatch() {
+      var img = document.querySelector('.radio-player-widget .now-playing-art img');
+      if (!img || img._azCacheWatch) return !!img;
+      img._azCacheWatch = true;
+      new MutationObserver(function (muts) {
+        muts.forEach(function (mut) {
+          if (mut.attributeName === 'src' && (img.getAttribute('src') || '').indexOf('_az=') === -1) bustArtCache();
+        });
+      }).observe(img, { attributes: true, attributeFilter: ['src'] });
+      return true;
+    }
+    var wiv = setInterval(function () { if (attachImgWatch()) clearInterval(wiv); }, 300);
+    setTimeout(function () { clearInterval(wiv); }, 15000);
+  })();
+
+  // --- artist name -> bandcamp album link ---
+  // bandcampsync publishes an exact "artist|album" -> bandcamp url map (the real url from
+  // the bandcamp API, not a guess) at bcsync.marcel.cool/links.json. The nowplaying API
+  // gives us song.album (not present in the DOM); the artist TEXT stays fully Vue-owned,
+  // we just wrap it in a link once both the map and a matching Vue-rendered artist agree.
+  var bcLinks = null, lastSong = null;
+  fetch('https://bcsync.marcel.cool/links.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (j) { bcLinks = j || {}; applyArtistLink(); })
+    .catch(function () { bcLinks = {}; });
+
+  // Matches bandcampsync_report.py's norm(): folder names are filesystem-sanitized
+  // (apostrophes stripped, etc.) and differ from the raw tags AzuraCast reports.
+  function bcNorm(s) {
+    return (s || '').toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  function applyArtistLink() {
+    if (bcLinks === null || !lastSong) return;
+    var el = document.querySelector('.radio-player-widget .now-playing-artist');
+    var artist = (lastSong.artist || '').trim();
+    if (!el || !artist || (el.textContent || '').trim() !== artist) return;   // Vue hasn't rendered this artist yet
+    var url = bcLinks[bcNorm(artist) + '|' + bcNorm(lastSong.album)] || '';
+    var a = el.querySelector('a.az-bc-link');
+    if (a ? a.href === url : !url) return;   // already correct (incl. no link available)
+    el.textContent = artist;
+    if (!url) return;
+    a = document.createElement('a');
+    a.className = 'az-bc-link';
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = artist;
+    el.textContent = '';
+    el.appendChild(a);
+  }
+
+  (function () {
+    // Hardcoded, not derived from location.pathname: the homepage (radio.marcel.cool/) serves
+    // this station's public page directly at "/" (no redirect), so a /public/<shortcode> match
+    // against location.pathname never fires there. Single-station page -> just hardcode it,
+    // matching homepage_redirect_url in azuracast.nix.
+    var apiUrl = location.origin + '/api/nowplaying/radio_marcel';
+    function fetchSong() {
+      fetch(apiUrl, { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          var song = data && data.now_playing && data.now_playing.song;
+          if (!song) return;
+          lastSong = song;
+          applyArtistLink();
+        })
+        .catch(function () {});
+    }
+    document.addEventListener('now-playing', function () { setTimeout(fetchSong, 0); });
+    fetchSong();
+  })();
 })();

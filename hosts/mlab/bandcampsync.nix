@@ -44,7 +44,12 @@ in {
     forceSSL = true;
     useACMEHost = "marcel.cool";
     root = htmlDir;
-    extraConfig = "autoindex off;";
+    # autoindex off, and CORS so the azuracast public page (different origin) can
+    # fetch links.json to turn now-playing artist names into bandcamp links.
+    extraConfig = ''
+      autoindex off;
+      add_header Access-Control-Allow-Origin * always;
+    '';
   };
 
   systemd.timers.bandcampsync = {
