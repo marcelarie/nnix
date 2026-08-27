@@ -65,7 +65,9 @@ body.page-minimal .public-page .card-body {
     order: 2;
   }
   .radio-player-widget .radio-control-volume {
-    position: static;
+    /* !important: the desktop position:absolute rule below has equal selector specificity
+       and comes later in the file, so it wins the cascade on mobile too without this. */
+    position: static !important;
     margin-top: 8px;
   }
 }
