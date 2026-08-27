@@ -362,7 +362,8 @@ body.page-minimal .public-page .card-body {
   align-items: center;
   gap: 4px;
   box-sizing: border-box;
-  padding: 0;
+  padding-right: 22px;   /* reserved slot for the brain (::before, right:0); keeps it clear of
+                             the range's end instead of guessing an offsetting margin */
   background: none;
   border: none;
   box-shadow: none;
@@ -372,20 +373,61 @@ body.page-minimal .public-page .card-body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));   /* no pill behind it -> legible over busy art */
   --vol: 0.5;   /* 0-1, synced from JS on 'input'; this is just the pre-JS fallback */
 }
-/* Mouth is a real flex item after the range (not an absolutely-positioned pseudo pinned
-   by guessed padding) so it always lands at the actual end of the bar. --vol drives how
-   wide it opens and how hard it glows, so it visibly "maxes out" together with the level. */
+/* Mouth sits right on the range's end (right: 22px = the padding-right reserved for the
+   brain, so it lines up exactly with the track's true right edge, no guessed offset) and is
+   visible at every volume level. --vol drives how wide it opens and how hard it glows, so it
+   visibly "maxes out" with the level; z-index keeps it under the thumb (z-index 2) so the
+   mushroom reads as going INTO the mouth rather than sitting in front of it. */
 .radio-player-widget .radio-control-volume::after {
   content: '👄';
-  position: relative;
+  position: absolute;
+  right: 22px;
+  top: 50%;
   z-index: 1;
   font-size: 16px;
   line-height: 1;
-  transform: scale(calc(0.85 + var(--vol) * 0.35));
+  transform: translateY(-50%) scale(calc(0.85 + var(--vol) * 0.35));
   filter: drop-shadow(0 0 calc(2px + var(--vol) * 8px) rgba(255, 225, 0, 0.9));
+  opacity: 1;   /* visible at every level; hidden only once the mushroom reaches the brain
+                   (az-maxed, below), not tied to --vol anymore */
   pointer-events: none;
-  transition: transform 0.1s ease, filter 0.1s ease;
+  transition: transform 0.1s ease, filter 0.1s ease, opacity 0.15s ease;
 }
+/* Brain lives in the padding-right slot reserved on the container, past the mouth and clear
+   of the track. Dim while nothing is happening; it lights up while az-eaten is on -> the
+   mushroom went in the mouth and reached the brain. */
+.radio-player-widget .radio-control-volume::before {
+  content: '\1F9E0';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  z-index: 1;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.45;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.radio-player-widget .radio-control-volume.az-eaten::before {
+  opacity: 1;
+  animation: azbrain 1.4s ease-out;
+}
+/* Volume parked at max: the brain becomes the mushroom that just arrived and stays that
+   way - swapped emoji, full opacity, no ongoing animation (the 1.4s pulse above still plays
+   over it on arrival). Reverts to the dim brain the instant az-maxed drops. */
+.radio-player-widget .radio-control-volume.az-maxed::before {
+  content: '\1F344';
+  opacity: 1;
+}
+@keyframes azbrain {
+  0%   { transform: translateY(-50%) scale(1);    filter: none; }
+  25%  { transform: translateY(-50%) scale(1.55); filter: drop-shadow(0 0 10px rgba(255, 61, 240, 0.95)); }
+  50%  { transform: translateY(-50%) scale(1.15); filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.9)); }
+  75%  { transform: translateY(-50%) scale(1.35); filter: drop-shadow(0 0 8px rgba(255, 230, 0, 0.9)); }
+  100% { transform: translateY(-50%) scale(1);    filter: none; }
+}
+
 /* Mario-style "1UP" - JS spawns this span (see syncVolVar) the moment the mushroom
    reaches the mouth (volume hits max), floats up and fades once, then removes itself. */
 .radio-player-widget .az-1up {
@@ -422,7 +464,7 @@ body.page-minimal .public-page .card-body {
   width: 130px;
   accent-color: #ff3df0;
   position: relative;
-  z-index: 2;   /* mushroom (thumb) stacks above the mouth (::after, z-index 1) when they meet at max */
+  z-index: 2;   /* mushroom (thumb) stacks above the mouth (::after, z-index 1) when it reaches it */
 }
 /* No more flat static bar - track background is a real percentage fill (--vol) instead of
    a decorative full-width gradient, glowing rainbow (cyan/magenta/yellow) for "filled",
@@ -473,6 +515,36 @@ body.page-minimal .public-page .card-body {
   background-position: center;
   box-shadow: none;
 }
+/* Chomp: the mushroom (thumb) reaches the mouth at max volume -> the mouth bites (azchomp,
+   duration set by JS via --az-bite-ms so CSS and the JS timers can't drift apart) and the
+   mushroom is hidden (az-eaten) until JS clears it, as if it got eaten. Both classes are
+   added/removed by chompMushroom in the JS. */
+.radio-player-widget .radio-control-volume.az-chomp::after {
+  animation: azchomp var(--az-bite-ms, 0.5s) ease-in-out;
+  opacity: 1;   /* volume is still at max here, but be explicit: the bite must be visible */
+}
+/* Bite over: the mouth is done for this run - it stays gone the whole time the volume is parked
+   at max (az-maxed), so it only ever shows while the mushroom is approaching and during the bite.
+   Dropping below max clears az-maxed, so the next climb fades it in again. */
+.radio-player-widget .radio-control-volume.az-maxed:not(.az-chomp)::after {
+  opacity: 0;
+}
+@keyframes azchomp {
+  0%   { transform: translateY(-50%) scale(1.2, 1.2); }
+  20%  { transform: translateY(-50%) scale(1.45, 1.6); }
+  45%  { transform: translateY(-50%) scale(1.5, 0.55); }
+  70%  { transform: translateY(-50%) scale(1.35, 1.25); }
+  100% { transform: translateY(-50%) scale(1.2, 1.2); }
+}
+/* Mushroom (thumb) stays hidden for as long as volume is parked at max - it's the brain's
+   mushroom now (above), not the slider's. Reappears the moment volume drops below max. */
+.radio-player-widget .radio-control-volume.az-maxed .form-range::-webkit-slider-thumb {
+  opacity: 0;
+}
+.radio-player-widget .radio-control-volume.az-maxed .form-range::-moz-range-thumb {
+  opacity: 0;
+}
+
 /* Keyboard-hint: pinned to the card's bottom-right corner, plain text (no chip
    background) - desktop only. */
 .radio-player-widget .az-hint {

@@ -314,18 +314,32 @@
   // Drives the mushroom<->mouth volume-bar theme (see CSS): --vol (0-1) lets the track fill and
   // the mouth glow react to the same number. Delegated on document (bubbles) so it works
   // regardless of when Vue mounts the input; bumpVolume's synthetic 'input' event triggers it
-  // too. Rising edge into max spawns the "1UP" (.az-1up in CSS); falling edge resets the flag so
-  // it can fire again next time volume is pushed back to max.
+  // too. Rising edge into max spawns the "1UP" (.az-1up in CSS) and the chomp; falling edge
+  // resets the flag so it can fire again next time volume is pushed back to max.
+  var AZ_BITE_MS = 500;    // mouth-bite animation length
+  var AZ_HIDDEN_MS = 3000; // how long the mushroom stays eaten once the bite ends
   function syncVolVar(input) {
     var volCtrl = document.querySelector('.radio-control-volume');
     if (!volCtrl) return;
     var frac = (Number(input.value) || 0) / 100;
     volCtrl.style.setProperty('--vol', frac);
     if (frac >= 1) {
-      if (!input._azMaxed) { input._azMaxed = true; spawn1Up(volCtrl); }
+      volCtrl.classList.add('az-maxed'); // mouth stays gone while parked at max (see CSS)
+      if (!input._azMaxed) { input._azMaxed = true; spawn1Up(volCtrl); chompMushroom(volCtrl); }
     } else {
       input._azMaxed = false;
+      volCtrl.classList.remove('az-chomp', 'az-eaten', 'az-maxed'); // dragged back down -> thumb must be grabbable again
     }
+  }
+  // Mouth bites, then the mushroom stays hidden for AZ_HIDDEN_MS after the bite ends, then
+  // comes back. --az-bite-ms feeds the azchomp animation-duration in CSS so the two never
+  // drift apart. Every timer only REMOVES classes, so overlapping chomps/drags can't leave
+  // the thumb stuck hidden.
+  function chompMushroom(volCtrl) {
+    volCtrl.style.setProperty('--az-bite-ms', AZ_BITE_MS + 'ms');
+    volCtrl.classList.add('az-chomp', 'az-eaten');
+    setTimeout(function () { volCtrl.classList.remove('az-chomp'); }, AZ_BITE_MS);
+    setTimeout(function () { volCtrl.classList.remove('az-eaten'); }, AZ_BITE_MS + AZ_HIDDEN_MS);
   }
   function spawn1Up(volCtrl) {
     var el = document.createElement('span');

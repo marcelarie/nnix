@@ -107,4 +107,50 @@
       exit 1
     '';
   };
+
+  # Auto-add every file under /var/lib/media/music to the default rotation.
+  # AzuraCast imports new files into station_media within ~1 min but never adds
+  # them to a playlist, so they sit imported-but-unplayed. The native 5-min
+  # CheckFolderPlaylistsTask links folder-matched media into a playlist and
+  # prunes stale rows - but it matches `sm.path LIKE path.'/%'` and
+  # station_media.path is relative with no leading slash, so NO folder path
+  # matches the library root; only one row per top-level subfolder works. This
+  # just ensures those rows exist idempotently (no unique key on
+  # station_playlist_folders, hence NOT EXISTS); the native task does the actual
+  # linking and dedupes via addMediaToPlaylist for shuffle playlists, so the
+  # 138 manually-linked tracks get adopted, not doubled. New artists dropped in
+  # by bandcampsync join rotation within ~10 min - no per-sync glue needed in
+  # bandcampsync.nix.
+  systemd.services.azuracast-autoplaylist = {
+    description = "Link default AzuraCast playlist to every top-level media folder";
+    after = ["podman-azuracast.service"];
+    path = [pkgs.podman pkgs.coreutils];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      mysql() { podman exec azuracast mariadb -N -B -u azuracast -p${config.virtualisation.oci-containers.containers.azuracast.environment.MYSQL_PASSWORD} azuracast -e "$1" 2>/dev/null; }
+
+      SID=$(mysql "SELECT id FROM station WHERE short_name='radio_marcel';")
+      PID=$(mysql "SELECT id FROM station_playlists WHERE station_id=$SID AND name='default' AND source='songs' LIMIT 1;")
+      [ -n "$SID" ] && [ -n "$PID" ] || { echo "azuracast-autoplaylist: station/playlist not ready"; exit 0; }
+
+      # quote-doubling (MariaDB single-quoted string escape) for apostrophes in folder names
+      q="'"
+      find /var/lib/media/music -maxdepth 1 -mindepth 1 -type d ! -name '.*' -printf '%f\n' 2>/dev/null \
+        | while IFS= read -r dir; do
+            esc=$(printf '%s' "$dir" | sed "s/$q/$q$q/g")
+            mysql "INSERT INTO station_playlist_folders (station_id, playlist_id, path) SELECT $SID, $PID, '$esc' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM station_playlist_folders WHERE station_id=$SID AND playlist_id=$PID AND path='$esc');"
+          done
+      echo "azuracast-autoplaylist: ensured folder rows for station=$SID playlist=$PID"
+    '';
+  };
+
+  systemd.timers.azuracast-autoplaylist = {
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnBootSec = "2min";
+      OnUnitActiveSec = "5min";
+      AccuracySec = "30s";
+      RandomizedDelaySec = "1m";
+    };
+  };
 }
