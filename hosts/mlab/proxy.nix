@@ -17,6 +17,10 @@
       port = 9091;
       href = "https://auth.marcel.cool";
     };
+    azuracast = {
+      port = 8280;
+      href = "https://radio.marcel.cool";
+    };
     bazarr = {
       port = 6767;
       href = "https://bazarr.marcel.cool";
@@ -227,7 +231,7 @@ in {
     clientMaxBodySize = "0";
 
     virtualHosts =
-      (builtins.removeAttrs serviceVirtualHosts ["auth" "jellyfin" "seafile"])
+      (builtins.removeAttrs serviceVirtualHosts ["auth" "jellyfin" "seafile" "azuracast"])
       // {
         "jellyfin.marcel.cool" = let
           base = mkProxyHost "jellyfin" services.jellyfin;
@@ -315,6 +319,105 @@ in {
                     proxy_buffers 8 32k;
                     proxy_buffer_size 64k;
                   '';
+                };
+              };
+          };
+
+        # azuracast public face, admin/login routes bounce to the studio host
+        "radio.marcel.cool" = let
+          base = mkProxyHost "azuracast" services.azuracast;
+        in
+          base
+          // {
+            # AzuraCast sends `Permissions-Policy: autoplay=*, fullscreen=*, interest-cohort=()`.
+            # interest-cohort is the dead FLoC token; Brave logs it as an unrecognized
+            # directive. Drop the upstream header and re-issue a clean one without it.
+            extraConfig = base.extraConfig + ''
+              proxy_hide_header Permissions-Policy;
+              add_header Permissions-Policy "autoplay=*, fullscreen=*" always;
+            '';
+            locations =
+              base.locations
+              // {
+                # serve the public page at the clean root — internal rewrite,
+                "= /" = {
+                  extraConfig = "rewrite ^ /public/radio_marcel?hide_history=1&hide_playlist=1 last;";
+                };
+                "/admin" = {
+                  return = "302 https://studio.marcel.cool$request_uri";
+                };
+                "/login" = {
+                  return = "302 https://studio.marcel.cool$request_uri";
+                };
+                "/logout" = {
+                  return = "302 https://studio.marcel.cool$request_uri";
+                };
+                "= /stream" = {
+                  proxyPass = "http://127.0.0.1:${toString services.azuracast.port}/listen/radio_marcel/radio.mp3";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_request_buffering off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
+                # The player itself requests /listen/<station>/radio.mp3 directly (not via
+                # /stream above), which otherwise falls through to base "/" - no
+                # proxy_buffering off there, so nginx tries to buffer this endless stream
+                # instead of flushing it straight through. Same bug class /stream and /live/
+                # were already fixed for, just missed on the path actually in use; likely
+                # cause of the audio randomly stalling (?azdebug: net::ERR_NETWORK_CHANGED /
+                # waiting / stalled, recurring across fresh browser contexts).
+                "/listen/" = {
+                  proxyPass = "http://127.0.0.1:${toString services.azuracast.port}";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_request_buffering off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
+                # Centrifugo-backed SSE (now-playing live updates). Base "/" location has no
+                # proxy_buffering off, so nginx buffers the event stream instead of flushing it
+                # -> updates arrive up to ~15s late / look dead. SSE needs the same no-buffering
+                # treatment as /stream.
+                "/live/" = {
+                  proxyPass = "http://127.0.0.1:${toString services.azuracast.port}";
+                  proxyWebsockets = true;   # Centrifugo can fall back to a websocket transport under this prefix
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_cache off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
+              };
+          };
+        "studio.marcel.cool" = let
+          base = mkProxyHost "studio" {
+            port = services.azuracast.port;
+            href = "https://studio.marcel.cool";
+          };
+        in
+          base
+          // {
+            locations =
+              base.locations
+              // {
+                "= /" = {
+                  return = "302 /admin";
                 };
               };
           };

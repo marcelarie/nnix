@@ -14,6 +14,7 @@
     ./attic.nix
     ./audiobookshelf.nix
     ./authelia.nix
+    ./azuracast.nix
     ./bandcampsync.nix
     ./brave-origin-bump.nix
     ./calibre.nix
@@ -142,7 +143,14 @@
     # Media Folders
     "d /var/lib/media/tv 0775 root media -"
     "d /var/lib/media/movies 0775 root media -"
-    "d /var/lib/media/music 0775 root media -"
+    # Owner 1000 (dev on host == azuracast in the container): AzuraCast writes
+    # .albumart/.covers cache dot-dirs at this root. The container's UID 1000
+    # worker can't use the media group for write — podman --group-add=986 only
+    # reaches PID 1; supervisord's setuid workers call initgroups("azuracast")
+    # which resets to the container /etc/group (no 986 entry). Owner-write avoids
+    # that; group media (986) is preserved so navidrome/slskd/bandcampsync keep
+    # access. Music files inside stay 0644 root:root (read-only to all).
+    "d /var/lib/media/music 0775 1000 media -"
   ];
 
   services.postgresql = {
@@ -250,6 +258,13 @@
           DHCP = "ipv6"; # SLAAC/DHCPv6 only; static IPv4 (was dhcpcd noipv4)
           # RFC 7217 opaque addr (no MAC leak). Was dhcpcd "slaac private".
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+          # This USB 10G adapter drops carrier for ~5s several times a day (kernel:
+          # "atlantic: link change old 10000 new 0"). By default networkd tears the whole IP
+          # config down on carrier loss and re-acquires on return ("DHCPv6 lease lost"),
+          # which turns a 5s physical blip into a much longer outage for every established
+          # connection - listeners' audio streams included. Ride out short flaps instead:
+          # keep addresses/routes/leases across a carrier loss up to 60s.
+          IgnoreCarrierLoss = "60s";
         };
       };
       "20-lan2g5" = {

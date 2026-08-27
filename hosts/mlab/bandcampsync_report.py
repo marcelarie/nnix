@@ -31,6 +31,14 @@ def slug(s):
     return re.sub(r"[^a-z0-9-]", "", s).strip("-")
 
 
+def norm(s):
+    """Loose match key: folder names are filesystem-sanitized (apostrophes stripped, etc.)
+    and differ from the raw artist/album tags AzuraCast reports, so both sides normalize
+    the same way before comparing."""
+    s = (s or "").lower().replace("'", "").replace("’", "")
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", s)).strip()
+
+
 def madrid(epoch):
     return datetime.fromtimestamp(epoch, MADRID).strftime("%Y-%m-%d %H:%M")
 
@@ -98,6 +106,17 @@ def parse_journal(journal):
     return flac, aiff, skip_pre, errors, pending
 
 
+def build_links(rows, urls):
+    """artist|album (normalized) -> exact bandcamp url, for albums we actually have a url for."""
+    links = {}
+    for item_id, r in rows.items():
+        url = urls.get(item_id)
+        if not url:
+            continue
+        links[f"{norm(r['ar'])}|{norm(r['al'])}"] = url
+    return links
+
+
 def generate():
     since = systemctl("ExecMainStartTimestamp")
     exit_code = systemctl("ExecMainStatus")
@@ -152,7 +171,9 @@ def generate():
     HTML_DIR.mkdir(parents=True, exist_ok=True)
     (HTML_DIR / "index.html").write_text("\n".join(o))
     (HTML_DIR / "last.log").write_text(journal)
-    print(f"wrote index.html ({len(albums)} albums, {len(pending)} pending)")
+    links = build_links(rows, urls)
+    (HTML_DIR / "links.json").write_text(json.dumps(links))
+    print(f"wrote index.html ({len(albums)} albums, {len(pending)} pending), links.json ({len(links)} links)")
 
 
 def fetch_urls():

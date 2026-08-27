@@ -1,4 +1,9 @@
-{pkgs, ...}: let
+{
+  pkgs,
+  config,
+  services,
+  ...
+}: let
   htmlDir = "/var/lib/bandcampsync-status";
   reportPy = ./bandcampsync_report.py;
 in {
@@ -12,7 +17,7 @@ in {
       Type = "oneshot";
       User = "root";
     };
-    path = [pkgs.bash pkgs.coreutils pkgs.python313Packages.pipx];
+    path = [pkgs.bash pkgs.coreutils pkgs.curl pkgs.python313Packages.pipx];
     onFailure = ["bandcampsync-report.service"];
     unitConfig.OnSuccess = "bandcampsync-report.service";
     script = ''
@@ -25,6 +30,8 @@ in {
       pipx run bandcampsync -c /run/bandcamp_cookies_filtered.txt -d /var/lib/media/music -f flac --skip-hidden
       pipx run bandcampsync -c /run/bandcamp_cookies_filtered.txt -d /var/lib/media/dj -f aiff-lossless --skip-hidden
       rm /run/bandcamp_cookies_filtered.txt
+      # trigger a navidrome full scan so new tracks show up right away
+      curl -fsS "http://127.0.0.1:${toString services.navidrome.port}/rest/startScan.view?u=$(cat ${config.sops.secrets.web_user.path})&t=$(cat ${config.sops.secrets.navidrome_token.path})&s=$(cat ${config.sops.secrets.navidrome_salt.path})&v=1.16.1&c=bandcampsync&f=json&fullScan=true" > /dev/null
     '';
   };
 
@@ -44,7 +51,12 @@ in {
     forceSSL = true;
     useACMEHost = "marcel.cool";
     root = htmlDir;
-    extraConfig = "autoindex off;";
+    # autoindex off, and CORS so the azuracast public page (different origin) can
+    # fetch links.json to turn now-playing artist names into bandcamp links.
+    extraConfig = ''
+      autoindex off;
+      add_header Access-Control-Allow-Origin * always;
+    '';
   };
 
   systemd.timers.bandcampsync = {

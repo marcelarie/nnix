@@ -21,6 +21,7 @@
     cmd = [
       "androidboot.redroid_width=1080"
       "androidboot.redroid_height=1920"
+      "androidboot.redroid_dpi=420"       
       "androidboot.redroid_fps=30"
       # Starts vendor.uinputd at boot -> creates the virtual touch device before
       # EventHub scans /dev/input. Without it /dev/input is empty and every
