@@ -519,11 +519,14 @@
   var rt;
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(setupMarquee, 150); });
 
-  // Keyboard-shortcut hint: pinned to the card's bottom-right corner (see CSS .az-hint)
-  // instead of its own row below the controls, so it adds no extra card height.
+  // Keyboard-shortcut hint: pinned to the bottom-right corner of now-playing-details (see
+  // CSS .az-hint), not its own row below the controls, so it adds no extra card height.
+  // Lives inside now-playing-details (not the outer widget) for the same reason the volume
+  // control does: that's the box position:relative is actually set on and that matches the
+  // card's real bounds, so the hint stays inside the card instead of creating a bottom "chin".
   // Desktop only — CSS hides it under 768px (touch devices have no arrow keys).
   function setupHint() {
-    var host = document.querySelector('.radio-player-widget');
+    var host = document.querySelector('.radio-player-widget .now-playing-details');
     if (!host || host.querySelector('.az-hint')) return !!host;
     var h = document.createElement('div');
     h.className = 'az-hint';

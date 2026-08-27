@@ -77,6 +77,12 @@ body.page-minimal .public-page .card-body {
   display: none;
 }
 
+/* AzuraCast renders a bare <hr> between the player and the (hidden) history button - with
+   that button gone it's just dead space creating a "chin" under the card. */
+.radio-player-widget hr {
+  display: none;
+}
+
 /* Hide the track "length bar" (elapsed · progress · total) — keeps the card lean.
    !important: AzuraCast sets .radio-player-widget .now-playing-details .time-display{display:flex}
    at 0,3,0 specificity; our class selector (0,2,0) loses. !important wins regardless. */
