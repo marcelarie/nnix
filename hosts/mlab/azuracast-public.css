@@ -787,6 +787,23 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   color: #2ee62e;
   text-shadow: 0 0 6px rgba(46, 230, 46, 0.5);
 }
+.az-stream-pop-footer {
+  margin: 12px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 229, 255, 0.2);
+  color: rgba(184, 214, 224, 0.55);
+  font-size: 11px;
+}
+.az-stream-pop-footer a {
+  color: rgba(0, 229, 255, 0.7);
+  text-decoration: none;
+}
+.az-stream-pop-footer a:hover,
+.az-stream-pop-footer a:focus-visible {
+  color: #00e5ff;
+  text-decoration: underline;
+  outline: none;
+}
 /* Anti-seizure / calm mode: drop the glows to match the flat green-terminal calm button. */
 html.az-calm .az-stream-btn,
 html.az-calm .az-stream-pop {

@@ -919,8 +919,9 @@
       pop.setAttribute('aria-label', 'Stream link for radio apps');
       pop.innerHTML =
         '<p class="az-stream-pop-title">Listen in any radio app</p>' +
-        '<p class="az-stream-pop-text">Add this URL as a station in VLC, mpv, RadioDroid, Strawberry, or any internet-radio player:</p>' +
-        '<a class="az-stream-pop-url" href="' + streamUrl + '" target="_blank" rel="noopener">' + streamUrl + '</a>';
+        '<p class="az-stream-pop-text">Add this URL as a station in Sonos, Apple Music radio, VLC, mpv, RadioDroid, Strawberry, or any internet-radio player:</p>' +
+        '<a class="az-stream-pop-url" href="' + streamUrl + '" target="_blank" rel="noopener">' + streamUrl + '</a>' +
+        '<p class="az-stream-pop-footer">made by <a href="https://marcel.cool" target="_blank" rel="noopener">marcel.cool</a></p>';
 
       // Click the link -> copy to clipboard (don't navigate). href stays so right-click / open-in-new-tab
       // and a no-JS fallback still work. navigator.clipboard needs a secure context + gesture (both
