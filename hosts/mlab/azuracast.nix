@@ -3,7 +3,12 @@
   pkgs,
   services,
   ...
-}: {
+}: let
+  # loopback-only; referenced by the "= /listen-time" nginx location in proxy.nix.
+  # Kept OUT of the shared `services` attrset on purpose: that attrset feeds the firewall's
+  # allowedTCPPorts, and this port must stay loopback-only.
+  listenTimePort = 8320;
+in {
   systemd.tmpfiles.rules = [
     "d /var/lib/azuracast 0755 1000 1000 -"
     "d /var/lib/azuracast/stations 0755 1000 1000 -"
@@ -151,6 +156,29 @@
       OnUnitActiveSec = "5min";
       AccuracySec = "30s";
       RandomizedDelaySec = "1m";
+    };
+  };
+
+  # Per-IP listen-time endpoint for the public radio page. The public AzuraCast API only exposes
+  # aggregate listener counts; the per-IP numbers live in the DB `listener` table, so this small
+  # service reads them via podman exec (same pattern as azuracast-settings/autoplaylist) and
+  # serves GET /listen-time on 127.0.0.1. Nginx fronts it as same-origin /listen-time
+  # (proxy.nix) with X-Real-IP/X-Forwarded-For = the client, so each visitor only ever gets back
+  # their own aggregate.
+  systemd.services.azuracast-listen-time = {
+    description = "Per-IP listen-time endpoint for the radio public page";
+    after = ["network.target" "podman-azuracast.service"];
+    wants = ["podman-azuracast.service"];
+    wantedBy = ["multi-user.target"];
+    path = [pkgs.podman];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.python3}/bin/python3 ${./azuracast-listen-time.py} ${toString listenTimePort}";
+      Environment = [
+        "MYSQL_PASSWORD=${config.virtualisation.oci-containers.containers.azuracast.environment.MYSQL_PASSWORD}"
+      ];
+      Restart = "on-failure";
+      RestartSec = "5s";
     };
   };
 }

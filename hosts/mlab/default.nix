@@ -394,6 +394,7 @@
     sqlite
     dua
     dust
+    python3
   ];
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";

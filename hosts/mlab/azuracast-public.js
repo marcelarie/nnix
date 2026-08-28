@@ -909,6 +909,108 @@
     fetchSong();
   })();
 
+  // --- bandcamp nudge tooltip ---
+  // Until the user clicks the artist's bandcamp link (persisted in localStorage), a tooltip to
+  // the right of the artist name (arrow pointing left at it) shows up once in a while: hidden
+  // until nextAt, up for SHOW_MS, then a random 10-60s pause. Only shown while the link exists
+  // (no bandcamp url for this artist -> nothing to point at) and not in calm mode. While up,
+  // the artist name gets .az-nudge-on = the hover rainbow/wiggle (CSS; calm mode is excluded).
+  // The tip is a child of .now-playing-details (stable) rather than the artist <h5> (Vue
+  // destroys it per track); its left/top are measured off the artist row at show time.
+  // pointer-events:none so it never blocks the click it is trying to get.
+  (function () {
+    var KEY = 'az_bc_clicked';
+    var SHOW_MS = 8000;
+    var nextAt = Date.now() + 20000; // first appearance ~20s in
+    var showAt = 0;                  // >0 while the tooltip is up
+    function clicked() {
+      try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+    }
+    function getTip() {
+      var host = document.querySelector('.radio-player-widget .now-playing-details');
+      if (!host) return null;
+      var tip = host.querySelector(':scope > .az-bc-tip');
+      if (tip) return tip;
+      tip = document.createElement('div');
+      tip.className = 'az-bc-tip';
+      tip.textContent = 'Like the music? Check it out on the artist’s Bandcamp →';
+      host.appendChild(tip);
+      return tip;
+    }
+    document.addEventListener('click', function (e) {
+      var link = e.target && e.target.closest && e.target.closest('.now-playing-artist a.az-bc-link');
+      if (!link) return;
+      try { localStorage.setItem(KEY, '1'); } catch (e2) {}
+      link.parentElement.classList.remove('az-nudge-on');
+      var tip = getTip();
+      if (tip) tip.classList.remove('az-on');
+    }, true);
+    setInterval(function () {
+      var tip = getTip();
+      var link = document.querySelector('.radio-player-widget .now-playing-artist a.az-bc-link');
+      if (!tip || !link || clicked() || document.documentElement.classList.contains('az-calm')) {
+        if (tip) tip.classList.remove('az-on');
+        if (link) link.parentElement.classList.remove('az-nudge-on');
+        showAt = 0;
+        return;
+      }
+      var row = link.parentElement;
+      var now = Date.now();
+      if (showAt && now - showAt >= SHOW_MS) {
+        showAt = 0;
+        tip.classList.remove('az-on');
+        row.classList.remove('az-nudge-on');
+        nextAt = now + 10000 + Math.random() * 50000; // random pause, then show again
+      } else if (!showAt && now >= nextAt) {
+        tip.style.left = (row.offsetLeft + row.offsetWidth + 8) + 'px';
+        tip.style.top = (row.offsetTop + Math.max(0, (row.offsetHeight - tip.offsetHeight) / 2)) + 'px';
+        row.classList.add('az-nudge-on'); // artist name rainbow+wiggles while the tip is up
+        showAt = now;
+        tip.classList.add('az-on');
+      }
+    }, 1000);
+  })();
+
+  // --- listen-time counter (server-backed, per-IP) ---
+  // Shows how long THIS visitor has been listening: current session + all-time total, both keyed
+  // by their IP and read from AzuraCast's own listener records via the /listen-time endpoint
+  // (the azuracast-listen-time service in azuracast.nix; same origin, so no CORS). The public
+  // AzuraCast API only exposes aggregate listener counts, so a tiny host-side endpoint sums the
+  // per-IP rows from the `listener` table. Polled once a minute and on tab refocus.
+  (function () {
+    function fmt(secs) {
+      if (secs < 60) return '<1m';
+      var m = Math.floor(secs / 60);
+      return m < 60 ? m + 'm' : Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+    }
+    function getEl() { return document.querySelector('.az-listen-time'); }
+    function paint(d) {
+      var cur = (d && d.current) || 0, tot = (d && d.total) || 0;
+      // current live session + total; hide the total half until there's a minute of history, and
+      // hide everything for a brand-new visitor who isn't currently listening.
+      var txt = cur > 0 ? ('⏱ ' + fmt(cur) + (tot >= 60 ? ' · total ' + fmt(tot) : ''))
+                       : (tot >= 60 ? '⏱ total ' + fmt(tot) : '');
+      var e = getEl();
+      if (!txt) { if (e) e.remove(); return; }
+      if (!e) {
+        e = document.createElement('div');
+        e.className = 'az-listen-time';
+        document.body.appendChild(e);   // next to .az-stream-btn (fixed top-left), so body-scoped
+      }
+      e.textContent = txt;
+    }
+    function poll() {
+      if (document.hidden) return;
+      fetch('/listen-time', {cache: 'no-store'})
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(paint)
+        .catch(function () {});
+    }
+    poll();
+    setInterval(poll, 60000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  })();
+
   // --- stream-link info popover ---
   // A "?" button fixed top-left (mirrors the calm button's top-right) reveals a small popover
   // with the direct stream URL, so listeners can add this station to internet-radio apps

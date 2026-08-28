@@ -403,6 +403,20 @@ in {
                     proxy_send_timeout 1h;
                   '';
                 };
+                # Per-IP listen-time counter for the public page. Proxied to the
+                # azuracast-listen-time service (azuracast.nix) on loopback; exact match so the
+                # base "/" location above doesn't swallow it. Port must match listenTimePort there.
+                "= /listen-time" = {
+                  proxyPass = "http://127.0.0.1:8320";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_connect_timeout 3s;
+                    proxy_read_timeout 10s;
+                  '';
+                };
               };
           };
         "studio.marcel.cool" = let

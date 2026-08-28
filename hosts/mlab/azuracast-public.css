@@ -137,6 +137,59 @@ body.page-minimal .public-page .card-body {
 .radio-player-widget .now-playing-artist a:hover {
   text-decoration: underline;
 }
+/* Bandcamp nudge: tooltip sitting to the RIGHT of the artist name, arrow pointing left at it.
+   JS toggles .az-on and sets left/top each time it shows (see the nudge IIFE in the JS) until
+   the user clicks the artist's bandcamp link. While up, the artist name does the same
+   rainbow/wiggle as hover (.az-nudge-on, below) unless calm mode is on. */
+.radio-player-widget .az-bc-tip {
+  position: absolute;
+  left: 0;
+  top: 0;   /* JS overrides at show time: right of the artist row, vertically centered */
+  z-index: 6;
+  max-width: 280px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(10, 10, 25, 0.92);
+  border: 1px solid rgba(255, 61, 240, 0.6);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: normal;
+  pointer-events: none;   /* never block the click it is trying to get */
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.radio-player-widget .az-bc-tip::before {
+  content: '';
+  position: absolute;
+  top: calc(50% - 5px);
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border-left: 1px solid rgba(255, 61, 240, 0.6);
+  border-bottom: 1px solid rgba(255, 61, 240, 0.6);
+  transform: rotate(45deg);
+}
+.radio-player-widget .az-bc-tip.az-on {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* While the nudge tip is up, the artist name does the hover treatment (rainbow + wiggle) so
+   the eye lands on it. JS only adds .az-nudge-on outside calm mode; the html.az-calm rule
+   below is the backstop. A marqueeing artist keeps the marquee (it owns transform) and just
+   gets the color cycle. */
+.radio-player-widget .now-playing-artist.az-nudge-on {
+  animation: az-rainbow-text 1.2s linear infinite, az-text-wiggle 0.4s ease-in-out infinite;
+}
+.radio-player-widget .now-playing-artist.az-nudge-on.az-marquee {
+  animation: az-rainbow-text 1.2s linear infinite, azscroll var(--az-dur, 12s) linear infinite;
+}
+html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
+  animation: none;
+  color: #fff;
+}
 /* Crazy-colors hover: title/artist cycle through the page's neon palette and wiggle.
    :hover on the artist bubbles up from its <a> too, so the bandcamp link gets this for free
    on top of its own underline above. */
@@ -163,7 +216,8 @@ body.page-minimal .public-page .card-body {
 }
 @media (prefers-reduced-motion: reduce) {
   .radio-player-widget .now-playing-title:hover,
-  .radio-player-widget .now-playing-artist:hover {
+  .radio-player-widget .now-playing-artist:hover,
+  .radio-player-widget .now-playing-artist.az-nudge-on {
     animation: none;
   }
 }
@@ -574,6 +628,43 @@ body.page-minimal .public-page .card-body {
   }
 }
 
+/* Listen-time counter: square chip top-left, flush right of the stream-info button
+   (.az-stream-btn, same 34px box). Fed by the /listen-time endpoint; stays in calm mode.
+   Appended to <body> (like the button), so no widget-scoped selector. */
+.az-listen-time {
+  position: fixed;
+  top: 10px;
+  left: 44px;
+  height: 34px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 2px solid rgba(0, 229, 255, 0.55);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+  background: linear-gradient(120deg, rgba(10, 0, 25, 0.7), rgba(0, 22, 38, 0.7));
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  user-select: none;
+}
+@media (max-width: 767px) {
+  .az-listen-time {
+    top: 8px;
+    left: 40px;
+    height: 30px;
+    font-size: 12px;
+    padding: 0 8px;
+  }
+}
+html.az-calm .az-listen-time {
+  border-color: #2ee62e;
+  text-shadow: none;
+}
+
 /* Real audio-reactive equalizer (Web Audio AnalyserNode -> SVG path ribbons). Each ribbon traces
    real frequency data; the strip is hidden unless the <audio> is playing, unmuted AND carrying
    sound, so it's never fake. Placeholder for a custom visualizer later. */
@@ -688,6 +779,9 @@ html.az-calm .radio-player-widget .now-playing-title:hover,
 html.az-calm .radio-player-widget .now-playing-artist:hover {
   animation: none;
   color: #fff;
+}
+html.az-calm .radio-player-widget .az-bc-tip {
+  display: none;   /* nudge tooltip off in calm mode (JS also stops showing it) */
 }
 html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   animation: none;
