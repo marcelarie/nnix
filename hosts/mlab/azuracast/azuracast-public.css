@@ -693,6 +693,9 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   user-select: none;
   z-index: 3;
 }
+html.az-light .radio-player-widget .az-hint {
+  color: rgba(var(--hud-text-rgb), 0.65);
+}
 @media (max-width: 767px) {
   .radio-player-widget .az-hint {
     display: none;
