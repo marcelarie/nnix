@@ -39,12 +39,153 @@ body.page-minimal .public-page .card {
   border: 2px solid transparent;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+/* Flat-background hairline (marker classes set by the picker's apply()). The border is
+   otherwise a stopped cue - the card is borderless while playing - but on pure white/black
+   there is no texture to anchor the glass card, so those two modes keep a faint single-hue
+   hairline (no glow). Party and neon stay borderless. Placed BEFORE the az-stopped/az-calm
+   rules so those status cues win on conflict (equal specificity, later source order); calm
+   mode additionally suppresses the hairline while playing (see the calm rules below). */
+html.az-bg-white body.page-minimal .public-page .card {
+  border-color: rgba(30, 64, 255, 0.4);
+}
+html.az-bg-black body.page-minimal .public-page .card {
+  border-color: rgba(255, 230, 0, 0.35);
+}
 html.az-stopped body.page-minimal .public-page .card {
   border-color: rgba(var(--hud-accent-rgb), 0.6);
   box-shadow: 0 0 16px rgba(var(--hud-accent-rgb), 0.3);
 }
+/* In calm (anti-seizure) mode the card stays borderless while playing - the calm blue frame
+   appears only when the track STOPS (html.az-stopped), the one moment a listener needs to
+   notice the player. The borderless rule below also kills the white/black hairline (equal
+   specificity, later source order); the .az-stopped variant then re-adds the calm frame on
+   top of the accent cue. Calm accent = soft powder blue (the --calm-rgb var; light theme
+   takes the deeper steel blue) - calmer and cleaner than the old terminal green. */
+html.az-calm { --calm-rgb: 158, 200, 230; }
+html.az-light.az-calm { --calm-rgb: 68, 118, 155; }
+html.az-calm body.page-minimal .public-page .card {
+  border-color: transparent;
+}
+html.az-calm.az-stopped body.page-minimal .public-page .card {
+  border-color: rgb(var(--calm-rgb));
+  box-shadow: 0 0 12px rgba(var(--calm-rgb), 0.25);
+}
 @media (prefers-reduced-motion: reduce) {
   body.page-minimal .public-page .card { transition: none; }
+}
+/* Wave mode -> footer player. When the wave overlay is on (html.az-waves) the card docks to
+   the bottom edge as a compact full-width bar: small art, track name left, controls right,
+   equalizer strip / volume / shortcut hint tucked away - leaving the rest of the screen for
+   the waves. Desktop only; under 768px the normal stacked card stays (see the media block
+   above). The marquee re-measures itself on its own 300ms interval, so the width change
+   needs no JS. */
+@media (min-width: 769px) {
+  html.az-waves body.page-minimal .public-page .card {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    margin: 0;
+    border-radius: 0;
+    z-index: 1;   /* above the negative-z background layers, below the fixed HUD buttons */
+    border-width: 2px 0 0;   /* docked bar: any state border (calm/stopped/mode hairline) reads
+                                as a top edge only - sides/bottom would box in the footer */
+  }
+  html.az-waves body.page-minimal .public-page .card-body {
+    padding: 8px 12px;
+  }
+  html.az-waves .radio-player-widget .now-playing-art,
+  html.az-waves .radio-player-widget .now-playing-art img {
+    width: 56px;
+    height: 56px;
+  }
+  html.az-waves .radio-player-widget .now-playing-art {
+    margin-right: 12px;
+  }
+  html.az-waves .radio-player-widget .now-playing-main {
+    flex: 1 1 auto;
+    padding-right: 84px;   /* reserved slot so the marquee never scrolls under the controls */
+  }
+  /* !important: the desktop rules set clamp() sizes with !important (see above). */
+  html.az-waves .radio-player-widget .now-playing-title {
+    font-size: 1.25rem !important;
+  }
+  html.az-waves .radio-player-widget .now-playing-artist {
+    font-size: 1rem !important;
+  }
+  html.az-waves .radio-player-widget .az-eq,
+  html.az-waves .radio-player-widget .radio-control-volume {
+    display: none;
+  }
+  /* Shortcut hint: instead of the bottom-right corner pin it floats dead-centre in the bar
+     (the title/artist marquee scrolls under it - z-index 3 is already above the text). */
+  html.az-waves .radio-player-widget .az-hint {
+    left: 50%;
+    top: 50%;
+    bottom: auto;
+    right: auto;
+    transform: translate(-50%, -50%);
+  }
+  /* Controls row parks at the right edge, vertically centred (same trick as the desktop
+     volume corner-pin; .now-playing-main is already position:relative + overflow:hidden). */
+  html.az-waves .radio-player-widget .radio-controls {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  /* Play/stop icon instead of the flashing PLAY/PAUSE letters: the 56px footer art has no room
+     for 2.6rem border-letters, and font glyphs render fuzzy and vary per platform. No chip or
+     disc behind it - just the mark itself, painted as currentColor through an inline-SVG mask
+     so the corners come out rounded (clip-path/borders can only do hard points) and it stays
+     crisp at any DPI. A dark drop-shadow, not a plate, is what keeps it readable over bright
+     album art. The letter strobe is switched off here: at icon size it reads as a glitch, not
+     as lights. .az-paused (JS) swaps stop -> play. */
+  html.az-waves .radio-player-widget .now-playing-art .az-overlay-play {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    padding: 0;
+    font-size: 0;
+    color: #fff;
+    background: none;
+    border: none;
+    animation: none;                     /* no azflash strobe at icon size */
+    transition: opacity 0.2s ease, transform 0.18s ease, color 0.18s ease;
+  }
+  html.az-waves .radio-player-widget .now-playing-art:hover .az-overlay-play {
+    transform: translate(-50%, -50%) scale(1.14);
+    color: #ffe600;
+  }
+  html.az-waves .radio-player-widget .now-playing-art .az-overlay-play::before {
+    content: '';
+    width: 26px;
+    height: 26px;
+    background: currentColor;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.9));
+    /* stop: rounded square */
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5.5' y='5.5' width='13' height='13' rx='3.5' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5.5' y='5.5' width='13' height='13' rx='3.5' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  html.az-waves .radio-player-widget .now-playing-art.az-paused .az-overlay-play::before {
+    /* play: rounded triangle (round join on a stroked path - a plain polygon has sharp points) */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.4 5.6 19 12 8.4 18.4Z' fill='black' stroke='black' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.4 5.6 19 12 8.4 18.4Z' fill='black' stroke='black' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  /* The bottom HUD chips would sink into the docked bar (they stack above it, so they'd just
+     float on top of the player) - lift them above the footer's height with a bit of extra
+     separation, and move the picker popover up to stay glued to its button. */
+  html.az-waves .az-bg-btn,
+  html.az-waves .az-waves-btn,
+  html.az-waves .az-listeners {
+    bottom: 100px;
+  }
+  html.az-waves .az-bg-pop {
+    bottom: 140px;
+  }
 }
 
 /* Player card background - lighter (transparent); html.az-light (Device -> light system theme,
@@ -151,6 +292,14 @@ body.page-minimal .public-page .card-body {
   container-type: inline-size;
   min-width: 0;
   overflow: hidden;
+}
+/* Hover zoom: the image scales up inside the clipped container - a lightbox-free "peek"
+   (the az-art-slide push clones keep their keyframe transforms, which win over this). */
+.radio-player-widget .now-playing-art img {
+  transition: transform 0.3s ease;
+}
+.radio-player-widget .now-playing-art:hover img {
+  transform: scale(1.1);
 }
 /* !important: AzuraCast sets .radio-player-widget .now-playing-details h4{font-size:15px}
    at 0,3,1 specificity; our class selector (0,2,0) loses. !important wins regardless.
@@ -340,6 +489,12 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   will-change: transform;
   pointer-events: none;
 }
+/* Waves over a photo: a flat dark veil (second background layer on this same ::before - no
+   extra element, no fight with the trip hue-rotate filter) lifts the neon lines off busy
+   images. Solid white/black/neon skip it (no .az-bg-photo marker class). */
+html.az-waves.az-bg-photo body.page-minimal::before {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), var(--az-bg-custom, url('/party-bg.jpg'));
+}
 [data-bs-theme] body.page-minimal::after {
   content: '';
   position: fixed;
@@ -442,26 +597,6 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
 /* show on hover, always show when paused */
 .radio-player-widget .now-playing-art:hover .az-overlay-play,
 .radio-player-widget .now-playing-art.az-paused .az-overlay-play {
-  opacity: 1;
-}
-/* ZOOM corner (top-right) - opens the album art lightbox */
-.radio-player-widget .now-playing-art .az-zoom {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  z-index: 3;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-.radio-player-widget .now-playing-art .az-zoom:hover {
   opacity: 1;
 }
 /* play/pause now lives in the album art overlay; hide the duplicate in the controls bar */
@@ -748,11 +883,8 @@ html.az-light .radio-player-widget .az-hint {
   }
 }
 html.az-calm .az-listen-time {
-  border-color: #2ee62e;
+  border-color: rgb(var(--calm-rgb));
   text-shadow: none;
-}
-html.az-light.az-calm .az-listen-time {
-  border-color: #1a7a1a;
 }
 
 /* Current listener count: the same HUD chip as the listen-time counter, parked bottom-right -
@@ -788,11 +920,8 @@ html.az-light.az-calm .az-listen-time {
   }
 }
 html.az-calm .az-listeners {
-  border-color: #2ee62e;
+  border-color: rgb(var(--calm-rgb));
   text-shadow: none;
-}
-html.az-light.az-calm .az-listeners {
-  border-color: #1a7a1a;
 }
 
 /* Real audio-reactive equalizer (Web Audio AnalyserNode -> SVG path ribbons). Each ribbon traces
@@ -827,8 +956,7 @@ html.az-light.az-calm .az-listeners {
    strip, which keeps running on top of this untouched.
    preserveAspectRatio:none stretches the 100x100 viewBox to the window, so strokes use
    vector-effect:non-scaling-stroke (set in JS) to stay even. Hidden unless html.az-waves, and
-   off entirely in calm / reduced-motion mode - it is exactly the kind of full-screen movement
-   those opt out of. */
+   off entirely under prefers-reduced-motion - calm mode keeps them (see below). */
 .az-bgwaves {
   position: fixed;
   inset: 0;
@@ -847,9 +975,9 @@ html.az-waves .az-bgwaves {
 html.az-light .az-bgwaves {
   filter: brightness(0.55) saturate(1.3);
 }
-html.az-calm .az-bgwaves {
-  display: none;
-}
+/* Calm (anti-seizure) mode deliberately KEEPS the waves: it kills the background flash/
+   zoom/glow and the strobing text, not the wave field itself. Only the OS-level
+   prefers-reduced-motion (below) still hides them. */
 @media (prefers-reduced-motion: reduce) {
   .az-bgwaves { display: none !important; }
 }
@@ -863,7 +991,7 @@ html.az-calm .az-bgwaves {
   top: 10px;
   right: 10px;
   z-index: 1000;
-  padding: 9px 20px;
+  padding: 7px 14px;
   border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
   /* notched corners: the neon-sign / HUD-panel silhouette, cut straight through the border */
@@ -871,10 +999,10 @@ html.az-calm .az-bgwaves {
   background: var(--hud-bg);
   color: rgb(var(--hud-accent-rgb));
   font-family: 'Courier New', ui-monospace, monospace;
-  font-size: 17px;
+  font-size: 14px;   /* compact: matches the page's small HUD text, not a headline */
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   cursor: pointer;
   opacity: 1;
   transition: opacity 0.6s ease;
@@ -926,27 +1054,25 @@ html.az-light .az-calm-btn:hover {
   animation: none;
 }
 /* Toggled ON = calm: the button is the one thing that must stop screaming, so it drops the
-   glitch/bloom entirely and goes flat green-terminal. */
+   glitch/bloom entirely and goes flat soft-blue-terminal (the --calm-rgb var). */
 html.az-calm .az-calm-btn,
 html.az-calm .az-calm-btn:hover {
   animation: none;
   transform: none;
-  background: rgba(0, 14, 4, 0.8);
-  border-color: #2ee62e;
-  color: #2ee62e;
-  text-shadow: 0 0 8px rgba(46, 230, 46, 0.7);
-  box-shadow: 0 0 12px rgba(46, 230, 46, 0.35), inset 0 0 10px rgba(46, 230, 46, 0.12);
+  background: rgba(8, 18, 28, 0.8);
+  border-color: rgb(var(--calm-rgb));
+  color: rgb(var(--calm-rgb));
+  text-shadow: 0 0 8px rgba(var(--calm-rgb), 0.7);
+  box-shadow: 0 0 12px rgba(var(--calm-rgb), 0.35), inset 0 0 10px rgba(var(--calm-rgb), 0.12);
 }
-/* The bright terminal-green above is unreadable on a light background (fails contrast badly) and
-   the hardcoded near-black panel would float as a dark patch among otherwise-light chrome - a
-   darker forest green on a light panel keeps the "calm = green" identity legible instead. */
+/* The soft blue above is unreadable on a light background (fails contrast badly) and the
+   hardcoded near-black panel would float as a dark patch among otherwise-light chrome - the
+   steel-blue var value on a light panel keeps the "calm = soft blue" identity legible instead. */
 html.az-light.az-calm .az-calm-btn,
 html.az-light.az-calm .az-calm-btn:hover {
   background: rgba(255, 255, 255, 0.85);
-  border-color: #1a7a1a;
-  color: #1a7a1a;
   text-shadow: none;
-  box-shadow: 0 0 10px rgba(26, 122, 26, 0.25);
+  box-shadow: 0 0 10px rgba(var(--calm-rgb), 0.25);
 }
 @media (prefers-reduced-motion: reduce) {
   .az-calm-btn, .az-calm-btn:hover { animation: none; transform: none; }
@@ -1108,15 +1234,11 @@ html.az-light .az-stream-pop-footer a {
   text-decoration: underline;
   outline: none;
 }
-/* Anti-seizure / calm mode: drop the glows to match the flat green-terminal calm button. */
+/* Anti-seizure / calm mode: drop the glows to match the flat soft-blue calm button. */
 html.az-calm .az-stream-btn,
 html.az-calm .az-stream-pop {
-  border-color: #2ee62e;
+  border-color: rgb(var(--calm-rgb));
   box-shadow: none;
-}
-html.az-light.az-calm .az-stream-btn,
-html.az-light.az-calm .az-stream-pop {
-  border-color: #1a7a1a;
 }
 html.az-calm .az-stream-btn,
 html.az-calm .az-stream-pop-title,
@@ -1315,12 +1437,8 @@ html.az-calm .az-stream-pop-url {
 }
 html.az-calm .az-bg-btn,
 html.az-calm .az-bg-pop {
-  border-color: #2ee62e;
+  border-color: rgb(var(--calm-rgb));
   box-shadow: none;
-}
-html.az-light.az-calm .az-bg-btn,
-html.az-light.az-calm .az-bg-pop {
-  border-color: #1a7a1a;
 }
 html.az-calm .az-bg-btn,
 html.az-calm .az-bg-pop-title {

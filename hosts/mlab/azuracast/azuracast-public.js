@@ -239,7 +239,9 @@
   }
 
   // Spacebar toggles play/pause; ArrowUp/ArrowDown raise/lower volume; z toggles the album art
-  // zoom lightbox; m toggles mute. Registered BEFORE the window 'unmute' keydown (capture) so
+  // zoom lightbox; m toggles mute; w toggles the wave overlay (+ footer player); c toggles
+  // anti-seizure mode. Registered
+  // BEFORE the window 'unmute' keydown (capture) so
   // stopImmediatePropagation stops it also firing ensurePlaying (which would re-start right
   // after a pause). preventDefault stops the page scrolling on Space/arrow keys. Skipped while
   // focus is in an input/textarea/contenteditable so we don't hijack typing, and a focused
@@ -249,7 +251,9 @@
     var isVol = (e.key === 'ArrowUp' || e.key === 'ArrowDown');
     var isZoom = (e.key === 'z' || e.key === 'Z');
     var isMute = (e.key === 'm' || e.key === 'M');
-    if (!isSpace && !isVol && !isZoom && !isMute) return;
+    var isWaves = (e.key === 'w' || e.key === 'W');
+    var isCalm = (e.key === 'c' || e.key === 'C');
+    if (!isSpace && !isVol && !isZoom && !isMute && !isWaves && !isCalm) return;
     var target = e.target;
     // Only defer to a REAL text-entry control. Matching a focused <input type=range> here would
     // silently swallow Space/z; it keeps its own native arrow-key handling below regardless.
@@ -267,6 +271,20 @@
       if (e.repeat) return;
       var muteBtn = getMuteButton();
       if (muteBtn) muteBtn.click(); // same real click the mute button itself would get
+    } else if (isWaves) {
+      if (e.repeat) return;
+      var wbtn = document.querySelector('.az-waves-btn');
+      // Route through the button when it's up: same path a click takes (class + aria-pressed
+      // + localStorage). Only a bare pre-DOM keypress falls back to the raw setter.
+      if (wbtn) wbtn.click();
+      else setWavesBg(!document.documentElement.classList.contains('az-waves'));
+    } else if (isCalm) {
+      if (e.repeat) return;
+      // Route through the button: it owns the 'calm' flag, label, aria-pressed, localStorage
+      // and idle fade. A bare pre-DOM keypress would flip the class but leave the button label
+      // (read from localStorage) stale, so it's skipped rather than set raw.
+      var calmBtn = document.querySelector('.az-calm-btn');
+      if (calmBtn) calmBtn.click();
     } else {
       bumpVolume(e.key === 'ArrowUp' ? 5 : -5); // repeats allowed: hold to ramp volume
     }
@@ -786,7 +804,7 @@
   }
   function bgWaveFrame() {
     bgwRAF = requestAnimationFrame(bgWaveFrame);
-    if (!bgwOn || !bgwSvg || document.documentElement.classList.contains('az-calm')) return;
+    if (!bgwOn || !bgwSvg) return; // calm mode on purpose keeps the waves flowing
     var now = performance.now(), t = now / 1000;
     var live = !!eqTime && now - bgwFreshAt < 200; // stale (paused/muted) -> free-run instead of freezing
     for (var w = 0; w < BGW_N; w++) {
@@ -997,7 +1015,7 @@
     if (!host || host.querySelector('.az-hint')) return !!host;
     var hint = document.createElement('div');
     hint.className = 'az-hint';
-    hint.textContent = '↑/↓ volume  ·  space play/pause  ·  m mute  ·  z zoom';
+    hint.textContent = '↑/↓ volume  ·  space play/pause  ·  m mute  ·  z zoom  ·  w waves  ·  c calm';
     host.appendChild(hint);
     return true;
   }
@@ -1500,8 +1518,8 @@
     var BG_PRESETS = [
       { key: 'party', label: 'Party', value: null, dot: 'url("/party-bg.jpg")' },
       { key: 'device', label: 'Device', value: 'device', dot: 'linear-gradient(90deg, #ffffff 50%, #000000 50%)' },
-      { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: '#ffffff' },
-      { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: '#000000' },
+      { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: 'linear-gradient(#ffffff, #ffffff)' },
+      { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: 'linear-gradient(#000000, #000000)' },
       { key: 'neon', label: 'Neon', value: 'neon', dot: 'conic-gradient(#3d0a66, #00263d, #66083d, #0a3d1f, #1a0a66, #3d0a66)' }
       // Waves is no longer a background preset: it is a separate overlay toggle (the "≈" button,
       // see setWavesBg/addWavesToggle above) that rides on top of any background.
@@ -1533,12 +1551,22 @@
       if (cssValue) document.documentElement.style.setProperty('--az-bg-custom', cssValue);
       else document.documentElement.style.removeProperty('--az-bg-custom');
       document.documentElement.classList.toggle('az-light', rawValue === 'device' && deviceIsLight());
+      // Marker class per resolved mode (photo = party default or own photo, i.e. any image
+      // background): the CSS keys the waves-mode dark veil off .az-bg-photo and the faint
+      // hairline frame off white/black.
+      var mode = rawValue === 'neon' ? 'neon'
+        : (rawValue === 'white' || (rawValue === 'device' && deviceIsLight())) ? 'white'
+        : (rawValue === 'black' || (rawValue === 'device' && !deviceIsLight())) ? 'black'
+        : 'photo';
+      ['photo', 'white', 'black', 'neon'].forEach(function (m) {
+        document.documentElement.classList.toggle('az-bg-' + m, m === mode);
+      });
     }
     var initial = stored();
     // Legacy migration: "waves" used to be a background preset; it is now the separate overlay
     // toggle. Drop it so the background falls back to the default instead of an invalid value.
     if (initial === 'waves') { try { localStorage.removeItem(BG_KEY); } catch (e) {} initial = null; }
-    if (initial) apply(initial);
+    apply(initial);   // always (even null = party default): the az-bg-* marker class must exist on load
     // Live-follow the OS theme while Device is selected, no reload needed.
     if (deviceLightMQ) {
       var onDeviceChange = function () { if (stored() === 'device') apply('device'); };
