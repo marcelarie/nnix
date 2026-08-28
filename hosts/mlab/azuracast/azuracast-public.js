@@ -369,7 +369,7 @@
   // back below max the NEXT item from AZ_ITEMS comes back as the thumb. --az-item-ch (brain slot
   // while at max) + --az-item-img (thumb) carry it to the pseudo-elements; the CSS defaults keep
   // the mushroom if JS never runs.
-  var AZ_ITEMS = ['🍄', '💊', '🐴', '🧪', '🍬', '🥤', '🍕'];
+  var AZ_ITEMS = ['💊', '🍄', '🐴', '🧪', '🍬', '🥤', '🍕'];
   var azItemIdx = 0;
   // Each item's own "trip": eating it swaps the background's whole shake/zoom/glow character
   // (read by setBgFx, below) to match its vibe, instead of just cycling the thumb emoji. Index
@@ -379,8 +379,8 @@
   // spawn1Up) - mushroom keeps the literal 1UP text, everything else gets its own callout.
   // eqSets (read by eqFrame) doubles/triples the equalizer lines while this item is active.
   var AZ_TRIP = [
-    { scaleMul: 1.15, shakeMul: 1.2,  speedMs: 60,  glowMul: 1.0,  hueDps: 10, wobbleAmp: 0,  phrase: '1UP'   }, // mushroom - tripy
     { scaleMul: 1.0,  shakeMul: 1.0,  speedMs: 50,  glowMul: 1.0,  hueDps: 0,  wobbleAmp: 0,  phrase: 'RUSH'  }, // pill - current/dancy ecstasy
+    { scaleMul: 1.15, shakeMul: 1.2,  speedMs: 60,  glowMul: 1.0,  hueDps: 10, wobbleAmp: 0,  phrase: '1UP'   }, // mushroom - tripy
     { scaleMul: 0.55, shakeMul: 1.5,  speedMs: 450, glowMul: 0.8,  hueDps: 0,  wobbleAmp: 12, phrase: 'WHOA',  eqSets: 2 }, // horse - slow + dizzy, double lines
     { scaleMul: 1.5,  shakeMul: 1.7,  speedMs: 60,  glowMul: 1.15, hueDps: 30, wobbleAmp: 0,  phrase: 'TRIP',  eqSets: 3 }, // potion (LSD) - really tripy, triple lines
     { scaleMul: 1.15, shakeMul: 1.1,  speedMs: 35,  glowMul: 1.7,  hueDps: 0,  wobbleAmp: 0,  phrase: 'SUGAR' }, // candy - light + energy
