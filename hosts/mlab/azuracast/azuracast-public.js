@@ -241,12 +241,15 @@
   // Spacebar toggles play/pause; ArrowUp/ArrowDown raise/lower volume; z toggles the album art
   // zoom lightbox; m toggles mute; w toggles the wave overlay (+ footer player); c toggles
   // anti-seizure mode; t iterates the background themes (party -> device -> white -> black
-  // -> neon). Registered
+  // -> neon, plus the custom photo as a final stop when one is set). Registered
   // BEFORE the window 'unmute' keydown (capture) so
   // stopImmediatePropagation stops it also firing ensurePlaying (which would re-start right
   // after a pause). preventDefault stops the page scrolling on Space/arrow keys. Skipped while
   // focus is in an input/textarea/contenteditable so we don't hijack typing, and a focused
   // volume slider keeps its native arrow handling instead of double-applying.
+  // Filled in by the background picker IIFE below: re-applies the stored custom photo as the
+  // 't' theme cycle's final stop. null until the picker runs.
+  var azBgCycleCustom = null;
   window.addEventListener('keydown', function (e) {
     var isSpace = (e.key === ' ' || e.code === 'Space');
     var isVol = (e.key === 'ArrowUp' || e.key === 'ArrowDown');
@@ -289,15 +292,19 @@
       if (calmBtn) calmBtn.click();
     } else if (isTheme) {
       if (e.repeat) return;
-      // Iterate the background themes: click the swatch after the selected one, wrapping
-      // around. Reuses the swatch click path (localStorage + apply + selected state). With no
-      // swatch selected (a custom photo is set) it starts from the first preset.
+      // Iterate the background themes: click the swatch after the selected one. The custom
+      // photo (when set) is the final stop after the last preset - azBgCycleCustom returns
+      // false when none is set, so the cycle simply wraps to the first preset. Clicking
+      // reuses the swatch path (localStorage + apply + selected state).
       var swatches = document.querySelectorAll('.az-bg-swatch');
       if (swatches.length) {
-        var next = 0;
+        var selIdx = -1;
         for (var i = 0; i < swatches.length; i++) {
-          if (swatches[i].classList.contains('az-selected')) { next = (i + 1) % swatches.length; break; }
+          if (swatches[i].classList.contains('az-selected')) { selIdx = i; break; }
         }
+        if (selIdx === -1) { swatches[0].click(); return; }   // custom photo active -> first preset
+        var next = (selIdx + 1) % swatches.length;
+        if (next === 0 && azBgCycleCustom && azBgCycleCustom()) return;   // wrap -> custom photo stop
         swatches[next].click();
       }
     } else {
@@ -1710,5 +1717,19 @@
     }
     if (document.body) addBgPicker();
     else document.addEventListener('DOMContentLoaded', addBgPicker);
+
+    // Exposed to the outer-scope 't' keybind: re-apply the stored custom photo as the theme
+    // cycle's final stop (and deselect the preset swatch, matching a photo pick). Returns
+    // false when no custom photo is set so the caller wraps to the first preset instead.
+    azBgCycleCustom = function () {
+      var v = stored();
+      if (v && v.indexOf('data:') !== -1) {
+        apply(v);
+        var sel = document.querySelector('.az-bg-swatch.az-selected');
+        if (sel) sel.classList.remove('az-selected');
+        return true;
+      }
+      return false;
+    };
   })();
 })();
