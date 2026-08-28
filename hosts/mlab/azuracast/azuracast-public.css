@@ -821,9 +821,10 @@ html.az-light.az-calm .az-listeners {
   filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));   /* soft neutral glow -> contrast on dark bg, works for all track colors */
 }
 
-/* Fullscreen wave background ("Waves" in the background picker). A fixed SVG behind the page
-   content, above the background image layer: many oscillating lines drawn from the same
-   analyser as the player's equalizer strip, which keeps running on top of this untouched.
+/* Fullscreen wave overlay (the "≈" toggle, bottom-left). A fixed SVG behind the page
+   content, above the background image layer, so it rides on top of whatever background is
+   picked: many oscillating lines drawn from the same analyser as the player's equalizer
+   strip, which keeps running on top of this untouched.
    preserveAspectRatio:none stretches the 100x100 viewBox to the window, so strokes use
    vector-effect:non-scaling-stroke (set in JS) to stay even. Hidden unless html.az-waves, and
    off entirely in calm / reduced-motion mode - it is exactly the kind of full-screen movement
@@ -839,6 +840,12 @@ html.az-light.az-calm .az-listeners {
 }
 html.az-waves .az-bgwaves {
   display: block;
+}
+/* Light theme (html.az-light, the Device preset on a light OS theme): the neon palette
+   (esp. yellow/cyan) vanishes on white, so darken the whole field uniformly instead of
+   re-mapping every stroke - same colors, just readable on light. */
+html.az-light .az-bgwaves {
+  filter: brightness(0.55) saturate(1.3);
 }
 html.az-calm .az-bgwaves {
   display: none;
@@ -1154,6 +1161,45 @@ html.az-calm .az-stream-pop-url {
   border-color: rgb(var(--hud-accent-3-rgb));
   color: rgb(var(--hud-accent-3-rgb));
   box-shadow: 0 0 16px rgba(var(--hud-accent-3-rgb), 0.6);
+}
+/* Wave overlay toggle (bottom-left, just right of the background picker button). Same HUD
+   silhouette as .az-bg-btn. ON = lit, OFF = dimmed ghost (like the calm button's idle state).
+   State is persisted client-side in localStorage (see setWavesBg in azuracast-public.js). */
+.az-waves-btn {
+  position: fixed;
+  bottom: 10px;
+  left: 52px;
+  z-index: 1000;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid rgb(var(--hud-accent-2-rgb));
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  background: var(--hud-bg);
+  color: rgb(var(--hud-accent-2-rgb));
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(var(--hud-accent-2-rgb), 0.6);
+  box-shadow: 0 0 10px rgba(var(--hud-accent-2-rgb), 0.35);
+  opacity: 0.45;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+.az-waves-btn.az-on {
+  opacity: 1;
+  border-color: rgb(var(--hud-accent-rgb));
+  color: rgb(var(--hud-accent-rgb));
+  text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.6);
+  box-shadow: 0 0 16px rgba(var(--hud-accent-rgb), 0.6);
+}
+.az-waves-btn:hover,
+.az-waves-btn:focus-visible {
+  opacity: 1;
+  border-color: rgb(var(--hud-accent-3-rgb));
+  color: rgb(var(--hud-accent-3-rgb));
+  box-shadow: 0 0 16px rgba(var(--hud-accent-3-rgb), 0.6);
+  outline: none;
 }
 .az-bg-pop {
   position: fixed;

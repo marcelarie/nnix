@@ -738,7 +738,7 @@
     setBgFx(gmax / 255, peaks[0] / 255, peaks[2] / 255, peaks[4] / 255); // low/mid/high of the five
   }
 
-  // --- fullscreen wave background (the "Waves" preset in the background picker) ---------
+  // --- fullscreen wave overlay (the "≈" toggle, independent of the background picker) ---
   // A second, much bigger visualizer that does NOT replace the player strip: many oscillating
   // lines across the whole viewport, each its own wavelength, speed, amplitude and color.
   // Unlike the strip (a spectrum envelope riding a baseline) these are real waves centred on
@@ -759,7 +759,7 @@
       stride: 3 + (bw % 6),                                // waveform samples per point = detail grain
       band: bw % 5,                                        // which equalizer band drives its height
       color: BGW_COLORS[bw % BGW_COLORS.length],
-      op: 0.14 + (bw % 4) * 0.06,
+      op: 1,                                   // full strength - the lines ARE the effect
       sw: 1 + (bw % 3)
     });
   }
@@ -808,14 +808,36 @@
       wv.el.setAttribute('d', 'M' + eqSeg(pts, 1));
     }
   }
+  var WAVES_KEY = 'az_waves_on';
   function setWavesBg(on) {
     bgwOn = !!on;
     document.documentElement.classList.toggle('az-waves', bgwOn);
+    try { localStorage.setItem(WAVES_KEY, bgwOn ? '1' : '0'); } catch (e) {}
     if (!bgwOn) return;
     buildBgWaves();
     if (!bgwSvg) { document.addEventListener('DOMContentLoaded', buildBgWaves); } // body not up yet
     if (!bgwRAF) bgWaveFrame();
   }
+  // Restore last state. The overlay rides on top of whatever background is picked - it is its
+  // own layer, so the background picker no longer switches it on/off.
+  try { if (localStorage.getItem(WAVES_KEY) === '1') setWavesBg(true); } catch (e) {}
+  function addWavesToggle() {
+    if (!document.body || document.querySelector('.az-waves-btn')) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'az-waves-btn' + (bgwOn ? ' az-on' : '');
+    b.textContent = '≈';
+    b.setAttribute('aria-label', 'Toggle wave overlay');
+    b.setAttribute('aria-pressed', String(bgwOn));
+    b.addEventListener('click', function () {
+      setWavesBg(!bgwOn);
+      b.classList.toggle('az-on', bgwOn);
+      b.setAttribute('aria-pressed', String(bgwOn));
+    });
+    document.body.appendChild(b);
+  }
+  if (document.body) addWavesToggle();
+  else document.addEventListener('DOMContentLoaded', addWavesToggle);
 
   // Background vibrate + glow, driven by the same analyser data as the equalizer: bass -> zoom
   // pulse, mid/high -> a small shake offset, overall loudness -> glow strength. Color follows
@@ -909,7 +931,10 @@
     bgFxRoot.setProperty('--az-bg-scale', (1 + bassN * 0.045 * azTrip.scaleMul + bgDropEnergy * 0.14 * azTrip.scaleMul).toFixed(4));
     bgFxRoot.setProperty('--az-bg-x', (((midN - 0.5) * 14 * azTrip.shakeMul) + wobbleX).toFixed(2) + 'px');
     bgFxRoot.setProperty('--az-bg-y', (((highN - 0.5) * 10 * azTrip.shakeMul) + wobbleY).toFixed(2) + 'px');
-    bgFxRoot.setProperty('--az-glow-opacity', Math.min(0.85, (GLOW_BASE_OPACITY + punch * 0.5 + bgDropEnergy * 0.5) * azTrip.glowMul).toFixed(3));
+    // With the wave overlay on, the beat glow would wash the thin wave lines out (it paints
+    // above them) - cap it lower so the waves stay readable while the pulse still comes through.
+    var glowCap = bgwOn ? 0.3 : 0.85;
+    bgFxRoot.setProperty('--az-glow-opacity', Math.min(glowCap, (GLOW_BASE_OPACITY + punch * 0.5 + bgDropEnergy * 0.5) * azTrip.glowMul).toFixed(3));
     bgFxRoot.setProperty('--az-glow-color', bassN >= midN && bassN >= highN ? '#1e40ff' : (midN >= highN ? '#ff3df0' : '#ffe600'));
     // Trip hue-rotate (mushroom/potion "tripping" color-cycle): accumulate by real elapsed time,
     // not a fixed per-frame step, so it doesn't speed up/slow down with the frame rate.
@@ -1477,12 +1502,10 @@
       { key: 'device', label: 'Device', value: 'device', dot: 'linear-gradient(90deg, #ffffff 50%, #000000 50%)' },
       { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: '#ffffff' },
       { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: '#000000' },
-      { key: 'neon', label: 'Neon', value: 'neon', dot: 'conic-gradient(#3d0a66, #00263d, #66083d, #0a3d1f, #1a0a66, #3d0a66)' },
-      // Waves = a dark base plus the fullscreen wave visualizer (see setWavesBg above); the
-      // player's own equalizer strip is untouched, this runs behind the whole page.
-      { key: 'waves', label: 'Waves', value: 'waves', dot: 'linear-gradient(180deg, #07031a 0%, #00e5ff 42%, #ff3df0 58%, #07031a 100%)' }
+      { key: 'neon', label: 'Neon', value: 'neon', dot: 'conic-gradient(#3d0a66, #00263d, #66083d, #0a3d1f, #1a0a66, #3d0a66)' }
+      // Waves is no longer a background preset: it is a separate overlay toggle (the "≈" button,
+      // see setWavesBg/addWavesToggle above) that rides on top of any background.
     ];
-    var WAVES_BG = 'linear-gradient(160deg, #07031a, #12002b 55%, #001a24)'; // dark base the waves read against
     var DEVICE_WHITE = 'linear-gradient(#ffffff, #ffffff)';
     var DEVICE_BLACK = 'linear-gradient(#000000, #000000)';
     var deviceLightMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
@@ -1506,13 +1529,15 @@
       var cssValue = rawValue;
       if (rawValue === 'device') cssValue = deviceIsLight() ? DEVICE_WHITE : DEVICE_BLACK;
       else if (rawValue === 'neon') cssValue = randomNeonValue();
-      else if (rawValue === 'waves') cssValue = WAVES_BG;
-      setWavesBg(rawValue === 'waves');
+      // Wave overlay state is owned by its own toggle (setWavesBg), never by a background pick.
       if (cssValue) document.documentElement.style.setProperty('--az-bg-custom', cssValue);
       else document.documentElement.style.removeProperty('--az-bg-custom');
       document.documentElement.classList.toggle('az-light', rawValue === 'device' && deviceIsLight());
     }
     var initial = stored();
+    // Legacy migration: "waves" used to be a background preset; it is now the separate overlay
+    // toggle. Drop it so the background falls back to the default instead of an invalid value.
+    if (initial === 'waves') { try { localStorage.removeItem(BG_KEY); } catch (e) {} initial = null; }
     if (initial) apply(initial);
     // Live-follow the OS theme while Device is selected, no reload needed.
     if (deviceLightMQ) {
