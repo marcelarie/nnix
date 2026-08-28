@@ -137,40 +137,29 @@ body.page-minimal .public-page .card-body {
 .radio-player-widget .now-playing-artist a:hover {
   text-decoration: underline;
 }
-/* Bandcamp nudge: tooltip sitting to the RIGHT of the artist name, arrow pointing left at it.
-   JS toggles .az-on and sets left/top each time it shows (see the nudge IIFE in the JS) until
-   the user clicks the artist's bandcamp link. While up, the artist name does the same
+/* Bandcamp nudge: card-anchored tip at the BOTTOM of the now-playing card (below the
+   artist line), shown periodically until the user clicks the artist's bandcamp link.
+   Pure-CSS placement (bottom/left of .now-playing-details) - stable across track changes
+   and all viewports, no per-show JS measurement. While up, the artist name does the same
    rainbow/wiggle as hover (.az-nudge-on, below) unless calm mode is on. */
 .radio-player-widget .az-bc-tip {
   position: absolute;
   left: 0;
-  top: 0;   /* JS overrides at show time: right of the artist row, vertically centered */
+  bottom: 0;
   z-index: 6;
-  max-width: 280px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(10, 10, 25, 0.92);
+  max-width: min(280px, 100%);
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(8, 8, 22, 0.96);
   border: 1px solid rgba(255, 61, 240, 0.6);
   color: #fff;
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.45;
   white-space: normal;
   pointer-events: none;   /* never block the click it is trying to get */
   opacity: 0;
-  transform: translateY(-4px);
+  transform: translateY(4px);
   transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.radio-player-widget .az-bc-tip::before {
-  content: '';
-  position: absolute;
-  top: calc(50% - 5px);
-  left: -5px;
-  width: 10px;
-  height: 10px;
-  background: inherit;
-  border-left: 1px solid rgba(255, 61, 240, 0.6);
-  border-bottom: 1px solid rgba(255, 61, 240, 0.6);
-  transform: rotate(45deg);
 }
 .radio-player-widget .az-bc-tip.az-on {
   opacity: 1;

@@ -916,7 +916,8 @@
   // (no bandcamp url for this artist -> nothing to point at) and not in calm mode. While up,
   // the artist name gets .az-nudge-on = the hover rainbow/wiggle (CSS; calm mode is excluded).
   // The tip is a child of .now-playing-details (stable) rather than the artist <h5> (Vue
-  // destroys it per track); its left/top are measured off the artist row at show time.
+  // destroys it per track); its position is pure CSS (bottom-left of the card), so no
+  // per-show measurement and no drift across track changes or viewports.
   // pointer-events:none so it never blocks the click it is trying to get.
   (function () {
     var KEY = 'az_bc_clicked';
@@ -933,7 +934,7 @@
       if (tip) return tip;
       tip = document.createElement('div');
       tip.className = 'az-bc-tip';
-      tip.textContent = 'Like the music? Check it out on the artist’s Bandcamp →';
+      tip.textContent = 'Enjoying it? Get this on the artist’s Bandcamp →';
       host.appendChild(tip);
       return tip;
     }
@@ -962,8 +963,6 @@
         row.classList.remove('az-nudge-on');
         nextAt = now + 10000 + Math.random() * 50000; // random pause, then show again
       } else if (!showAt && now >= nextAt) {
-        tip.style.left = (row.offsetLeft + row.offsetWidth + 8) + 'px';
-        tip.style.top = (row.offsetTop + Math.max(0, (row.offsetHeight - tip.offsetHeight) / 2)) + 'px';
         row.classList.add('az-nudge-on'); // artist name rainbow+wiggles while the tip is up
         showAt = now;
         tip.classList.add('az-on');
