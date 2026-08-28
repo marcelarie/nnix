@@ -510,14 +510,47 @@
   var eqCtx, eqAn, eqSrc, eqData, eqRAF, eqInit, eqBoundEl, eqBox, eqLastSound = 0;
   // band = fraction of frequency bins [lo,hi]; pts = granularity; atk/rel = per-track
   // attack/release smoothing (0=snap, 1=frozen) - fast attack + slow release = the bounce;
-  // amp = vertical amplitude (fraction of half-height).
+  // amp = vertical half-amplitude and base = baseline, both in viewBox units (0-40), so a loud
+  // track pushes a line past y=0 and it spills over the top of the strip (CSS overflow:visible).
+  // src: 'hist' = time-domain scroll (a level per `push` ms into a ring buffer -> the shape
+  // travels left like an audio-editor waveform), 'spec' = the frequency spread across x.
+  // curve = Catmull-Rom tension: 1 = rounded wave, 0 = jagged scope line. th = line thickness,
+  // kept thin and decreasing with frequency so five lines stack without swallowing each other;
+  // the baselines sit 4 units apart so at rest they read as five separate lines.
   var EQ_TRACKS = [
-    { color: '#00e5ff', band: [0.00, 0.15], pts: 24, atk: 0.25, rel: 0.78, amp: 0.7 }, // bass -> smooth,   cyan
-    { color: '#ff3df0', band: [0.15, 0.50], pts: 56, atk: 0.05, rel: 0.84, amp: 0.9 }, // mid  -> grainier, magenta
-    // high -> very grainy, yellow. Banded 0.40-0.75, not 0.50-1.00: a compressed stream carries
-    // no data up to Nyquist, so the old top half sampled dead bins and sat flat all the time.
-    { color: '#ffe600', band: [0.40, 0.75], pts: 90, atk: 0.0,  rel: 0.90, amp: 1.0 }
+    // bass -> scrolling waveform, slow and rounded, thickest, cyan
+    { color: '#00e5ff', band: [0.00, 0.10], pts: 72, atk: 0.30, rel: 0.80, amp: 14, base: 34,
+      src: 'hist', push: 30, curve: 1, th: 2.4 },
+    // low-mid -> rounded spectrum ribbon, green
+    { color: '#00ff9d', band: [0.10, 0.22], pts: 40, atk: 0.12, rel: 0.82, amp: 18, base: 30,
+      src: 'spec', curve: 0.9, th: 1.8 },
+    // mid -> half-curved, grainier, magenta
+    { color: '#ff3df0', band: [0.22, 0.40], pts: 56, atk: 0.05, rel: 0.84, amp: 22, base: 26,
+      src: 'spec', curve: 0.6, th: 1.4 },
+    // high-mid -> nearly straight segments, orange
+    { color: '#ff8a00', band: [0.40, 0.58], pts: 80, atk: 0.02, rel: 0.87, amp: 27, base: 22,
+      src: 'spec', curve: 0.3, th: 1.1 },
+    // high -> jagged scope line, no curve, thinnest, biggest amp so spikes overflow the top.
+    // Capped at 0.80, not 1.00: a compressed stream carries no data up to Nyquist, so the top
+    // of the spectrum is dead bins that sit flat all the time.
+    { color: '#ffe600', band: [0.58, 0.80], pts: 96, atk: 0.0,  rel: 0.90, amp: 34, base: 18,
+      src: 'spec', curve: 0, th: 0.8 }
   ];
+  // Catmull-Rom -> cubic bezier. t=0 keeps the straight segments (jagged scope), t=1 gives the
+  // rounded travelling curve of a waveform editor. Returns a coordinate + segment list, so it
+  // can follow either an 'M' or an 'L'.
+  function eqSeg(p, t) {
+    var s = p[0][0].toFixed(1) + ',' + p[0][1].toFixed(1);
+    for (var i = 0; i < p.length - 1; i++) {
+      var p1 = p[i], p2 = p[i + 1];
+      if (!t) { s += ' L' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1); continue; }
+      var p0 = p[i - 1] || p1, p3 = p[i + 2] || p2;
+      s += ' C' + (p1[0] + (p2[0] - p0[0]) / 6 * t).toFixed(1) + ',' + (p1[1] + (p2[1] - p0[1]) / 6 * t).toFixed(1) +
+           ' ' + (p2[0] - (p3[0] - p1[0]) / 6 * t).toFixed(1) + ',' + (p2[1] - (p3[1] - p1[1]) / 6 * t).toFixed(1) +
+           ' ' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1);
+    }
+    return s;
+  }
   function buildEqDom() {
     if (eqBox) return;
     var host = document.querySelector('.radio-player-widget');
@@ -538,14 +571,15 @@
         el.setAttribute('fill', track.color);
         el.style.opacity = (0.9 - i * 0.12) * (s === 0 ? 1 : (s === 1 ? 0.45 : 0.25));
         if (s > 0) {
-          el.setAttribute('transform', 'translate(0 ' + (s * 3.5) + ')'); // echo hangs lower
+          el.setAttribute('transform', 'translate(0 ' + (s * 1.8) + ')'); // echo hangs lower
           el.style.display = 'none';
         }
         svg.appendChild(el);
         track.els.push(el);
       }
       track._sets = 1;
-      track.sm = new Float32Array(track.pts); // per-track smoothed buffer
+      track.sm = new Float32Array(track.pts); // per-track smoothed buffer (ring, for src:'hist')
+      track.hp = 0; track.cur = 0; track.lastPush = 0;
     });
     eqBox.appendChild(svg);
     var main = host.querySelector('.now-playing-main'); // same column as title/artist, where the time-display bar used to sit
@@ -569,7 +603,7 @@
       // the RAF loop (eqFrame) is ignored, leaving it suspended -> analyser returns zeros.
       if (eqCtx.state === 'suspended' && eqCtx.resume) eqCtx.resume();
       eqAn = eqCtx.createAnalyser();
-      eqAn.fftSize = 256; // 128 bins -> enough to slice into 3 bands
+      eqAn.fftSize = 512; // 256 bins -> enough detail for the grainy top line
       eqAn.smoothingTimeConstant = 0; // raw -> per-track smoothing in JS (each line its own feel)
       eqAn.connect(eqCtx.destination);
       eqData = new Uint8Array(eqAn.frequencyBinCount);
@@ -603,12 +637,12 @@
       return;
     }
     if (!muted) eqAn.getByteFrequencyData(eqData);
-    var len = eqData.length, gmax = 0, peaks = [0, 0, 0], now = performance.now();
+    var len = eqData.length, gmax = 0, peaks = [0, 0, 0, 0, 0], now = performance.now();
     for (var k = 0; k < EQ_TRACKS.length; k++) {
       var track = EQ_TRACKS[k];
       var b0 = Math.floor(track.band[0] * len);
       var b1 = Math.max(b0 + 1, Math.floor(track.band[1] * len));
-      var span = b1 - b0, top = [], bot = [];
+      var span = b1 - b0, pts = track.pts, top = [], bot = [];
       // Trip reactions while volume is maxed - each line its own way, front line (k=2) always
       // responding hardest: glowMul scales height (candy jumps, drink/pizza settle), wobbleAmp
       // is the horse's dizziness, speedMs sets a micro-sway (fast = pill/candy rush), and the
@@ -620,34 +654,61 @@
         swayAmp = Math.min(3, azTrip.wobbleAmp * (0.15 + 0.1 * k) || (60 / azTrip.speedMs) * 0.5 * (0.5 + 0.25 * k));
         swaySpd = (60 / azTrip.speedMs) * (1 + 0.2 * k);
       }
-      for (var i = 0; i < track.pts; i++) {
+      if (track.src === 'hist') {
+        // One band level per frame, smoothed, pushed into the ring every `push` ms - rendering
+        // from the write head reads oldest->newest, so the wave scrolls left with no seam.
+        var lvl = 0;
+        if (muted) lvl = 70 + 45 * Math.sin(now / 700) + Math.random() * 25; // free-run, see below
+        else {
+          for (var j = b0; j < b1; j++) if (eqData[j] > lvl) lvl = eqData[j];
+          lvl = Math.min(255, lvl * 1.3);
+        }
+        var hk = lvl > track.cur ? track.atk : track.rel; // snap up, sink down -> bounce
+        track.cur = track.cur * hk + lvl * (1 - hk);
+        if (now - track.lastPush > 500) track.lastPush = now; // backgrounded tab -> don't replay the gap
+        while (now - track.lastPush >= track.push) {
+          track.lastPush += track.push;
+          track.sm[track.hp] = track.cur;
+          track.hp = (track.hp + 1) % pts;
+        }
+      }
+      for (var i = 0; i < pts; i++) {
         var v;
-        if (muted) {
-          // Free-run idle wave: slow per-band sine + jitter. Freq/phase-slope/jitter grow with
-          // k so bass undulates, mids ripple, highs shimmer - the real bands' character, minus
-          // the (zeroed) analyser. Still feeds peaks/gmax, so the background fx keep living too.
-          v = 60 + 50 * Math.sin(now / 1000 * (0.8 + k * 0.5) + i * (0.25 + k * 0.1))
-            + (Math.random() * 2 - 1) * (6 + k * 14);
-          if (v < 0) v = 0;
+        if (track.src === 'hist') {
+          v = track.sm[(track.hp + i) % pts]; // write head = oldest sample -> x is time
         } else {
-          var s0 = b0 + Math.floor(i / track.pts * span);
-          var s1 = Math.max(s0 + 1, b0 + Math.floor((i + 1) / track.pts * span));
-          v = 0;
-          for (var j = s0; j < s1 && j < b1; j++) if (eqData[j] > v) v = eqData[j]; // max -> spikes (granularity)
-          v = Math.min(255, v * 1.3); // gain -> lift detail
+          if (muted) {
+            // Free-run idle wave: slow per-band sine + jitter. Freq/phase-slope/jitter grow with
+            // k so bass undulates, mids ripple, highs shimmer - the real bands' character, minus
+            // the (zeroed) analyser. Still feeds peaks/gmax, so the background fx keep living too.
+            v = 60 + 50 * Math.sin(now / 1000 * (0.8 + k * 0.5) + i * (0.25 + k * 0.1))
+              + (Math.random() * 2 - 1) * (6 + k * 14);
+            if (v < 0) v = 0;
+          } else {
+            var s0 = b0 + Math.floor(i / pts * span);
+            var s1 = Math.max(s0 + 1, b0 + Math.floor((i + 1) / pts * span));
+            v = 0;
+            for (var j = s0; j < s1 && j < b1; j++) if (eqData[j] > v) v = eqData[j]; // max -> spikes (granularity)
+            v = Math.min(255, v * 1.3); // gain -> lift detail
+          }
+          var kk = v > track.sm[i] ? track.atk : track.rel; // snap up, sink down -> bounce
+          track.sm[i] = track.sm[i] * kk + v * (1 - kk);
+          v = track.sm[i];
         }
         if (v > gmax) gmax = v;
-        var kk = v > track.sm[i] ? track.atk : track.rel; // snap up, sink down -> bounce
-        track.sm[i] = track.sm[i] * kk + v * (1 - kk);
-        if (track.sm[i] > peaks[k]) peaks[k] = track.sm[i]; // per-band peak this frame -> drives the background fx
-        var x = i / (track.pts - 1) * 100;
-        var cy = 20 - (track.sm[i] / 255) * (track.amp * 15 * ampMul) // trip: taller (candy) or settled (drink/pizza)
-          + (swayAmp ? Math.sin(now / 1000 * swaySpd + k * 2.1) * swayAmp : 0); // trip sway, per-line phase
-        var th = 1.5 + (track.sm[i] / 255) * 5; // thickness ∝ level: loud = fat, quiet = thin
-        top.push(x.toFixed(1) + ',' + (cy - th / 2).toFixed(1));
-        bot.unshift(x.toFixed(1) + ',' + (cy + th / 2).toFixed(1)); // reverse order -> path closes cleanly R-to-L
+        if (v > peaks[k]) peaks[k] = v; // per-band peak this frame -> drives the background fx
+        var lv = v / 255;
+        var x = i / (pts - 1) * 100;
+        // trip sway, per-line phase; the i term makes it travel along the line instead of
+        // lifting it rigidly
+        var yb = track.base + (swayAmp ? Math.sin(now / 1000 * swaySpd + i * 0.3 + k * 2.1) * swayAmp : 0);
+        var a = lv * track.amp * ampMul; // trip: taller (candy) or settled (drink/pizza)
+        var th = track.th * (1 + lv); // thickness ∝ level, but only up to double -> stays a line
+        top.push([x, yb - a - th / 2]);
+        bot.push([x, yb - a + th / 2]);
       }
-      var d = 'M' + top.join(' L') + ' L' + bot.join(' L') + ' Z';
+      bot.reverse(); // R-to-L -> path closes cleanly
+      var d = 'M' + eqSeg(top, track.curve) + ' L' + eqSeg(bot, track.curve) + ' Z';
       // horse doubles / LSD potion triples the lines (azTrip.eqSets): the echo ribbons share
       // this same d, so one layout drives all of them.
       var sets = azMaxed ? Math.min(3, azTrip.eqSets || 1) : 1;
@@ -665,7 +726,7 @@
     }
     if (gmax > 8) eqLastSound = now;
     eqBox.style.opacity = (now - eqLastSound < 250) ? '1' : '0';
-    setBgFx(gmax / 255, peaks[0] / 255, peaks[1] / 255, peaks[2] / 255);
+    setBgFx(gmax / 255, peaks[0] / 255, peaks[2] / 255, peaks[4] / 255); // low/mid/high of the five
   }
 
   // Background vibrate + glow, driven by the same analyser data as the equalizer: bass -> zoom

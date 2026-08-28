@@ -765,11 +765,17 @@ html.az-light.az-calm .az-listen-time {
   margin: 6px 0 2px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  /* A loud peak draws above y=0 of the viewBox: let it spill over the artist name instead of
+     being clipped (the strip keeps its 64px slot, so nothing moves). pointer-events:none so the
+     spill never eats a click on the name it hangs over. */
+  overflow: visible;
+  pointer-events: none;
 }
 .radio-player-widget .az-eq svg {
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;   /* SVG clips to its viewport by default */
 }
 .radio-player-widget .az-eq path {
   filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));   /* soft neutral glow -> contrast on dark bg, works for all track colors */
