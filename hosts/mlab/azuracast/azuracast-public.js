@@ -507,7 +507,7 @@
   // each snaps up faster than it sinks down (bounce). eqFrame
   // re-binds each new <audio> (AzuraCast swaps it across pause/play) and resumes a
   // Chrome-auto-suspended context so data doesn't go flat.
-  var eqCtx, eqAn, eqSrc, eqData, eqRAF, eqInit, eqBoundEl, eqBox, eqLastSound = 0;
+  var eqCtx, eqAn, eqSrc, eqData, eqTime, eqRAF, eqInit, eqBoundEl, eqBox, eqLastSound = 0;
   // band = fraction of frequency bins [lo,hi]; pts = granularity; atk/rel = per-track
   // attack/release smoothing (0=snap, 1=frozen) - fast attack + slow release = the bounce;
   // amp = vertical half-amplitude and base = baseline, both in viewBox units (0-40), so a loud
@@ -519,8 +519,10 @@
   // the baselines sit 4 units apart so at rest they read as five separate lines.
   var EQ_TRACKS = [
     // bass -> scrolling waveform, slow and rounded, thickest, cyan
+    // drift: the thick line slowly wanders through the spectrum and breathes its opacity, so
+    // the heaviest line is never sitting at the same color twice
     { color: '#00e5ff', band: [0.00, 0.10], pts: 72, atk: 0.30, rel: 0.80, amp: 14, base: 34,
-      src: 'hist', push: 30, curve: 1, th: 2.4 },
+      src: 'hist', push: 30, curve: 1, th: 2.4, drift: 1 },
     // low-mid -> rounded spectrum ribbon, green
     { color: '#00ff9d', band: [0.10, 0.22], pts: 40, atk: 0.12, rel: 0.82, amp: 18, base: 30,
       src: 'spec', curve: 0.9, th: 1.8 },
@@ -569,7 +571,8 @@
       for (var s = 0; s < 3; s++) {
         var el = document.createElementNS(NS, 'path');
         el.setAttribute('fill', track.color);
-        el.style.opacity = (0.9 - i * 0.12) * (s === 0 ? 1 : (s === 1 ? 0.45 : 0.25));
+        el._azOp = (0.9 - i * 0.12) * (s === 0 ? 1 : (s === 1 ? 0.45 : 0.25));
+        el.style.opacity = el._azOp;
         if (s > 0) {
           el.setAttribute('transform', 'translate(0 ' + (s * 1.8) + ')'); // echo hangs lower
           el.style.display = 'none';
@@ -607,6 +610,7 @@
       eqAn.smoothingTimeConstant = 0; // raw -> per-track smoothing in JS (each line its own feel)
       eqAn.connect(eqCtx.destination);
       eqData = new Uint8Array(eqAn.frequencyBinCount);
+      eqTime = new Uint8Array(eqAn.fftSize); // raw waveform - feeds the fullscreen wave background
     } catch (e) { eqCtx = null; return; }
     if (!eqRAF) eqFrame();
   }
@@ -638,6 +642,7 @@
     }
     if (!muted) eqAn.getByteFrequencyData(eqData);
     var len = eqData.length, gmax = 0, peaks = [0, 0, 0, 0, 0], now = performance.now();
+    if (!muted && eqTime) { eqAn.getByteTimeDomainData(eqTime); bgwFreshAt = now; } // raw waveform for the bg waves
     for (var k = 0; k < EQ_TRACKS.length; k++) {
       var track = EQ_TRACKS[k];
       var b0 = Math.floor(track.band[0] * len);
@@ -717,16 +722,99 @@
         track._sets = sets;
       }
       var hue = azMaxed && azTrip.hueDps ? bgTripHue * (1 + 0.6 * k) : 0; // trippy items: color-cycle
+      if (track.drift) hue += now / 24000 * 360; // ~24s to walk the whole wheel - a slow wander, not a strobe
       for (var s = 0; s < sets; s++) {
         var el = track.els[s];
         el.setAttribute('d', d);
         var f = hue ? 'hue-rotate(' + (hue * (1 + 0.35 * s)).toFixed(1) + 'deg)' : ''; // each line its own rate
         if (el.style.filter !== f) el.style.filter = f;
+        // breathe the opacity on its own (longer) cycle so it never lines up with the color walk
+        if (track.drift) el.style.opacity = (el._azOp * (0.62 + 0.38 * Math.sin(now / 5200 + s))).toFixed(3);
       }
     }
+    for (var b = 0; b < peaks.length; b++) bgwBands[b] = bgwBands[b] * 0.8 + (peaks[b] / 255) * 0.2; // -> bg waves
     if (gmax > 8) eqLastSound = now;
     eqBox.style.opacity = (now - eqLastSound < 250) ? '1' : '0';
     setBgFx(gmax / 255, peaks[0] / 255, peaks[2] / 255, peaks[4] / 255); // low/mid/high of the five
+  }
+
+  // --- fullscreen wave background (the "Waves" preset in the background picker) ---------
+  // A second, much bigger visualizer that does NOT replace the player strip: many oscillating
+  // lines across the whole viewport, each its own wavelength, speed, amplitude and color.
+  // Unlike the strip (a spectrum envelope riding a baseline) these are real waves centred on
+  // mid-screen - a crest climbs about half the viewport up and the trough the same down, so the
+  // tallest ones sweep nearly the full height. Shape = a travelling sine carrier (the
+  // wavelength) mixed with the analyser's time-domain samples (the real waveform detail),
+  // scaled by the matching equalizer band's level. Its own RAF loop, so it keeps flowing while
+  // paused or muted - free-running on sines when there is no audio to read.
+  var BGW_N = 12, BGW_PTS = 84;
+  var BGW_COLORS = ['#00e5ff', '#00ff9d', '#ff3df0', '#ff8a00', '#ffe600', '#7b5cff'];
+  var bgwSvg, bgwOn = false, bgwRAF = 0, bgwFreshAt = 0, bgwBands = [0, 0, 0, 0, 0], bgwWaves = [];
+  for (var bw = 0; bw < BGW_N; bw++) {
+    bgwWaves.push({
+      amp: 14 + bw * 2.0,                                  // 14..36 of a 100-tall viewBox
+      k: 1.2 + (bw % 5) * 0.9,                             // crests across the screen = wavelength
+      spd: (bw % 2 ? -1 : 1) * (0.25 + (bw % 4) * 0.18),   // alternating directions -> no marching in step
+      cy: 50 + Math.sin(bw * 1.7) * 6,
+      stride: 3 + (bw % 6),                                // waveform samples per point = detail grain
+      band: bw % 5,                                        // which equalizer band drives its height
+      color: BGW_COLORS[bw % BGW_COLORS.length],
+      op: 0.14 + (bw % 4) * 0.06,
+      sw: 1 + (bw % 3)
+    });
+  }
+  function buildBgWaves() {
+    if (bgwSvg || !document.body) return;
+    var NS = 'http://www.w3.org/2000/svg';
+    bgwSvg = document.createElementNS(NS, 'svg');
+    bgwSvg.setAttribute('class', 'az-bgwaves');
+    bgwSvg.setAttribute('viewBox', '0 0 100 100');
+    bgwSvg.setAttribute('preserveAspectRatio', 'none');
+    bgwSvg.setAttribute('aria-hidden', 'true');
+    bgwWaves.forEach(function (wv) {
+      var el = document.createElementNS(NS, 'path');
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', wv.color);
+      el.setAttribute('stroke-width', wv.sw);
+      el.setAttribute('stroke-linecap', 'round');
+      el.setAttribute('vector-effect', 'non-scaling-stroke'); // the viewBox is stretched to the window
+      el.style.opacity = wv.op;
+      bgwSvg.appendChild(el);
+      wv.el = el;
+    });
+    document.body.appendChild(bgwSvg);
+  }
+  function bgWaveFrame() {
+    bgwRAF = requestAnimationFrame(bgWaveFrame);
+    if (!bgwOn || !bgwSvg || document.documentElement.classList.contains('az-calm')) return;
+    var now = performance.now(), t = now / 1000;
+    var live = !!eqTime && now - bgwFreshAt < 200; // stale (paused/muted) -> free-run instead of freezing
+    for (var w = 0; w < BGW_N; w++) {
+      var wv = bgwWaves[w], pts = [];
+      var lvl = live ? bgwBands[wv.band] : 0.45 + 0.25 * Math.sin(t * (0.3 + wv.band * 0.11));
+      // 0.45 floor so even a quiet passage still sweeps well over half the viewport; loud peaks
+      // on the biggest waves run just past the edges, which is the point
+      var a = wv.amp * (0.45 + 0.55 * lvl);
+      var roll = Math.sin(t * 0.23 + w) * 4; // slow vertical roll so the field is never a static stack
+      for (var i = 0; i < BGW_PTS; i++) {
+        var u = i / (BGW_PTS - 1);
+        var sv = Math.sin(u * wv.k * Math.PI * 2 + t * wv.spd * 3 + w);
+        if (live) {
+          var idx = (i * wv.stride + Math.floor(t * 60)) % eqTime.length; // scroll the read head -> travels
+          sv = sv * 0.55 + ((eqTime[idx] - 128) / 128) * 0.75; // carrier + real waveform detail
+        }
+        pts.push([u * 100, wv.cy + sv * a + roll]);
+      }
+      wv.el.setAttribute('d', 'M' + eqSeg(pts, 1));
+    }
+  }
+  function setWavesBg(on) {
+    bgwOn = !!on;
+    document.documentElement.classList.toggle('az-waves', bgwOn);
+    if (!bgwOn) return;
+    buildBgWaves();
+    if (!bgwSvg) { document.addEventListener('DOMContentLoaded', buildBgWaves); } // body not up yet
+    if (!bgwRAF) bgWaveFrame();
   }
 
   // Background vibrate + glow, driven by the same analyser data as the equalizer: bass -> zoom
@@ -1355,8 +1443,12 @@
       { key: 'device', label: 'Device', value: 'device', dot: 'linear-gradient(90deg, #ffffff 50%, #000000 50%)' },
       { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: '#ffffff' },
       { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: '#000000' },
-      { key: 'neon', label: 'Neon', value: 'neon', dot: 'conic-gradient(#3d0a66, #00263d, #66083d, #0a3d1f, #1a0a66, #3d0a66)' }
+      { key: 'neon', label: 'Neon', value: 'neon', dot: 'conic-gradient(#3d0a66, #00263d, #66083d, #0a3d1f, #1a0a66, #3d0a66)' },
+      // Waves = a dark base plus the fullscreen wave visualizer (see setWavesBg above); the
+      // player's own equalizer strip is untouched, this runs behind the whole page.
+      { key: 'waves', label: 'Waves', value: 'waves', dot: 'linear-gradient(180deg, #07031a 0%, #00e5ff 42%, #ff3df0 58%, #07031a 100%)' }
     ];
+    var WAVES_BG = 'linear-gradient(160deg, #07031a, #12002b 55%, #001a24)'; // dark base the waves read against
     var DEVICE_WHITE = 'linear-gradient(#ffffff, #ffffff)';
     var DEVICE_BLACK = 'linear-gradient(#000000, #000000)';
     var deviceLightMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
@@ -1380,6 +1472,8 @@
       var cssValue = rawValue;
       if (rawValue === 'device') cssValue = deviceIsLight() ? DEVICE_WHITE : DEVICE_BLACK;
       else if (rawValue === 'neon') cssValue = randomNeonValue();
+      else if (rawValue === 'waves') cssValue = WAVES_BG;
+      setWavesBg(rawValue === 'waves');
       if (cssValue) document.documentElement.style.setProperty('--az-bg-custom', cssValue);
       else document.documentElement.style.removeProperty('--az-bg-custom');
       document.documentElement.classList.toggle('az-light', rawValue === 'device' && deviceIsLight());

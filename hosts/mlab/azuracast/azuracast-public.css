@@ -781,6 +781,32 @@ html.az-light.az-calm .az-listen-time {
   filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));   /* soft neutral glow -> contrast on dark bg, works for all track colors */
 }
 
+/* Fullscreen wave background ("Waves" in the background picker). A fixed SVG behind the page
+   content, above the background image layer: many oscillating lines drawn from the same
+   analyser as the player's equalizer strip, which keeps running on top of this untouched.
+   preserveAspectRatio:none stretches the 100x100 viewBox to the window, so strokes use
+   vector-effect:non-scaling-stroke (set in JS) to stay even. Hidden unless html.az-waves, and
+   off entirely in calm / reduced-motion mode - it is exactly the kind of full-screen movement
+   those opt out of. */
+.az-bgwaves {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
+}
+html.az-waves .az-bgwaves {
+  display: block;
+}
+html.az-calm .az-bgwaves {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .az-bgwaves { display: none !important; }
+}
+
 /* Anti-seizure toggle: JS puts .az-calm on <html> (see azuracast-public.js) and the rules
    below freeze the music-driven background zoom/shake, kill the pulsing glow layer and stop
    the animated text colors (rainbow title/artist hover, flashing PLAY/PAUSE) - the same
