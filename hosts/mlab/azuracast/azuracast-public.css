@@ -694,7 +694,7 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   z-index: 3;
 }
 html.az-light .radio-player-widget .az-hint {
-  color: rgba(var(--hud-text-rgb), 0.65);
+  color: rgba(var(--hud-text-rgb), 0.75);   /* 0.65 measures right at the AA cutoff; safety margin */
 }
 @media (max-width: 767px) {
   .radio-player-widget .az-hint {
@@ -729,7 +729,7 @@ html.az-light .radio-player-widget .az-hint {
 @media (max-width: 767px) {
   .az-listen-time {
     top: 8px;
-    left: 40px;
+    left: 46px;
     height: 30px;
     font-size: 12px;
     padding: 0 8px;
@@ -738,6 +738,9 @@ html.az-light .radio-player-widget .az-hint {
 html.az-calm .az-listen-time {
   border-color: #2ee62e;
   text-shadow: none;
+}
+html.az-light.az-calm .az-listen-time {
+  border-color: #1a7a1a;
 }
 
 /* Real audio-reactive equalizer (Web Audio AnalyserNode -> SVG path ribbons). Each ribbon traces
@@ -841,6 +844,17 @@ html.az-calm .az-calm-btn:hover {
   text-shadow: 0 0 8px rgba(46, 230, 46, 0.7);
   box-shadow: 0 0 12px rgba(46, 230, 46, 0.35), inset 0 0 10px rgba(46, 230, 46, 0.12);
 }
+/* The bright terminal-green above is unreadable on a light background (fails contrast badly) and
+   the hardcoded near-black panel would float as a dark patch among otherwise-light chrome - a
+   darker forest green on a light panel keeps the "calm = green" identity legible instead. */
+html.az-light.az-calm .az-calm-btn,
+html.az-light.az-calm .az-calm-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: #1a7a1a;
+  color: #1a7a1a;
+  text-shadow: none;
+  box-shadow: 0 0 10px rgba(26, 122, 26, 0.25);
+}
 @media (prefers-reduced-motion: reduce) {
   .az-calm-btn, .az-calm-btn:hover { animation: none; transform: none; }
 }
@@ -917,7 +931,7 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   top: 50px;
   left: 10px;
   z-index: 1000;
-  max-width: min(86vw, 360px);
+  width: min(86vw, 360px);
   margin: 0;
   padding: 14px 16px;
   border: 2px solid rgb(var(--hud-accent-rgb));
@@ -981,9 +995,18 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   color: rgba(var(--hud-text-dim-rgb), 0.55);
   font-size: 11px;
 }
+/* Low alpha over a DARK bg still leaves plenty of contrast (light text stays far from black);
+   the same alpha over a LIGHT bg washes a dark color out fast toward white - so light mode needs
+   noticeably higher alpha here to hold WCAG-AA contrast at this font-size, not just a color swap. */
+html.az-light .az-stream-pop-footer {
+  color: rgba(var(--hud-text-dim-rgb), 0.85);
+}
 .az-stream-pop-footer a {
   color: rgba(var(--hud-accent-rgb), 0.7);
   text-decoration: none;
+}
+html.az-light .az-stream-pop-footer a {
+  color: rgba(var(--hud-accent-rgb), 0.95);
 }
 .az-stream-pop-footer a:hover,
 .az-stream-pop-footer a:focus-visible {
@@ -996,6 +1019,10 @@ html.az-calm .az-stream-btn,
 html.az-calm .az-stream-pop {
   border-color: #2ee62e;
   box-shadow: none;
+}
+html.az-light.az-calm .az-stream-btn,
+html.az-light.az-calm .az-stream-pop {
+  border-color: #1a7a1a;
 }
 html.az-calm .az-stream-btn,
 html.az-calm .az-stream-pop-title,
@@ -1082,6 +1109,11 @@ html.az-calm .az-stream-pop-url {
   gap: 10px;
   margin-top: 4px;
 }
+/* An odd preset count (5 today) leaves one lone swatch in the last row, alone on the left with
+   empty space on the right - span it across both columns instead. */
+.az-bg-swatches > *:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 /* .az-bg-pop button (below) styles ANY <button> in the popover, including these swatches (also
    real <button>s) - and at (0,1,1) it outranks a bare .az-bg-swatch (0,1,0), silently winning on
    display/width/padding/margin and collapsing the flex layout to a blank block. Scoped under
@@ -1152,6 +1184,10 @@ html.az-calm .az-bg-btn,
 html.az-calm .az-bg-pop {
   border-color: #2ee62e;
   box-shadow: none;
+}
+html.az-light.az-calm .az-bg-btn,
+html.az-light.az-calm .az-bg-pop {
+  border-color: #1a7a1a;
 }
 html.az-calm .az-bg-btn,
 html.az-calm .az-bg-pop-title {

@@ -292,6 +292,13 @@
     return !!(path && (path.getAttribute('d') || '').indexOf('4.27 3L3 4.27') !== -1);
   }
 
+  // Drives the stopped-state card border (html.az-stopped, see the CSS). Deliberately its own
+  // poller rather than piggybacking on the art-overlay's sync() (which only exists once a track
+  // WITH cover art has loaded) - a track with no art at all would otherwise never get the border.
+  setInterval(function () {
+    document.documentElement.classList.toggle('az-stopped', !isPlaying());
+  }, 300);
+
   // Arrow keys adjust volume by setting the range input's value and dispatching an 'input' event,
   // which Vue's v-model picks up, updates the store, and persists to localStorage. If muted,
   // unmute on up so the change is audible; down on a muted stream does nothing (already silent).
@@ -440,9 +447,6 @@
       var label = playing ? 'PAUSE' : 'PLAY';
       if (overlay.textContent !== label) overlay.textContent = label;
       art.classList.toggle('az-paused', !playing);
-      // Drives the stopped-state card border (see html.az-stopped in the CSS) - lives on <html>,
-      // not the card itself, so it survives the card's own v-if rebuilds across track changes.
-      document.documentElement.classList.toggle('az-stopped', !playing);
     }
     // MutationObserver: the button's icon swaps when isPlaying changes -> update immediately.
     artObserver = new MutationObserver(sync);
