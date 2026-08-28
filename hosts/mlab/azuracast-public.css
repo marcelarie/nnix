@@ -372,6 +372,11 @@ body.page-minimal .public-page .card-body {
   color: #fff;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));   /* no pill behind it -> legible over busy art */
   --vol: 0.5;   /* 0-1, synced from JS on 'input'; this is just the pre-JS fallback */
+  /* Eaten item, rotated by JS after every chomp (see setAzItem in the JS): --az-item-ch is
+     the brain slot's content while at max, --az-item-img is the thumb. Defaults keep the
+     mushroom if JS never runs. */
+  --az-item-ch: '\1F344';
+  --az-item-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%8D%84%3C/text%3E%3C/svg%3E");
 }
 /* Mouth sits right on the range's end (right: 22px = the padding-right reserved for the
    brain, so it lines up exactly with the track's true right edge, no guessed offset) and is
@@ -413,11 +418,14 @@ body.page-minimal .public-page .card-body {
   opacity: 1;
   animation: azbrain 1.4s ease-out;
 }
-/* Volume parked at max: the brain becomes the mushroom that just arrived and stays that
-   way - swapped emoji, full opacity, no ongoing animation (the 1.4s pulse above still plays
-   over it on arrival). Reverts to the dim brain the instant az-maxed drops. */
+/* Volume parked at max: the brain becomes the item that just arrived and stays that way -
+   swapped emoji, full opacity, no ongoing animation (the 1.4s pulse above still plays over it
+   on arrival). Reverts to the dim brain the instant az-maxed drops. The emoji is whatever the
+   rotation currently ate (--az-item-ch); the bare content line below is the fallback for
+   browsers without var() in content. */
 .radio-player-widget .radio-control-volume.az-maxed::before {
   content: '\1F344';
+  content: var(--az-item-ch, '\1F344');
   opacity: 1;
 }
 @keyframes azbrain {
@@ -498,6 +506,7 @@ body.page-minimal .public-page .card-body {
   border-radius: 0;
   background-color: transparent;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%8D%84%3C/text%3E%3C/svg%3E");
+  background-image: var(--az-item-img);   /* rotated item (JS); line above = no-var fallback */
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -510,6 +519,7 @@ body.page-minimal .public-page .card-body {
   border-radius: 0;
   background-color: transparent;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%8D%84%3C/text%3E%3C/svg%3E");
+  background-image: var(--az-item-img);   /* rotated item (JS); line above = no-var fallback */
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;

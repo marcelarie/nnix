@@ -318,6 +318,18 @@
   // resets the flag so it can fire again next time volume is pushed back to max.
   var AZ_BITE_MS = 500;    // mouth-bite animation length
   var AZ_HIDDEN_MS = 3000; // how long the mushroom stays eaten once the bite ends
+  // Eaten-item rotation: each chomp eats whatever the thumb currently is; when the volume drops
+  // back below max the NEXT item from AZ_ITEMS comes back as the thumb. --az-item-ch (brain slot
+  // while at max) + --az-item-img (thumb) carry it to the pseudo-elements; the CSS defaults keep
+  // the mushroom if JS never runs.
+  var AZ_ITEMS = ['🍄', '💊', '🐴', '🧪', '🍬', '🥤', '🍕'];
+  var azItemIdx = 0;
+  function setAzItem(volCtrl) {
+    var em = AZ_ITEMS[azItemIdx % AZ_ITEMS.length];
+    volCtrl.style.setProperty('--az-item-ch', '"' + em + '"');
+    volCtrl.style.setProperty('--az-item-img',
+      'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 20 20\'%3E%3Ctext x=\'10\' y=\'16\' font-size=\'18\' text-anchor=\'middle\'%3E' + encodeURIComponent(em) + '%3C/text%3E%3C/svg%3E")');
+  }
   function syncVolVar(input) {
     var volCtrl = document.querySelector('.radio-control-volume');
     if (!volCtrl) return;
@@ -327,6 +339,8 @@
       volCtrl.classList.add('az-maxed'); // mouth stays gone while parked at max (see CSS)
       if (!input._azMaxed) { input._azMaxed = true; spawn1Up(volCtrl); chompMushroom(volCtrl); }
     } else {
+      // Dropped below max: the eaten item is done for this round -> the next one comes back.
+      if (input._azMaxed) { azItemIdx++; setAzItem(volCtrl); }
       input._azMaxed = false;
       volCtrl.classList.remove('az-chomp', 'az-eaten', 'az-maxed'); // dragged back down -> thumb must be grabbable again
     }
