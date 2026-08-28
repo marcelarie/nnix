@@ -14,7 +14,7 @@
     ./attic.nix
     ./audiobookshelf.nix
     ./authelia.nix
-    ./azuracast.nix
+    ./azuracast
     ./bandcampsync.nix
     ./brave-origin-bump.nix
     ./calibre.nix

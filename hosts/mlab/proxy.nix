@@ -403,6 +403,16 @@ in {
                     proxy_send_timeout 1h;
                   '';
                 };
+                # Declarative default background for the public page (azuracast-public.css)
+                # - served directly by nginx from the repo-tracked file below, not AzuraCast's
+                # own asset uploader (that names files with an opaque hash under
+                # /static/uploads/, so it isn't reproducible/declarative across fresh installs).
+                "= /party-bg.jpg" = {
+                  alias = "${./azuracast/azuracast-background.jpg}";
+                  extraConfig = ''
+                    add_header Cache-Control "public, max-age=31536000, immutable";
+                  '';
+                };
                 # Per-IP listen-time counter for the public page. Proxied to the
                 # azuracast-listen-time service (azuracast.nix) on loopback; exact match so the
                 # base "/" location above doesn't swallow it. Port must match listenTimePort there.

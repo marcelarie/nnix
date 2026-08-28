@@ -276,8 +276,10 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   inset: -6%;
   z-index: -2;
   /* --az-bg-custom is set by JS (azuracast-public.js) when the listener has picked their own
-     background image, stored client-side in localStorage; falls back to the default here. */
-  background-image: var(--az-bg-custom, url('/static/uploads/background.1787776802.jpg'));
+     background image, stored client-side in localStorage; falls back to the default here.
+     /party-bg.jpg is served declaratively by nginx (see proxy.nix), not AzuraCast's own asset
+     uploader - so the default survives fresh installs/rebuilds without any manual re-upload. */
+  background-image: var(--az-bg-custom, url('/party-bg.jpg'));
   background-size: cover;
   background-position: center;
   transform: scale(var(--az-bg-scale, 1)) translate(var(--az-bg-x, 0px), var(--az-bg-y, 0px));
@@ -983,7 +985,7 @@ html.az-calm .az-stream-pop-url {
   bottom: 50px;
   left: 10px;
   z-index: 1000;
-  max-width: min(86vw, 340px);
+  max-width: min(86vw, 360px);
   margin: 0;
   padding: 14px 16px;
   border: 2px solid #00e5ff;
@@ -1015,28 +1017,34 @@ html.az-calm .az-stream-pop-url {
    page's own neon palette (cyan/magenta glow, dark HUD panels). */
 .az-bg-swatches {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   margin-top: 4px;
 }
-.az-bg-swatch {
+/* .az-bg-pop button (below) styles ANY <button> in the popover, including these swatches (also
+   real <button>s) - and at (0,1,1) it outranks a bare .az-bg-swatch (0,1,0), silently winning on
+   display/width/padding/margin and collapsing the flex layout to a blank block. Scoped under
+   .az-bg-pop here too so specificity (0,2,0) beats it cleanly instead of relying on source order. */
+.az-bg-pop .az-bg-swatch {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
+  width: auto;
+  margin: 0;
   padding: 0;
   border: none;
   background: none;
   color: #cfeefb;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
 }
 .az-bg-swatch-dot {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   border-radius: 50%;
   border: 2px solid rgba(0, 229, 255, 0.4);

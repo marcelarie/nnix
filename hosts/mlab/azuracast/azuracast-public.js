@@ -1176,7 +1176,7 @@
     // match the page's own neon palette. value is the exact string stored in --az-bg-custom -
     // a plain color needs a flat gradient since background-image only accepts <image> values.
     var BG_PRESETS = [
-      { key: 'party', label: 'Party', value: null, dot: 'url("/static/uploads/background.1787776802.jpg")' },
+      { key: 'party', label: 'Party', value: null, dot: 'url("/party-bg.jpg")' },
       { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: '#ffffff' },
       { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: '#000000' },
       { key: 'neon', label: 'Neon', value: 'linear-gradient(135deg, #3d0a66, #00263d)', dot: 'linear-gradient(135deg, #3d0a66, #00263d)' }
