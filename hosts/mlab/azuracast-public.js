@@ -588,32 +588,59 @@
   // bgDropEnergy, which exponentially decays over the next ~0.3-0.5s -> a punch, not a toggle.
   var bgFxRoot = document.documentElement.style;
   var bgBassAvg = 0, bgDropEnergy = 0, bgLastHit = 0;
-  // Glow dodges the cursor: bgGlowBaseX/Y is where a bass hit relocated it to; applyGlowPos pushes
-  // that point away from the last known mouse position when the cursor gets close, so the light
-  // "escapes" instead of sitting under it. Skipped entirely under prefers-reduced-motion (CSS
-  // already hides the ::after layer there).
-  var bgGlowBaseX = 50, bgGlowBaseY = 35, bgMouseX = -9999, bgMouseY = -9999;
-  var GLOW_DODGE_R = 260; // px
-  function applyGlowPos() {
+  // Floor so the glow stays faintly visible (and cursor-dodgeable) even when quiet/paused -
+  // without this, opacity tracked audio loudness straight to 0, so hovering only ever seemed to
+  // move it right around play/pause, where a brief decode spike made it flash into view.
+  var GLOW_BASE_OPACITY = 0.16;
+  // Glow drifts like a bubble in water: bgGlowX/Y is where it's currently drawn, bgGlowTargetX/Y
+  // is where it's heading, and driftGlow() eases the former toward the latter every frame (not a
+  // snap, not a CSS transition - custom properties inside a gradient() don't transition). Getting
+  // the cursor close relocates the TARGET to a fresh spot on the far side of the screen, so the
+  // light actually crosses the page rather than just nudging aside. Runs its own persistent RAF
+  // loop, independent of the audio-driven eqFrame, so hover still works while paused. Skipped
+  // entirely under prefers-reduced-motion (CSS already hides the ::after layer there).
+  var bgGlowX = 50, bgGlowY = 35, bgGlowTargetX = 50, bgGlowTargetY = 35;
+  var bgMouseX = -9999, bgMouseY = -9999;
+  var GLOW_FLEE_R = 240; // px - cursor distance that triggers a flee
+  var GLOW_FLEE_COOLDOWN_MS = 550; // don't re-flee faster than this while the cursor stays close
+  var GLOW_EASE = 0.045; // per-frame lerp toward the target - lower = slower/floatier
+  var bgGlowLastFlee = 0;
+  function pickFleeTarget() {
+    // Biased to the opposite side of the screen from the cursor, so it reads as crossing the
+    // page rather than jittering in place.
+    var fromLeft = bgMouseX < window.innerWidth / 2;
+    return {
+      x: fromLeft ? 58 + Math.random() * 32 : 10 + Math.random() * 32,
+      y: 12 + Math.random() * 66
+    };
+  }
+  function maybeFlee() {
     var w = window.innerWidth, h = window.innerHeight;
-    var bx = bgGlowBaseX / 100 * w, by = bgGlowBaseY / 100 * h;
-    var dx = bx - bgMouseX, dy = by - bgMouseY;
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    var fx = bx, fy = by;
-    if (dist < GLOW_DODGE_R && dist > 0.01) {
-      var push = GLOW_DODGE_R - dist;
-      fx = bx + (dx / dist) * push;
-      fy = by + (dy / dist) * push;
+    var bx = bgGlowX / 100 * w, by = bgGlowY / 100 * h;
+    var dist = Math.hypot(bx - bgMouseX, by - bgMouseY);
+    var now = performance.now();
+    if (dist < GLOW_FLEE_R && now - bgGlowLastFlee > GLOW_FLEE_COOLDOWN_MS) {
+      bgGlowLastFlee = now;
+      var t = pickFleeTarget();
+      bgGlowTargetX = t.x;
+      bgGlowTargetY = t.y;
     }
-    bgFxRoot.setProperty('--az-glow-x', Math.max(0, Math.min(100, fx / w * 100)).toFixed(1) + '%');
-    bgFxRoot.setProperty('--az-glow-y', Math.max(0, Math.min(100, fy / h * 100)).toFixed(1) + '%');
+  }
+  function driftGlow() {
+    requestAnimationFrame(driftGlow);
+    if (document.documentElement.classList.contains('az-calm')) return;
+    bgGlowX += (bgGlowTargetX - bgGlowX) * GLOW_EASE;
+    bgGlowY += (bgGlowTargetY - bgGlowY) * GLOW_EASE;
+    bgFxRoot.setProperty('--az-glow-x', bgGlowX.toFixed(2) + '%');
+    bgFxRoot.setProperty('--az-glow-y', bgGlowY.toFixed(2) + '%');
   }
   if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     window.addEventListener('mousemove', function (e) {
       if (document.documentElement.classList.contains('az-calm')) return; // hidden by CSS in calm mode - skip the trig
       bgMouseX = e.clientX; bgMouseY = e.clientY;
-      applyGlowPos();
+      maybeFlee();
     });
+    driftGlow();
   }
   function setBgFx(punch, bassN, midN, highN) {
     // Anti-seizure mode hides zoom/shake/glow entirely via CSS (html.az-calm) - none of the
@@ -624,16 +651,16 @@
     if (bassN > 0.35 && bassN > bgBassAvg * 1.35 && now - bgLastHit > 120) {
       bgLastHit = now;
       bgDropEnergy = 1;
-      bgGlowBaseX = 15 + Math.random() * 70;
-      bgGlowBaseY = 15 + Math.random() * 60;
-      applyGlowPos();
+      var t = pickFleeTarget();
+      bgGlowTargetX = t.x;
+      bgGlowTargetY = t.y;
     } else {
       bgDropEnergy *= 0.90;
     }
     bgFxRoot.setProperty('--az-bg-scale', (1 + bassN * 0.045 + bgDropEnergy * 0.14).toFixed(4));
     bgFxRoot.setProperty('--az-bg-x', ((midN - 0.5) * 14).toFixed(2) + 'px');
     bgFxRoot.setProperty('--az-bg-y', ((highN - 0.5) * 10).toFixed(2) + 'px');
-    bgFxRoot.setProperty('--az-glow-opacity', Math.min(0.75, punch * 0.5 + bgDropEnergy * 0.5).toFixed(3));
+    bgFxRoot.setProperty('--az-glow-opacity', Math.min(0.75, GLOW_BASE_OPACITY + punch * 0.5 + bgDropEnergy * 0.5).toFixed(3));
     bgFxRoot.setProperty('--az-glow-color', bassN >= midN && bassN >= highN ? '#1e40ff' : (midN >= highN ? '#ff3df0' : '#ffe600'));
   }
 
@@ -1144,14 +1171,26 @@
     var BG_KEY = 'az_bg_custom';
     var MAX_DIM = 1920; // downscale target - keeps the base64 copy well under localStorage's ~5MB quota
 
-    function apply(dataUrl) {
-      if (dataUrl) document.documentElement.style.setProperty('--az-bg-custom', 'url("' + dataUrl + '")');
+    // Party = the default floating-lights photo (CSS falls back to it whenever --az-bg-custom is
+    // unset, so "select Party" is just clearing the key); the rest are solid colors picked to
+    // match the page's own neon palette. value is the exact string stored in --az-bg-custom -
+    // a plain color needs a flat gradient since background-image only accepts <image> values.
+    var BG_PRESETS = [
+      { key: 'party', label: 'Party', value: null, dot: 'url("/static/uploads/background.1787776802.jpg")' },
+      { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: '#ffffff' },
+      { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: '#000000' },
+      { key: 'neon', label: 'Neon', value: 'linear-gradient(135deg, #3d0a66, #00263d)', dot: 'linear-gradient(135deg, #3d0a66, #00263d)' }
+    ];
+
+    function apply(cssValue) {
+      if (cssValue) document.documentElement.style.setProperty('--az-bg-custom', cssValue);
       else document.documentElement.style.removeProperty('--az-bg-custom');
     }
-    try {
-      var stored = localStorage.getItem(BG_KEY);
-      if (stored) apply(stored);
-    } catch (e) {}
+    function stored() {
+      try { return localStorage.getItem(BG_KEY); } catch (e) { return null; }
+    }
+    var initial = stored();
+    if (initial) apply(initial);
 
     function addBgPicker() {
       if (!document.body || document.querySelector('.az-bg-btn')) return;
@@ -1160,7 +1199,7 @@
       btn.type = 'button';
       btn.className = 'az-bg-btn';
       btn.textContent = '🖼';
-      btn.setAttribute('aria-label', 'Change background image');
+      btn.setAttribute('aria-label', 'Change background');
       btn.setAttribute('aria-expanded', 'false');
 
       var input = document.createElement('input');
@@ -1171,30 +1210,52 @@
       var pop = document.createElement('div');
       pop.className = 'az-bg-pop';
       pop.setAttribute('role', 'dialog');
-      pop.setAttribute('aria-label', 'Background image picker');
+      pop.setAttribute('aria-label', 'Background picker');
       pop.innerHTML =
-        '<p class="az-bg-pop-title">Custom background</p>' +
-        '<button type="button" class="az-bg-pop-choose">Choose image…</button>' +
-        '<button type="button" class="az-bg-pop-reset">Reset to default</button>' +
+        '<p class="az-bg-pop-title">Background</p>' +
+        '<div class="az-bg-swatches"></div>' +
+        '<button type="button" class="az-bg-pop-choose">Choose your own photo…</button>' +
         '<p class="az-bg-pop-msg">Saved only in this browser, on this device.</p>';
+      var swatchRow = pop.querySelector('.az-bg-swatches');
       var chooseBtn = pop.querySelector('.az-bg-pop-choose');
-      var resetBtn = pop.querySelector('.az-bg-pop-reset');
       var msgEl = pop.querySelector('.az-bg-pop-msg');
 
-      function syncResetVisibility() {
-        var has = false;
-        try { has = !!localStorage.getItem(BG_KEY); } catch (e) {}
-        resetBtn.style.display = has ? '' : 'none';
+      var swatchEls = {};
+      function markSelected(key) {
+        BG_PRESETS.forEach(function (p) { swatchEls[p.key].classList.toggle('az-selected', p.key === key); });
       }
-      syncResetVisibility();
+      function currentKey() {
+        var s = stored();
+        if (!s) return 'party';
+        var match = BG_PRESETS.filter(function (p) { return p.value === s; })[0];
+        return match ? match.key : null; // null = a custom uploaded photo, no preset selected
+      }
+      BG_PRESETS.forEach(function (preset) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'az-bg-swatch';
+        var dot = document.createElement('span');
+        dot.className = 'az-bg-swatch-dot';
+        dot.style.backgroundImage = preset.dot; // NOT the `background` shorthand: it resets
+        // background-size/-position to their defaults, wiping the cover/center rules below and
+        // leaving the Party photo shown uncropped at native size (a tiny sliver, not a thumbnail).
+        var lbl = document.createElement('span');
+        lbl.textContent = preset.label;
+        b.appendChild(dot);
+        b.appendChild(lbl);
+        b.addEventListener('click', function () {
+          if (preset.value) { try { localStorage.setItem(BG_KEY, preset.value); } catch (e) {} }
+          else { try { localStorage.removeItem(BG_KEY); } catch (e) {} }
+          apply(preset.value);
+          markSelected(preset.key);
+          msgEl.textContent = preset.label + ' background set.';
+        });
+        swatchRow.appendChild(b);
+        swatchEls[preset.key] = b;
+      });
+      markSelected(currentKey());
 
       chooseBtn.addEventListener('click', function () { input.click(); });
-      resetBtn.addEventListener('click', function () {
-        try { localStorage.removeItem(BG_KEY); } catch (e) {}
-        apply(null);
-        syncResetVisibility();
-        msgEl.textContent = 'Reset to default background.';
-      });
 
       input.addEventListener('change', function () {
         var file = input.files && input.files[0];
@@ -1211,10 +1272,11 @@
           canvas.height = Math.round(img.naturalHeight * scale);
           canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
           var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          var cssValue = 'url("' + dataUrl + '")';
           try {
-            localStorage.setItem(BG_KEY, dataUrl);
-            apply(dataUrl);
-            syncResetVisibility();
+            localStorage.setItem(BG_KEY, cssValue);
+            apply(cssValue);
+            markSelected(null);
             msgEl.textContent = 'Background updated.';
           } catch (e) {
             msgEl.textContent = 'Image too large for this browser - try a smaller one.';
@@ -1231,7 +1293,7 @@
         btn.classList.toggle('az-open', on);
         pop.classList.toggle('az-open', on);
         btn.setAttribute('aria-expanded', String(on));
-        if (on) syncResetVisibility();
+        if (on) markSelected(currentKey());
       }
       btn.addEventListener('click', function () {
         setOpen(!btn.classList.contains('az-open'));

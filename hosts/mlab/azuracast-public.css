@@ -983,7 +983,7 @@ html.az-calm .az-stream-pop-url {
   bottom: 50px;
   left: 10px;
   z-index: 1000;
-  max-width: min(86vw, 300px);
+  max-width: min(86vw, 340px);
   margin: 0;
   padding: 14px 16px;
   border: 2px solid #00e5ff;
@@ -1011,10 +1011,54 @@ html.az-calm .az-stream-pop-url {
   font-weight: 700;
   text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
 }
+/* Preset swatches: Party (the default floating-lights photo) + solid colors picked to match the
+   page's own neon palette (cyan/magenta glow, dark HUD panels). */
+.az-bg-swatches {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+.az-bg-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #cfeefb;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.az-bg-swatch-dot {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 229, 255, 0.4);
+  background-size: cover;
+  background-position: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.az-bg-swatch:hover .az-bg-swatch-dot,
+.az-bg-swatch:focus-visible .az-bg-swatch-dot {
+  border-color: #ff3df0;
+  box-shadow: 0 0 10px rgba(255, 61, 240, 0.5);
+  transform: scale(1.08);
+  outline: none;
+}
+.az-bg-swatch.az-selected .az-bg-swatch-dot {
+  border-color: #ffe600;
+  box-shadow: 0 0 10px rgba(255, 230, 0, 0.6);
+}
 .az-bg-pop button {
   display: block;
   width: 100%;
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   padding: 8px 10px;
   border: 1px solid #00e5ff;
   background: rgba(0, 229, 255, 0.08);
@@ -1029,14 +1073,6 @@ html.az-calm .az-stream-pop-url {
 .az-bg-pop button:focus-visible {
   background: rgba(0, 229, 255, 0.2);
   outline: none;
-}
-.az-bg-pop-reset {
-  border-color: #ff3df0 !important;
-  color: #ff3df0 !important;
-}
-.az-bg-pop-reset:hover,
-.az-bg-pop-reset:focus-visible {
-  background: rgba(255, 61, 240, 0.15) !important;
 }
 .az-bg-pop-msg {
   margin: 8px 0 0;
