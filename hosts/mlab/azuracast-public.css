@@ -104,6 +104,7 @@ body.page-minimal .public-page .card-body {
    column, not the viewport, so it fills whatever space sits next to / below the
    album art. One line; if it overflows, JS adds .az-marquee for a seamless scroll. */
 .radio-player-widget .now-playing-main {
+  position: relative;   /* containing block for the floating bandcamp tip (below) */
   container-type: inline-size;
   min-width: 0;
   overflow: hidden;
@@ -137,33 +138,59 @@ body.page-minimal .public-page .card-body {
 .radio-player-widget .now-playing-artist a:hover {
   text-decoration: underline;
 }
-/* Bandcamp nudge: card-anchored tip at the BOTTOM of the now-playing card (below the
-   artist line), shown periodically until the user clicks the artist's bandcamp link.
-   Pure-CSS placement (bottom/left of .now-playing-details) - stable across track changes
-   and all viewports, no per-show JS measurement. While up, the artist name does the same
-   rainbow/wiggle as hover (.az-nudge-on, below) unless calm mode is on. */
+/* Bandcamp nudge: floating chip hanging just under the artist name (h5), with a small arrow
+   pointing up at the name, shown periodically until the user clicks the artist's bandcamp link.
+   position:absolute so it FLOATS over the card and moves nothing: it hangs over the .az-eq
+   strip (64px + margins, invisible when stopped) that always occupies the space below the
+   artist, so it never pushes the name, the equalizer or the controls. JS sets `top` from the
+   measured h5 bottom each time it shows, so a track change that re-lays-out the name keeps it
+   pinned directly under it. Anchored to .now-playing-main (position:relative, stable across
+   track changes - the <h5> itself is rebuilt per track); left:50% + translateX(-50%) centers
+   it on the column regardless of the artist name's length; width:fit-content shrinks it to its
+   text and max-width + white-space:normal keep it wrapping on narrow/mobile widths.
+   pointer-events:none so it never blocks the click it is trying to get. */
 .radio-player-widget .az-bc-tip {
   position: absolute;
-  left: 0;
-  bottom: 0;
+  left: 50%;
+  top: 0;                          /* JS sets the real offset under the artist each show */
+  transform: translate(-50%, 4px);
   z-index: 6;
-  max-width: min(280px, 100%);
+  width: fit-content;
+  max-width: calc(100% - 8px);
   padding: 10px 14px;
+  border: 1px solid rgba(255, 61, 240, 0.6);
   border-radius: 10px;
   background: rgba(8, 8, 22, 0.96);
-  border: 1px solid rgba(255, 61, 240, 0.6);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.45;
+  text-align: center;
   white-space: normal;
-  pointer-events: none;   /* never block the click it is trying to get */
+  pointer-events: none;            /* never block the click it is trying to get */
   opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  visibility: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+}
+/* Arrow pointing up at the artist name: a rotated square (top two borders only) whose
+   background matches the chip, so it reads as the chip's own pointer. */
+.radio-player-widget .az-bc-tip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  background: rgba(8, 8, 22, 0.96);
+  border-left: 1px solid rgba(255, 61, 240, 0.6);
+  border-top: 1px solid rgba(255, 61, 240, 0.6);
+  transform: rotate(45deg);
 }
 .radio-player-widget .az-bc-tip.az-on {
   opacity: 1;
-  transform: translateY(0);
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 /* While the nudge tip is up, the artist name does the hover treatment (rainbow + wiggle) so
    the eye lands on it. JS only adds .az-nudge-on outside calm mode; the html.az-calm rule
@@ -753,8 +780,8 @@ html.az-calm .az-calm-btn:hover {
 @media (max-width: 767px) {
   .az-calm-btn {
     font-size: 11px;
-    padding: 6px 12px;
-    letter-spacing: 1px;
+    padding: 5px 10px;
+    letter-spacing: 0.5px;
   }
 }
 html.az-calm body.page-minimal::before {

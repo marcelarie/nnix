@@ -707,8 +707,22 @@
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'az-calm-btn';
-      function label() { btn.textContent = calm ? 'Anti Seizure Mode' : 'I am having a seizure'; }
+      // Compact label on mobile: the full "I am having a seizure" is too wide to share the top
+      // bar with the listen-time counter at phone widths, so on narrow viewports it shows a
+      // short label instead (button stays right-anchored, counter stays left, no collision).
+      var compactMq = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+      function label() {
+        var compact = !!(compactMq && compactMq.matches);
+        btn.textContent = calm
+          ? (compact ? 'SEIZURE ON' : 'Anti Seizure Mode')
+          : (compact ? 'SEIZURE OFF' : 'I am having a seizure');
+      }
       label();
+      if (compactMq) {
+        var onMq = function () { label(); };
+        if (compactMq.addEventListener) compactMq.addEventListener('change', onMq);
+        else if (compactMq.addListener) compactMq.addListener(onMq);
+      }
       btn.setAttribute('aria-pressed', String(calm));
 
       // Idle timer: the button only screams while you're near it. .az-calm-idle (CSS) fades it
@@ -928,14 +942,17 @@
       try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
     }
     function getTip() {
-      var host = document.querySelector('.radio-player-widget .now-playing-details');
-      if (!host) return null;
-      var tip = host.querySelector(':scope > .az-bc-tip');
+      // Stable parent: .now-playing-main (the title/artist column, persists across track
+      // changes - the <h5> itself is rebuilt per track). The tip floats absolute over the
+      // card (see CSS), so its DOM position is irrelevant; it is created once and appended.
+      var main = document.querySelector('.radio-player-widget .now-playing-main');
+      if (!main) return null;
+      var tip = main.querySelector(':scope > .az-bc-tip');
       if (tip) return tip;
       tip = document.createElement('div');
       tip.className = 'az-bc-tip';
-      tip.textContent = 'Enjoying it? Get this on the artist’s Bandcamp →';
-      host.appendChild(tip);
+      tip.textContent = "Enjoying it? Get this on the artist's Bandcamp";
+      main.appendChild(tip);
       return tip;
     }
     document.addEventListener('click', function (e) {
@@ -963,6 +980,11 @@
         row.classList.remove('az-nudge-on');
         nextAt = now + 10000 + Math.random() * 50000; // random pause, then show again
       } else if (!showAt && now >= nextAt) {
+        // Pin it under the artist: measure the h5's bottom edge inside .now-playing-main
+        // (its offsetParent) and float the tip 8px below it; the arrow eats ~6px of that gap
+        // so its point lands right at the name. Measured on every show, so a track change
+        // that re-sizes the title/name keeps the tip under the new name.
+        tip.style.top = (row.offsetTop + row.offsetHeight + 8) + 'px';
         row.classList.add('az-nudge-on'); // artist name rainbow+wiggles while the tip is up
         showAt = now;
         tip.classList.add('az-on');
