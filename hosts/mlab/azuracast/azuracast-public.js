@@ -337,11 +337,12 @@
   // baseline trip the next lap (nothing carries over from drink/potion/etc into it). Pizza is
   // the deliberate "come back down" reset. phrase is what floats up instead of "1UP" (see
   // spawn1Up) - mushroom keeps the literal 1UP text, everything else gets its own callout.
+  // eqSets (read by eqFrame) doubles/triples the equalizer lines while this item is active.
   var AZ_TRIP = [
     { scaleMul: 1.15, shakeMul: 1.2,  speedMs: 60,  glowMul: 1.0,  hueDps: 10, wobbleAmp: 0,  phrase: '1UP'   }, // mushroom - tripy
     { scaleMul: 1.0,  shakeMul: 1.0,  speedMs: 50,  glowMul: 1.0,  hueDps: 0,  wobbleAmp: 0,  phrase: 'RUSH'  }, // pill - current/dancy ecstasy
-    { scaleMul: 0.55, shakeMul: 1.5,  speedMs: 450, glowMul: 0.8,  hueDps: 0,  wobbleAmp: 12, phrase: 'WHOA'  }, // horse - slow + dizzy
-    { scaleMul: 1.5,  shakeMul: 1.7,  speedMs: 60,  glowMul: 1.15, hueDps: 30, wobbleAmp: 0,  phrase: 'TRIP'  }, // potion - really tripy
+    { scaleMul: 0.55, shakeMul: 1.5,  speedMs: 450, glowMul: 0.8,  hueDps: 0,  wobbleAmp: 12, phrase: 'WHOA',  eqSets: 2 }, // horse - slow + dizzy, double lines
+    { scaleMul: 1.5,  shakeMul: 1.7,  speedMs: 60,  glowMul: 1.15, hueDps: 30, wobbleAmp: 0,  phrase: 'TRIP',  eqSets: 3 }, // potion (LSD) - really tripy, triple lines
     { scaleMul: 1.15, shakeMul: 1.1,  speedMs: 35,  glowMul: 1.7,  hueDps: 0,  wobbleAmp: 0,  phrase: 'SUGAR' }, // candy - light + energy
     { scaleMul: 0.8,  shakeMul: 0.8,  speedMs: 220, glowMul: 0.9,  hueDps: 0,  wobbleAmp: 0,  phrase: 'CHILL' }, // drink - slow down a bit
     { scaleMul: 0.3,  shakeMul: 0.3,  speedMs: 50,  glowMul: 0.7,  hueDps: 0,  wobbleAmp: 0,  phrase: 'CALM'  }  // pizza - back to normal
@@ -528,10 +529,22 @@
     svg.setAttribute('viewBox', '0 0 100 40');
     svg.setAttribute('preserveAspectRatio', 'none');
     EQ_TRACKS.forEach(function (track, i) {
-      track.el = document.createElementNS(NS, 'path');
-      track.el.setAttribute('fill', track.color);
-      track.el.style.opacity = 0.9 - i * 0.12; // back lines slightly fainter so the front reads
-      svg.appendChild(track.el);
+      // set 0 is the base line; sets 1/2 are hidden "echo" ribbons that share the same d, just
+      // hung lower and fainter - shown only while a maxed item doubles (horse) or triples
+      // (potion) the lines, per azTrip.eqSets.
+      track.els = [];
+      for (var s = 0; s < 3; s++) {
+        var el = document.createElementNS(NS, 'path');
+        el.setAttribute('fill', track.color);
+        el.style.opacity = (0.9 - i * 0.12) * (s === 0 ? 1 : (s === 1 ? 0.45 : 0.25));
+        if (s > 0) {
+          el.setAttribute('transform', 'translate(0 ' + (s * 3.5) + ')'); // echo hangs lower
+          el.style.display = 'none';
+        }
+        svg.appendChild(el);
+        track.els.push(el);
+      }
+      track._sets = 1;
       track.sm = new Float32Array(track.pts); // per-track smoothed buffer
     });
     eqBox.appendChild(svg);
@@ -580,7 +593,7 @@
     var audio = getAudioEl();
     if (audio && audio !== eqBoundEl) attachEqSource(audio); // <audio> swapped across pause/play -> rebind
     if (eqCtx && eqCtx.state === 'suspended') eqCtx.resume(); // Chrome auto-suspends idle contexts
-    if (!eqAn || !audio || audio.paused || isMuted() || !eqBox || !EQ_TRACKS[0].el) {
+    if (!eqAn || !audio || audio.paused || isMuted() || !eqBox || !EQ_TRACKS[0].els[0]) {
       if (eqBox) eqBox.style.opacity = 0;
       setBgFx(0, 0, 0, 0); // paused/muted -> background goes still
       return;
@@ -620,11 +633,20 @@
         top.push(x.toFixed(1) + ',' + (cy - th / 2).toFixed(1));
         bot.unshift(x.toFixed(1) + ',' + (cy + th / 2).toFixed(1)); // reverse order -> path closes cleanly R-to-L
       }
-      track.el.setAttribute('d', 'M' + top.join(' L') + ' L' + bot.join(' L') + ' Z');
-      if (azMaxed && azTrip.hueDps) { // trippy items: color-cycle, each line at its own rate
-        track.el.style.filter = 'hue-rotate(' + (bgTripHue * (1 + 0.6 * k)).toFixed(1) + 'deg)';
-      } else if (track.el.style.filter) {
-        track.el.style.filter = '';
+      var d = 'M' + top.join(' L') + ' L' + bot.join(' L') + ' Z';
+      // horse doubles / LSD potion triples the lines (azTrip.eqSets): the echo ribbons share
+      // this same d, so one layout drives all of them.
+      var sets = azMaxed ? Math.min(3, azTrip.eqSets || 1) : 1;
+      if (track._sets !== sets) {
+        for (var s = 0; s < 3; s++) track.els[s].style.display = s < sets ? '' : 'none';
+        track._sets = sets;
+      }
+      var hue = azMaxed && azTrip.hueDps ? bgTripHue * (1 + 0.6 * k) : 0; // trippy items: color-cycle
+      for (var s = 0; s < sets; s++) {
+        var el = track.els[s];
+        el.setAttribute('d', d);
+        var f = hue ? 'hue-rotate(' + (hue * (1 + 0.35 * s)).toFixed(1) + 'deg)' : ''; // each line its own rate
+        if (el.style.filter !== f) el.style.filter = f;
       }
     }
     if (gmax > 8) eqLastSound = now;
