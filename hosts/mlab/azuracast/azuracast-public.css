@@ -330,7 +330,12 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   background-size: cover;
   background-position: center;
   transform: scale(var(--az-bg-scale, 1)) translate(var(--az-bg-x, 0px), var(--az-bg-y, 0px));
-  transition: transform 0.05s linear;
+  /* --az-bg-speed and --az-trip-hue are the "trip" the volume bar's eaten item sets (see
+     azTrip/AZ_TRIP in the JS) - a slower speed reads as sluggish/dizzy (horse, drink), hue-rotate
+     is the color-cycling "tripping" look (mushroom, potion). Both settle back to plain/instant
+     defaults if JS never runs. */
+  filter: hue-rotate(var(--az-trip-hue, 0deg));
+  transition: transform var(--az-bg-speed, 0.05s) linear, filter 0.3s linear;
   will-change: transform;
   pointer-events: none;
 }
@@ -351,6 +356,7 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   [data-bs-theme] body.page-minimal::before {
     transition: none;
     transform: none !important;
+    filter: none !important;   /* the trip hue-rotate cycling is exactly the kind of motion this opts out of */
   }
   [data-bs-theme] body.page-minimal::after {
     display: none;
@@ -502,6 +508,11 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
      mushroom if JS never runs. */
   --az-item-ch: '\1F344';
   --az-item-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%8D%84%3C/text%3E%3C/svg%3E");
+}
+/* Light theme: a white-hot neon core (not the deep teal accent, which reads muddy/dim here)
+   with a soft colored halo behind it for the "neon" glow character. */
+html.az-light .radio-player-widget .radio-control-volume {
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 7px rgba(var(--hud-accent-rgb), 0.65));
 }
 /* Mouth sits right on the range's end (right: 22px = the padding-right reserved for the
    brain, so it lines up exactly with the track's true right edge, no guessed offset) and is
@@ -868,6 +879,7 @@ html.az-light.az-calm .az-calm-btn:hover {
 html.az-calm body.page-minimal::before {
   transition: none;
   transform: none !important;
+  filter: none !important;   /* trip hue-rotate cycling is exactly what calm mode is for */
 }
 html.az-calm body.page-minimal::after {
   display: none;

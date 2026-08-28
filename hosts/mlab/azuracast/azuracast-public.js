@@ -331,6 +331,22 @@
   // the mushroom if JS never runs.
   var AZ_ITEMS = ['🍄', '💊', '🐴', '🧪', '🍬', '🥤', '🍕'];
   var azItemIdx = 0;
+  // Each item's own "trip": eating it swaps the background's whole shake/zoom/glow character
+  // (read by setBgFx, below) to match its vibe, instead of just cycling the thumb emoji. Index
+  // matches AZ_ITEMS 1:1 - AZ_ITEMS.length wraps forever, so mushroom is always back to its own
+  // baseline trip the next lap (nothing carries over from drink/potion/etc into it). Pizza is
+  // the deliberate "come back down" reset. phrase is what floats up instead of "1UP" (see
+  // spawn1Up) - mushroom keeps the literal 1UP text, everything else gets its own callout.
+  var AZ_TRIP = [
+    { scaleMul: 1.15, shakeMul: 1.2,  speedMs: 60,  glowMul: 1.0,  hueDps: 10, wobbleAmp: 0,  phrase: '1UP'   }, // mushroom - tripy
+    { scaleMul: 1.0,  shakeMul: 1.0,  speedMs: 50,  glowMul: 1.0,  hueDps: 0,  wobbleAmp: 0,  phrase: 'RUSH'  }, // pill - current/dancy ecstasy
+    { scaleMul: 0.55, shakeMul: 1.5,  speedMs: 450, glowMul: 0.8,  hueDps: 0,  wobbleAmp: 12, phrase: 'WHOA'  }, // horse - slow + dizzy
+    { scaleMul: 1.5,  shakeMul: 1.7,  speedMs: 60,  glowMul: 1.15, hueDps: 30, wobbleAmp: 0,  phrase: 'TRIP'  }, // potion - really tripy
+    { scaleMul: 1.15, shakeMul: 1.1,  speedMs: 35,  glowMul: 1.7,  hueDps: 0,  wobbleAmp: 0,  phrase: 'SUGAR' }, // candy - light + energy
+    { scaleMul: 0.8,  shakeMul: 0.8,  speedMs: 220, glowMul: 0.9,  hueDps: 0,  wobbleAmp: 0,  phrase: 'CHILL' }, // drink - slow down a bit
+    { scaleMul: 0.3,  shakeMul: 0.3,  speedMs: 50,  glowMul: 0.7,  hueDps: 0,  wobbleAmp: 0,  phrase: 'CALM'  }  // pizza - back to normal
+  ];
+  var azTrip = AZ_TRIP[0];
   function setAzItem(volCtrl) {
     var em = AZ_ITEMS[azItemIdx % AZ_ITEMS.length];
     volCtrl.style.setProperty('--az-item-ch', '"' + em + '"');
@@ -344,7 +360,13 @@
     volCtrl.style.setProperty('--vol', frac);
     if (frac >= 1) {
       volCtrl.classList.add('az-maxed'); // mouth stays gone while parked at max (see CSS)
-      if (!input._azMaxed) { input._azMaxed = true; spawn1Up(volCtrl); chompMushroom(volCtrl); }
+      if (!input._azMaxed) {
+        input._azMaxed = true;
+        azTrip = AZ_TRIP[azItemIdx % AZ_TRIP.length]; // the item being eaten right now, pre-increment
+        bgFxRoot.setProperty('--az-bg-speed', azTrip.speedMs + 'ms');
+        spawn1Up(volCtrl, azTrip.phrase);
+        chompMushroom(volCtrl);
+      }
     } else {
       // Dropped below max: the eaten item is done for this round -> the next one comes back.
       if (input._azMaxed) { azItemIdx++; setAzItem(volCtrl); }
@@ -362,10 +384,10 @@
     setTimeout(function () { volCtrl.classList.remove('az-chomp'); }, AZ_BITE_MS);
     setTimeout(function () { volCtrl.classList.remove('az-eaten'); }, AZ_BITE_MS + AZ_HIDDEN_MS);
   }
-  function spawn1Up(volCtrl) {
+  function spawn1Up(volCtrl, text) {
     var el = document.createElement('span');
     el.className = 'az-1up';
-    el.textContent = '1UP';
+    el.textContent = text || '1UP';
     el.addEventListener('animationend', function () { el.remove(); });
     volCtrl.appendChild(el);
   }
@@ -599,6 +621,7 @@
   // without this, opacity tracked audio loudness straight to 0, so hovering only ever seemed to
   // move it right around play/pause, where a brief decode spike made it flash into view.
   var GLOW_BASE_OPACITY = 0.16;
+  var bgTripHue = 0, bgTripHueLastT = 0;
   // Glow drifts like a bubble in water: bgGlowX/Y is where it's currently drawn, bgGlowTargetX/Y
   // is where it's heading, and driftGlow() eases the former toward the latter every frame (not a
   // snap, not a CSS transition - custom properties inside a gradient() don't transition). Getting
@@ -664,11 +687,31 @@
     } else {
       bgDropEnergy *= 0.90;
     }
-    bgFxRoot.setProperty('--az-bg-scale', (1 + bassN * 0.045 + bgDropEnergy * 0.14).toFixed(4));
-    bgFxRoot.setProperty('--az-bg-x', ((midN - 0.5) * 14).toFixed(2) + 'px');
-    bgFxRoot.setProperty('--az-bg-y', ((highN - 0.5) * 10).toFixed(2) + 'px');
-    bgFxRoot.setProperty('--az-glow-opacity', Math.min(0.75, GLOW_BASE_OPACITY + punch * 0.5 + bgDropEnergy * 0.5).toFixed(3));
+    // wobble: a slow independent circular drift, NOT tied to the audio - horse's "dizziness" is
+    // disorientation, not just bigger reactive shake, so it needs motion that keeps going even
+    // over a quiet passage.
+    var wobbleX = 0, wobbleY = 0;
+    if (azTrip.wobbleAmp) {
+      var wt = now / 1000;
+      wobbleX = Math.sin(wt * 0.6) * azTrip.wobbleAmp;
+      wobbleY = Math.cos(wt * 0.5) * azTrip.wobbleAmp * 0.7;
+    }
+    bgFxRoot.setProperty('--az-bg-scale', (1 + bassN * 0.045 * azTrip.scaleMul + bgDropEnergy * 0.14 * azTrip.scaleMul).toFixed(4));
+    bgFxRoot.setProperty('--az-bg-x', (((midN - 0.5) * 14 * azTrip.shakeMul) + wobbleX).toFixed(2) + 'px');
+    bgFxRoot.setProperty('--az-bg-y', (((highN - 0.5) * 10 * azTrip.shakeMul) + wobbleY).toFixed(2) + 'px');
+    bgFxRoot.setProperty('--az-glow-opacity', Math.min(0.85, (GLOW_BASE_OPACITY + punch * 0.5 + bgDropEnergy * 0.5) * azTrip.glowMul).toFixed(3));
     bgFxRoot.setProperty('--az-glow-color', bassN >= midN && bassN >= highN ? '#1e40ff' : (midN >= highN ? '#ff3df0' : '#ffe600'));
+    // Trip hue-rotate (mushroom/potion "tripping" color-cycle): accumulate by real elapsed time,
+    // not a fixed per-frame step, so it doesn't speed up/slow down with the frame rate.
+    var dt = bgTripHueLastT ? (now - bgTripHueLastT) / 1000 : 0;
+    bgTripHueLastT = now;
+    if (azTrip.hueDps) {
+      bgTripHue = (bgTripHue + azTrip.hueDps * dt) % 360;
+      bgFxRoot.setProperty('--az-trip-hue', bgTripHue.toFixed(1) + 'deg');
+    } else if (bgTripHue !== 0) {
+      bgTripHue = 0;
+      bgFxRoot.setProperty('--az-trip-hue', '0deg');
+    }
   }
 
   // Marquee: scroll title/artist side-to-side when text overflows its column.
