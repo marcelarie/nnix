@@ -593,12 +593,16 @@
     var audio = getAudioEl();
     if (audio && audio !== eqBoundEl) attachEqSource(audio); // <audio> swapped across pause/play -> rebind
     if (eqCtx && eqCtx.state === 'suspended') eqCtx.resume(); // Chrome auto-suspends idle contexts
-    if (!eqAn || !audio || audio.paused || isMuted() || !eqBox || !EQ_TRACKS[0].els[0]) {
+    // Muted-but-playing does NOT stop the lines/effects: the element mutes at the source, so
+    // the analyser would read zeros - instead the wave data below free-runs on synthetic
+    // per-band drift. Only paused (or no analyser/audio) actually stops everything.
+    var muted = isMuted();
+    if (!eqAn || !audio || audio.paused || !eqBox || !EQ_TRACKS[0].els[0]) {
       if (eqBox) eqBox.style.opacity = 0;
-      setBgFx(0, 0, 0, 0); // paused/muted -> background goes still
+      setBgFx(0, 0, 0, 0); // paused/no audio -> background goes still
       return;
     }
-    eqAn.getByteFrequencyData(eqData);
+    if (!muted) eqAn.getByteFrequencyData(eqData);
     var len = eqData.length, gmax = 0, peaks = [0, 0, 0], now = performance.now();
     for (var k = 0; k < EQ_TRACKS.length; k++) {
       var track = EQ_TRACKS[k];
@@ -617,11 +621,21 @@
         swaySpd = (60 / azTrip.speedMs) * (1 + 0.2 * k);
       }
       for (var i = 0; i < track.pts; i++) {
-        var s0 = b0 + Math.floor(i / track.pts * span);
-        var s1 = Math.max(s0 + 1, b0 + Math.floor((i + 1) / track.pts * span));
-        var v = 0;
-        for (var j = s0; j < s1 && j < b1; j++) if (eqData[j] > v) v = eqData[j]; // max -> spikes (granularity)
-        v = Math.min(255, v * 1.3); // gain -> lift detail
+        var v;
+        if (muted) {
+          // Free-run idle wave: slow per-band sine + jitter. Freq/phase-slope/jitter grow with
+          // k so bass undulates, mids ripple, highs shimmer - the real bands' character, minus
+          // the (zeroed) analyser. Still feeds peaks/gmax, so the background fx keep living too.
+          v = 60 + 50 * Math.sin(now / 1000 * (0.8 + k * 0.5) + i * (0.25 + k * 0.1))
+            + (Math.random() * 2 - 1) * (6 + k * 14);
+          if (v < 0) v = 0;
+        } else {
+          var s0 = b0 + Math.floor(i / track.pts * span);
+          var s1 = Math.max(s0 + 1, b0 + Math.floor((i + 1) / track.pts * span));
+          v = 0;
+          for (var j = s0; j < s1 && j < b1; j++) if (eqData[j] > v) v = eqData[j]; // max -> spikes (granularity)
+          v = Math.min(255, v * 1.3); // gain -> lift detail
+        }
         if (v > gmax) gmax = v;
         var kk = v > track.sm[i] ? track.atk : track.rel; // snap up, sink down -> bounce
         track.sm[i] = track.sm[i] * kk + v * (1 - kk);

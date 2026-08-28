@@ -313,7 +313,8 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
    ::after is a colored glow that pulses with the beat. Both driven by CSS vars
    (--az-bg-scale/-x/-y, --az-glow-opacity/-color) set every audio frame in JS from the same
    analyser that feeds the equalizer (see eqFrame in azuracast-public.js); reset to neutral
-   when paused/muted so the background goes still. */
+   when paused so the background goes still. Muted-but-playing keeps the effects alive: the
+   analyser reads zeros there, so eqFrame feeds the same vars from synthetic drift. */
 [data-bs-theme] body.page-minimal {
   position: relative;
 }
@@ -755,8 +756,10 @@ html.az-light.az-calm .az-listen-time {
 }
 
 /* Real audio-reactive equalizer (Web Audio AnalyserNode -> SVG path ribbons). Each ribbon traces
-   real frequency data; the strip is hidden unless the <audio> is playing, unmuted AND carrying
-   sound, so it's never fake. Placeholder for a custom visualizer later. */
+   real frequency data; the strip is hidden unless the <audio> is playing AND carrying
+   sound. Muted-but-playing is the one exception: the element mutes at the source, so the
+   lines free-run on synthetic per-band drift instead of stopping. Placeholder for a custom
+   visualizer later. */
 .radio-player-widget .az-eq {
   height: 64px;
   margin: 6px 0 2px;
