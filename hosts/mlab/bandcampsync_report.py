@@ -103,7 +103,7 @@ def parse_journal(journal):
             will[m.group(2)] = m.group(1)
     done = set(re.findall(r"Writing bandcamp item id:(\d+)", journal))
     pending = [(pid, name) for pid, name in will.items() if pid not in done]
-    return flac, aiff, skip_pre, errors, pending
+    return flac, aiff, skip_pre, errors, pending, done
 
 
 def build_links(rows, urls):
@@ -123,7 +123,7 @@ def generate():
     journal = last_run_journal(since)
     urls = load_urls()
     rows = scan_albums()
-    flac, aiff, skip_pre, errors, pending = parse_journal(journal)
+    flac, aiff, skip_pre, errors, pending, done = parse_journal(journal)
     auth = "OK" if exit_code == "0" else "FAILED"
     albums = sorted(rows.items(), key=lambda kv: kv[1]["mtime"], reverse=True)
 
@@ -150,7 +150,20 @@ def generate():
         + (f" · <span class=fail>⚠ {errors} errors/warnings</span>" if errors else "")
         + "</p>"
     )
-    o.append("<h2>All albums</h2>")
+    added = [(iid, r) for iid, r in albums if iid in done]
+    o.append(f"<h2>Added in last run ({len(added)})</h2>")
+    if added:
+        o.append("<table><tr><th>Artist / Album</th><th>Added</th><th>Format(s)</th></tr>")
+        for item_id, r in added:
+            url = urls.get(item_id) or f"https://{slug(r['ar'])}.bandcamp.com/album/{slug(r['al'])}"
+            o.append(
+                f"<tr><td><a href='{esc(url)}'>{esc(r['ar'])} / {esc(r['al'])}</a></td>"
+                f"<td>{madrid(r['mtime'])}</td><td>{','.join(sorted(r['fmts']))}</td></tr>"
+            )
+        o.append("</table>")
+    else:
+        o.append("<p>none</p>")
+    o.append(f"<h2>All albums ({len(albums)})</h2>")
     o.append(
         "<table><tr><th>Artist / Album</th><th>Status</th><th>Added</th><th>Format(s)</th></tr>"
     )

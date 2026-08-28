@@ -141,39 +141,63 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
      so the corners come out rounded (clip-path/borders can only do hard points) and it stays
      crisp at any DPI. A dark drop-shadow, not a plate, is what keeps it readable over bright
      album art. The letter strobe is switched off here: at icon size it reads as a glitch, not
-     as lights. .az-paused (JS) swaps stop -> play. */
+     as lights - instead the mark breathes cyan <-> magenta on the same 1.1s alternate cycle as
+     the HUD buttons' neon borders (az-calm-btn-neon), and the glow is drawn in currentColor so
+     it follows that breathe. .az-paused (JS) swaps stop -> play. */
   html.az-waves .radio-player-widget .now-playing-art .az-overlay-play {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: auto;
-    height: auto;
+    width: 26px;
+    height: 26px;
     padding: 0;
     font-size: 0;
-    color: #fff;
     background: none;
     border: none;
-    animation: none;                     /* no azflash strobe at icon size */
-    transition: opacity 0.2s ease, transform 0.18s ease, color 0.18s ease;
+    animation: az-icon-neon 1.1s ease-in-out infinite alternate;   /* not azflash */
+    transition: opacity 0.2s ease, transform 0.18s ease;
   }
   html.az-waves .radio-player-widget .now-playing-art:hover .az-overlay-play {
     transform: translate(-50%, -50%) scale(1.14);
-    color: #ffe600;
+    animation-duration: 0.35s;           /* hover = the sign revs up, same trick as .az-calm-btn */
   }
   html.az-waves .radio-player-widget .now-playing-art .az-overlay-play::before {
     content: '';
-    width: 26px;
-    height: 26px;
+    width: 100%;
+    height: 100%;
     background: currentColor;
-    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.9));
-    /* stop: rounded square */
+    /* neon bloom in currentColor + a dark shadow so the mark still reads over bright art */
+    filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 14px currentColor)
+            drop-shadow(0 1px 3px rgba(0, 0, 0, 0.85));
+    /* stop: rounded square, centred in the 24x24 box */
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5.5' y='5.5' width='13' height='13' rx='3.5' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5.5' y='5.5' width='13' height='13' rx='3.5' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
   }
   html.az-waves .radio-player-widget .now-playing-art.az-paused .az-overlay-play::before {
-    /* play: rounded triangle (round join on a stroked path - a plain polygon has sharp points) */
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.4 5.6 19 12 8.4 18.4Z' fill='black' stroke='black' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.4 5.6 19 12 8.4 18.4Z' fill='black' stroke='black' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E");
+    /* play: rounded triangle (round join on a stroked path - a plain polygon has sharp points).
+       The path is pulled left of the geometric middle because the 1.5px round join grows the tip
+       outward: 7.4->17 plus the join lands the drawn shape centred on the box, not right of it. */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.4 6 17 12 7.4 18Z' fill='black' stroke='black' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.4 6 17 12 7.4 18Z' fill='black' stroke='black' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  /* Same two hues, same rhythm as the neon borders on the HUD buttons. */
+  @keyframes az-icon-neon {
+    from { color: rgb(var(--hud-accent-rgb)); }
+    to   { color: rgb(var(--hud-accent-2-rgb)); }
+  }
+  /* Light theme / reduced motion: the HUD borders go still there too - plain white mark, no
+     breathe, keeping just the dark shadow for contrast. */
+  html.az-light.az-waves .radio-player-widget .now-playing-art .az-overlay-play,
+  html.az-light.az-waves .radio-player-widget .now-playing-art:hover .az-overlay-play {
+    animation: none;
+    color: #fff;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html.az-waves .radio-player-widget .now-playing-art .az-overlay-play,
+    html.az-waves .radio-player-widget .now-playing-art:hover .az-overlay-play {
+      animation: none;
+      color: rgb(var(--hud-accent-rgb));
+    }
   }
   /* The bottom HUD chips would sink into the docked bar (they stack above it, so they'd just
      float on top of the player) - lift them above the footer's height with a bit of extra
