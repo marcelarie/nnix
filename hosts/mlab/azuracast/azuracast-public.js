@@ -240,7 +240,8 @@
 
   // Spacebar toggles play/pause; ArrowUp/ArrowDown raise/lower volume; z toggles the album art
   // zoom lightbox; m toggles mute; w toggles the wave overlay (+ footer player); c toggles
-  // anti-seizure mode. Registered
+  // anti-seizure mode; t iterates the background themes (party -> device -> white -> black
+  // -> neon). Registered
   // BEFORE the window 'unmute' keydown (capture) so
   // stopImmediatePropagation stops it also firing ensurePlaying (which would re-start right
   // after a pause). preventDefault stops the page scrolling on Space/arrow keys. Skipped while
@@ -253,7 +254,8 @@
     var isMute = (e.key === 'm' || e.key === 'M');
     var isWaves = (e.key === 'w' || e.key === 'W');
     var isCalm = (e.key === 'c' || e.key === 'C');
-    if (!isSpace && !isVol && !isZoom && !isMute && !isWaves && !isCalm) return;
+    var isTheme = (e.key === 't' || e.key === 'T');
+    if (!isSpace && !isVol && !isZoom && !isMute && !isWaves && !isCalm && !isTheme) return;
     var target = e.target;
     // Only defer to a REAL text-entry control. Matching a focused <input type=range> here would
     // silently swallow Space/z; it keeps its own native arrow-key handling below regardless.
@@ -285,6 +287,19 @@
       // (read from localStorage) stale, so it's skipped rather than set raw.
       var calmBtn = document.querySelector('.az-calm-btn');
       if (calmBtn) calmBtn.click();
+    } else if (isTheme) {
+      if (e.repeat) return;
+      // Iterate the background themes: click the swatch after the selected one, wrapping
+      // around. Reuses the swatch click path (localStorage + apply + selected state). With no
+      // swatch selected (a custom photo is set) it starts from the first preset.
+      var swatches = document.querySelectorAll('.az-bg-swatch');
+      if (swatches.length) {
+        var next = 0;
+        for (var i = 0; i < swatches.length; i++) {
+          if (swatches[i].classList.contains('az-selected')) { next = (i + 1) % swatches.length; break; }
+        }
+        swatches[next].click();
+      }
     } else {
       bumpVolume(e.key === 'ArrowUp' ? 5 : -5); // repeats allowed: hold to ramp volume
     }
@@ -1015,7 +1030,7 @@
     if (!host || host.querySelector('.az-hint')) return !!host;
     var hint = document.createElement('div');
     hint.className = 'az-hint';
-    hint.textContent = '↑/↓ volume  ·  space play/pause  ·  m mute  ·  z zoom  ·  w waves  ·  c calm';
+    hint.textContent = '↑/↓ volume  ·  space play/pause  ·  m mute  ·  z zoom  ·  w waves  ·  c calm  ·  t theme';
     host.appendChild(hint);
     return true;
   }
