@@ -347,6 +347,7 @@
     { scaleMul: 0.3,  shakeMul: 0.3,  speedMs: 50,  glowMul: 0.7,  hueDps: 0,  wobbleAmp: 0,  phrase: 'CALM'  }  // pizza - back to normal
   ];
   var azTrip = AZ_TRIP[0];
+  var azMaxed = false; // mirror of input._azMaxed so eqFrame knows the trip is live
   function setAzItem(volCtrl) {
     var em = AZ_ITEMS[azItemIdx % AZ_ITEMS.length];
     volCtrl.style.setProperty('--az-item-ch', '"' + em + '"');
@@ -362,6 +363,7 @@
       volCtrl.classList.add('az-maxed'); // mouth stays gone while parked at max (see CSS)
       if (!input._azMaxed) {
         input._azMaxed = true;
+        azMaxed = true;
         azTrip = AZ_TRIP[azItemIdx % AZ_TRIP.length]; // the item being eaten right now, pre-increment
         bgFxRoot.setProperty('--az-bg-speed', azTrip.speedMs + 'ms');
         spawn1Up(volCtrl, azTrip.phrase);
@@ -371,6 +373,7 @@
       // Dropped below max: the eaten item is done for this round -> the next one comes back.
       if (input._azMaxed) { azItemIdx++; setAzItem(volCtrl); }
       input._azMaxed = false;
+      azMaxed = false;
       volCtrl.classList.remove('az-chomp', 'az-eaten', 'az-maxed'); // dragged back down -> thumb must be grabbable again
     }
   }
@@ -499,16 +502,20 @@
   // so the 44px slot is reserved from page load -> no layout shift on fade. AudioContext is lazy
   // (needs a gesture) so muted autoplay isn't blocked. Same-origin guard: a cross-origin stream
   // bound to MediaElementSource taints it -> silence, so we skip. Per-track smoothing is done in
-  // JS (analyser smoothing is global) so bass reads smooth, mids spiky, highs very spiky. eqFrame
+  // JS (analyser smoothing is global) so bass reads smooth, mids spiky, highs very spiky - and
+  // each snaps up faster than it sinks down (bounce). eqFrame
   // re-binds each new <audio> (AzuraCast swaps it across pause/play) and resumes a
   // Chrome-auto-suspended context so data doesn't go flat.
   var eqCtx, eqAn, eqSrc, eqData, eqRAF, eqInit, eqBoundEl, eqBox, eqLastSound = 0;
-  // band = fraction of frequency bins [lo,hi]; pts = granularity; smooth = per-track smoothing
-  // (0=raw/spiky, 1=frozen); amp = vertical amplitude (fraction of half-height).
+  // band = fraction of frequency bins [lo,hi]; pts = granularity; atk/rel = per-track
+  // attack/release smoothing (0=snap, 1=frozen) - fast attack + slow release = the bounce;
+  // amp = vertical amplitude (fraction of half-height).
   var EQ_TRACKS = [
-    { color: '#00e5ff', band: [0.00, 0.15], pts: 24, smooth: 0.6,  amp: 0.7 }, // bass -> smooth,   cyan
-    { color: '#ff3df0', band: [0.15, 0.50], pts: 56, smooth: 0.12, amp: 0.9 }, // mid  -> grainier, magenta
-    { color: '#ffe600', band: [0.50, 1.00], pts: 90, smooth: 0.03, amp: 1.0 }  // high -> very grainy, yellow
+    { color: '#00e5ff', band: [0.00, 0.15], pts: 24, atk: 0.25, rel: 0.78, amp: 0.7 }, // bass -> smooth,   cyan
+    { color: '#ff3df0', band: [0.15, 0.50], pts: 56, atk: 0.05, rel: 0.84, amp: 0.9 }, // mid  -> grainier, magenta
+    // high -> very grainy, yellow. Banded 0.40-0.75, not 0.50-1.00: a compressed stream carries
+    // no data up to Nyquist, so the old top half sampled dead bins and sat flat all the time.
+    { color: '#ffe600', band: [0.40, 0.75], pts: 90, atk: 0.0,  rel: 0.90, amp: 1.0 }
   ];
   function buildEqDom() {
     if (eqBox) return;
@@ -579,12 +586,23 @@
       return;
     }
     eqAn.getByteFrequencyData(eqData);
-    var len = eqData.length, gmax = 0, peaks = [0, 0, 0];
+    var len = eqData.length, gmax = 0, peaks = [0, 0, 0], now = performance.now();
     for (var k = 0; k < EQ_TRACKS.length; k++) {
       var track = EQ_TRACKS[k];
       var b0 = Math.floor(track.band[0] * len);
       var b1 = Math.max(b0 + 1, Math.floor(track.band[1] * len));
       var span = b1 - b0, top = [], bot = [];
+      // Trip reactions while volume is maxed - each line its own way, front line (k=2) always
+      // responding hardest: glowMul scales height (candy jumps, drink/pizza settle), wobbleAmp
+      // is the horse's dizziness, speedMs sets a micro-sway (fast = pill/candy rush), and the
+      // hue-rotate below color-cycles the trippy items (mushroom/potion) at a different rate per
+      // line. Gated on azMaxed so the last trip doesn't linger after the volume drops.
+      var ampMul = 1, swayAmp = 0, swaySpd = 0;
+      if (azMaxed) {
+        ampMul = Math.min(1.25, 1 + (azTrip.glowMul - 1) * 0.35 * (k + 1));
+        swayAmp = Math.min(3, azTrip.wobbleAmp * (0.15 + 0.1 * k) || (60 / azTrip.speedMs) * 0.5 * (0.5 + 0.25 * k));
+        swaySpd = (60 / azTrip.speedMs) * (1 + 0.2 * k);
+      }
       for (var i = 0; i < track.pts; i++) {
         var s0 = b0 + Math.floor(i / track.pts * span);
         var s1 = Math.max(s0 + 1, b0 + Math.floor((i + 1) / track.pts * span));
@@ -592,18 +610,25 @@
         for (var j = s0; j < s1 && j < b1; j++) if (eqData[j] > v) v = eqData[j]; // max -> spikes (granularity)
         v = Math.min(255, v * 1.3); // gain -> lift detail
         if (v > gmax) gmax = v;
-        track.sm[i] = track.sm[i] * track.smooth + v * (1 - track.smooth); // per-track smoothing
+        var kk = v > track.sm[i] ? track.atk : track.rel; // snap up, sink down -> bounce
+        track.sm[i] = track.sm[i] * kk + v * (1 - kk);
         if (track.sm[i] > peaks[k]) peaks[k] = track.sm[i]; // per-band peak this frame -> drives the background fx
         var x = i / (track.pts - 1) * 100;
-        var cy = 20 - (track.sm[i] / 255) * (track.amp * 15); // centerline (baseline y=20, rises with level)
+        var cy = 20 - (track.sm[i] / 255) * (track.amp * 15 * ampMul) // trip: taller (candy) or settled (drink/pizza)
+          + (swayAmp ? Math.sin(now / 1000 * swaySpd + k * 2.1) * swayAmp : 0); // trip sway, per-line phase
         var th = 1.5 + (track.sm[i] / 255) * 5; // thickness ∝ level: loud = fat, quiet = thin
         top.push(x.toFixed(1) + ',' + (cy - th / 2).toFixed(1));
         bot.unshift(x.toFixed(1) + ',' + (cy + th / 2).toFixed(1)); // reverse order -> path closes cleanly R-to-L
       }
       track.el.setAttribute('d', 'M' + top.join(' L') + ' L' + bot.join(' L') + ' Z');
+      if (azMaxed && azTrip.hueDps) { // trippy items: color-cycle, each line at its own rate
+        track.el.style.filter = 'hue-rotate(' + (bgTripHue * (1 + 0.6 * k)).toFixed(1) + 'deg)';
+      } else if (track.el.style.filter) {
+        track.el.style.filter = '';
+      }
     }
-    if (gmax > 8) eqLastSound = performance.now();
-    eqBox.style.opacity = (performance.now() - eqLastSound < 250) ? '1' : '0';
+    if (gmax > 8) eqLastSound = now;
+    eqBox.style.opacity = (now - eqLastSound < 250) ? '1' : '0';
     setBgFx(gmax / 255, peaks[0] / 255, peaks[1] / 255, peaks[2] / 255);
   }
 
