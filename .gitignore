@@ -2,3 +2,7 @@
 result
 .*_secret_key
 machines
+
+# python
+__pycache__/
+*.pyc

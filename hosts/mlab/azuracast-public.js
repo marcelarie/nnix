@@ -979,16 +979,16 @@
   // per-IP rows from the `listener` table. Polled once a minute and on tab refocus.
   (function () {
     function fmt(secs) {
-      if (secs < 60) return '<1m';
+      if (secs < 60) return secs + 's';
       var m = Math.floor(secs / 60);
       return m < 60 ? m + 'm' : Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
     }
     function getEl() { return document.querySelector('.az-listen-time'); }
     function paint(d) {
       var cur = (d && d.current) || 0, tot = (d && d.total) || 0;
-      // current live session + total; hide the total half until there's a minute of history, and
-      // hide everything for a brand-new visitor who isn't currently listening.
-      var txt = cur > 0 ? ('⏱ ' + fmt(cur) + (tot >= 60 ? ' · total ' + fmt(tot) : ''))
+      // "now" = current listening session, "total" = all-time; hide the total half until there's
+      // a minute of history, and hide everything for a brand-new visitor who isn't listening.
+      var txt = cur > 0 ? ('⏱ now ' + fmt(cur) + (tot >= 60 ? ' · total ' + fmt(tot) : ''))
                        : (tot >= 60 ? '⏱ total ' + fmt(tot) : '');
       var e = getEl();
       if (!txt) { if (e) e.remove(); return; }
