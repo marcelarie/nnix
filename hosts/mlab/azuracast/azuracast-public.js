@@ -6,7 +6,18 @@
   // overlay) and start on the first gesture, which is always allowed. The store boots muted
   // (localStorage "player_muted" = "true") so a successful muted autoplay is silent until the
   // user clicks to unmute, keeping store + UI in sync.
+  // Mute state IS saved (the store persists player_muted on every toggle) - but the muted boot
+  // is what makes autoplay legal, so we remember a saved UNMUTED state here and restore it in
+  // start() once the muted autoplay is actually playing: unmuting an already-playing <audio>
+  // needs no user gesture, so the icon and the sound come back exactly as the user left them.
+  var wasUnmuted = false;
+  try { wasUnmuted = localStorage.getItem('player_muted') === 'false'; } catch (e) {}
   try { localStorage.setItem('player_muted', 'true'); } catch (e) {}
+  // New users (no saved volume) start at 75%, not the store's 55: the store reads its
+  // player_volume key from localStorage on first access, which happens after this script
+  // (same hook the muted pre-seed above rides on), so seeding the key here is what the store
+  // boots with. Returning users keep their saved value.
+  try { if (localStorage.getItem('player_volume') === null) localStorage.setItem('player_volume', '75'); } catch (e) {}
 
   function getPlayButton() { return document.querySelector('.radio-control-play-button'); }
   function getMuteButton() { return document.querySelector('.radio-control-volume .btn'); }
@@ -158,6 +169,7 @@
     clearInterval(autoplayPollId);
     DBG('start -> b.click()');
     playBtn.click();
+    if (wasUnmuted) unmuteAfterPlay(); // restore the saved unmuted state once playback lands
   }
   // AzuraCast fires 'now-playing' on the document when stream metadata arrives (same hook native autoplay uses).
   document.addEventListener('now-playing', function () { setTimeout(start, 0); }, { once: true });
@@ -367,13 +379,13 @@
   var AZ_HIDDEN_MS = 3000; // how long the mushroom stays eaten once the bite ends
   // Eaten-item rotation: each chomp eats whatever the thumb currently is; when the volume drops
   // back below max the NEXT item from AZ_ITEMS comes back as the thumb. --az-item-ch (brain slot
-  // while at max) + --az-item-img (thumb) carry it to the pseudo-elements; the CSS defaults keep
-  // the mushroom if JS never runs.
+  // while at max) + --az-item-img (thumb) carry it to the pseudo-elements; the CSS defaults match
+  // the pill (AZ_ITEMS[0]) if JS never runs.
   var AZ_ITEMS = ['💊', '🍄', '🐴', '🧪', '🍬', '🥤', '🍕'];
   var azItemIdx = 0;
   // Each item's own "trip": eating it swaps the background's whole shake/zoom/glow character
   // (read by setBgFx, below) to match its vibe, instead of just cycling the thumb emoji. Index
-  // matches AZ_ITEMS 1:1 - AZ_ITEMS.length wraps forever, so mushroom is always back to its own
+  // matches AZ_ITEMS 1:1 - AZ_ITEMS.length wraps forever, so pill is always back to its own
   // baseline trip the next lap (nothing carries over from drink/potion/etc into it). Pizza is
   // the deliberate "come back down" reset. phrase is what floats up instead of "1UP" (see
   // spawn1Up) - mushroom keeps the literal 1UP text, everything else gets its own callout.
@@ -1540,8 +1552,10 @@
     var BG_PRESETS = [
       { key: 'party', label: 'Party', value: null, dot: 'url("/party-bg.jpg")' },
       { key: 'device', label: 'Device', value: 'device', dot: 'linear-gradient(90deg, #ffffff 50%, #000000 50%)' },
-      { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: 'linear-gradient(#ffffff, #ffffff)' },
-      { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: 'linear-gradient(#000000, #000000)' },
+      // Keyword values (like 'device'/'neon'), resolved in apply(): the mode markers must be
+      // derivable from what was picked - a bare gradient string would look like a photo.
+      { key: 'white', label: 'White', value: 'white', dot: 'linear-gradient(#ffffff, #ffffff)' },
+      { key: 'black', label: 'Black', value: 'black', dot: 'linear-gradient(#000000, #000000)' },
       { key: 'neon', label: 'Neon', value: 'neon', dot: 'conic-gradient(#3d0a66, #00263d, #66083d, #0a3d1f, #1a0a66, #3d0a66)' }
       // Waves is no longer a background preset: it is a separate overlay toggle (the "≈" button,
       // see setWavesBg/addWavesToggle above) that rides on top of any background.
@@ -1568,6 +1582,8 @@
     function apply(rawValue) {
       var cssValue = rawValue;
       if (rawValue === 'device') cssValue = deviceIsLight() ? DEVICE_WHITE : DEVICE_BLACK;
+      else if (rawValue === 'white') cssValue = DEVICE_WHITE;
+      else if (rawValue === 'black') cssValue = DEVICE_BLACK;
       else if (rawValue === 'neon') cssValue = randomNeonValue();
       // Wave overlay state is owned by its own toggle (setWavesBg), never by a background pick.
       if (cssValue) document.documentElement.style.setProperty('--az-bg-custom', cssValue);
@@ -1588,6 +1604,11 @@
     // Legacy migration: "waves" used to be a background preset; it is now the separate overlay
     // toggle. Drop it so the background falls back to the default instead of an invalid value.
     if (initial === 'waves') { try { localStorage.removeItem(BG_KEY); } catch (e) {} initial = null; }
+    // Legacy migration: white/black used to store the raw gradient (indistinguishable from the
+    // Device value), which made apply() mark them as photo and eat the waves dark veil - the
+    // "gray background" bug. Rewrite to the keyword values above and persist it.
+    if (initial === DEVICE_WHITE) { try { localStorage.setItem(BG_KEY, 'white'); } catch (e) {} initial = 'white'; }
+    else if (initial === DEVICE_BLACK) { try { localStorage.setItem(BG_KEY, 'black'); } catch (e) {} initial = 'black'; }
     apply(initial);   // always (even null = party default): the az-bg-* marker class must exist on load
     // Live-follow the OS theme while Device is selected, no reload needed.
     if (deviceLightMQ) {
