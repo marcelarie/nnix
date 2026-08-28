@@ -172,12 +172,14 @@ body.page-minimal .public-page .card-body {
   transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
 }
 /* Arrow pointing up at the artist name: a rotated square (top two borders only) whose
-   background matches the chip, so it reads as the chip's own pointer. */
+   background matches the chip, so it reads as the chip's own pointer. Its horizontal position
+   is set per-show by JS via --az-arrow-x (bottom-center of the name, clamped to the chip);
+   50% is the fallback if JS never runs. */
 .radio-player-widget .az-bc-tip::before {
   content: '';
   position: absolute;
   top: -5px;
-  left: 50%;
+  left: var(--az-arrow-x, 50%);
   width: 9px;
   height: 9px;
   margin-left: -4.5px;
@@ -273,7 +275,9 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   position: fixed;
   inset: -6%;
   z-index: -2;
-  background-image: url('/static/uploads/background.1787776802.jpg');
+  /* --az-bg-custom is set by JS (azuracast-public.js) when the listener has picked their own
+     background image, stored client-side in localStorage; falls back to the default here. */
+  background-image: var(--az-bg-custom, url('/static/uploads/background.1787776802.jpg'));
   background-size: cover;
   background-position: center;
   transform: scale(var(--az-bg-scale, 1)) translate(var(--az-bg-x, 0px), var(--az-bg-y, 0px));
@@ -938,6 +942,124 @@ html.az-calm .az-stream-pop-url {
 @media (prefers-reduced-motion: reduce) {
   .az-stream-pop { transition: none; transform: none; }
 }
+/* Custom-background picker button (bottom-left) + popover. Same HUD silhouette as
+   .az-stream-btn, just bottom-anchored so it doesn't collide with the top-left
+   stream/listen-time chips or the top-right calm button. Picked image is stored client-side
+   (localStorage, see azuracast-public.js) - nothing is uploaded anywhere. */
+.az-bg-btn {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid #00e5ff;
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  background: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
+  color: #00e5ff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.az-bg-btn:hover,
+.az-bg-btn:focus-visible {
+  border-color: #ff3df0;
+  color: #ff3df0;
+  box-shadow: 0 0 16px rgba(255, 61, 240, 0.6);
+  outline: none;
+}
+.az-bg-btn.az-open {
+  border-color: #ffe600;
+  color: #ffe600;
+  box-shadow: 0 0 16px rgba(255, 230, 0, 0.6);
+}
+.az-bg-pop {
+  position: fixed;
+  bottom: 50px;
+  left: 10px;
+  z-index: 1000;
+  max-width: min(86vw, 300px);
+  margin: 0;
+  padding: 14px 16px;
+  border: 2px solid #00e5ff;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  background: linear-gradient(120deg, rgba(10, 0, 25, 0.96), rgba(0, 22, 38, 0.96));
+  color: #cfeefb;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.3);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.az-bg-pop.az-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.az-bg-pop-title {
+  margin: 0 0 6px;
+  color: #00e5ff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+}
+.az-bg-pop button {
+  display: block;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border: 1px solid #00e5ff;
+  background: rgba(0, 229, 255, 0.08);
+  color: #cfeefb;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.az-bg-pop button:hover,
+.az-bg-pop button:focus-visible {
+  background: rgba(0, 229, 255, 0.2);
+  outline: none;
+}
+.az-bg-pop-reset {
+  border-color: #ff3df0 !important;
+  color: #ff3df0 !important;
+}
+.az-bg-pop-reset:hover,
+.az-bg-pop-reset:focus-visible {
+  background: rgba(255, 61, 240, 0.15) !important;
+}
+.az-bg-pop-msg {
+  margin: 8px 0 0;
+  color: rgba(184, 214, 224, 0.75);
+  font-size: 12px;
+}
+html.az-calm .az-bg-btn,
+html.az-calm .az-bg-pop {
+  border-color: #2ee62e;
+  box-shadow: none;
+}
+html.az-calm .az-bg-btn,
+html.az-calm .az-bg-pop-title {
+  text-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .az-bg-pop { transition: none; transform: none; }
+}
+@media (max-width: 767px) {
+  .az-bg-btn { width: 30px; height: 30px; font-size: 14px; bottom: 8px; left: 8px; }
+  .az-bg-pop { bottom: 46px; left: 8px; font-size: 12px; }
+}
+
 @media (max-width: 767px) {
   .az-stream-btn { width: 30px; height: 30px; font-size: 16px; top: 8px; left: 8px; }
   .az-stream-pop { top: 46px; left: 8px; font-size: 12px; }

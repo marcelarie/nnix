@@ -951,7 +951,7 @@
       if (tip) return tip;
       tip = document.createElement('div');
       tip.className = 'az-bc-tip';
-      tip.textContent = "Enjoying it? Get this on the artist's Bandcamp";
+      tip.textContent = "Enjoying this tune? Click on the artist name for more!";
       main.appendChild(tip);
       return tip;
     }
@@ -985,6 +985,21 @@
         // so its point lands right at the name. Measured on every show, so a track change
         // that re-sizes the title/name keeps the tip under the new name.
         tip.style.top = (row.offsetTop + row.offsetHeight + 8) + 'px';
+        // Point the arrow at the BOTTOM-CENTER of the name: the bandcamp link IS the artist
+        // name, so its bounding box is the name box. Map its center onto the tip's own space
+        // and expose it as --az-arrow-x (the ::before arrow reads it). Clamped so a very short
+        // or very long name can't push the arrow off the chip. getBoundingClientRect is used
+        // (not offsetLeft) so marquee/inline-block/transform layouts all measure correctly.
+        var main = tip.parentElement;
+        var mainRect = main.getBoundingClientRect();
+        var nameRect = link.getBoundingClientRect();
+        var nameCenterX = nameRect.left + nameRect.width / 2 - mainRect.left; // name center, rel to main
+        var tipW = tip.offsetWidth;
+        var tipLeftX = mainRect.width / 2 - tipW / 2;                         // tip's left edge (centered on column)
+        var arrowX = nameCenterX - tipLeftX;                                  // arrow x, rel to tip
+        if (arrowX < 12) arrowX = 12;
+        else if (arrowX > tipW - 12) arrowX = tipW - 12;
+        tip.style.setProperty('--az-arrow-x', arrowX + 'px');
         row.classList.add('az-nudge-on'); // artist name rainbow+wiggles while the tip is up
         showAt = now;
         tip.classList.add('az-on');
@@ -1117,5 +1132,124 @@
     }
     if (document.body) addStreamInfo();
     else document.addEventListener('DOMContentLoaded', addStreamInfo);
+  })();
+
+  // --- custom background picker (client-side only, no upload) ---
+  // A "pick an image" button (bottom-left) lets a listener replace the page background with
+  // their own photo. The image never leaves the browser: it's downscaled on a <canvas> and
+  // saved as a data URL in localStorage, then applied via --az-bg-custom (see the
+  // background-image rule in azuracast-public.css), so it's back on the next visit from the
+  // same browser/device.
+  (function () {
+    var BG_KEY = 'az_bg_custom';
+    var MAX_DIM = 1920; // downscale target - keeps the base64 copy well under localStorage's ~5MB quota
+
+    function apply(dataUrl) {
+      if (dataUrl) document.documentElement.style.setProperty('--az-bg-custom', 'url("' + dataUrl + '")');
+      else document.documentElement.style.removeProperty('--az-bg-custom');
+    }
+    try {
+      var stored = localStorage.getItem(BG_KEY);
+      if (stored) apply(stored);
+    } catch (e) {}
+
+    function addBgPicker() {
+      if (!document.body || document.querySelector('.az-bg-btn')) return;
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'az-bg-btn';
+      btn.textContent = '🖼';
+      btn.setAttribute('aria-label', 'Change background image');
+      btn.setAttribute('aria-expanded', 'false');
+
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.style.display = 'none';
+
+      var pop = document.createElement('div');
+      pop.className = 'az-bg-pop';
+      pop.setAttribute('role', 'dialog');
+      pop.setAttribute('aria-label', 'Background image picker');
+      pop.innerHTML =
+        '<p class="az-bg-pop-title">Custom background</p>' +
+        '<button type="button" class="az-bg-pop-choose">Choose image…</button>' +
+        '<button type="button" class="az-bg-pop-reset">Reset to default</button>' +
+        '<p class="az-bg-pop-msg">Saved only in this browser, on this device.</p>';
+      var chooseBtn = pop.querySelector('.az-bg-pop-choose');
+      var resetBtn = pop.querySelector('.az-bg-pop-reset');
+      var msgEl = pop.querySelector('.az-bg-pop-msg');
+
+      function syncResetVisibility() {
+        var has = false;
+        try { has = !!localStorage.getItem(BG_KEY); } catch (e) {}
+        resetBtn.style.display = has ? '' : 'none';
+      }
+      syncResetVisibility();
+
+      chooseBtn.addEventListener('click', function () { input.click(); });
+      resetBtn.addEventListener('click', function () {
+        try { localStorage.removeItem(BG_KEY); } catch (e) {}
+        apply(null);
+        syncResetVisibility();
+        msgEl.textContent = 'Reset to default background.';
+      });
+
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        input.value = '';
+        if (!file) return;
+        msgEl.textContent = 'Loading…';
+        var img = new Image();
+        var objectUrl = URL.createObjectURL(file);
+        img.onload = function () {
+          URL.revokeObjectURL(objectUrl);
+          var scale = Math.min(1, MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.naturalWidth * scale);
+          canvas.height = Math.round(img.naturalHeight * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          try {
+            localStorage.setItem(BG_KEY, dataUrl);
+            apply(dataUrl);
+            syncResetVisibility();
+            msgEl.textContent = 'Background updated.';
+          } catch (e) {
+            msgEl.textContent = 'Image too large for this browser - try a smaller one.';
+          }
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(objectUrl);
+          msgEl.textContent = 'Could not read that image.';
+        };
+        img.src = objectUrl;
+      });
+
+      function setOpen(on) {
+        btn.classList.toggle('az-open', on);
+        pop.classList.toggle('az-open', on);
+        btn.setAttribute('aria-expanded', String(on));
+        if (on) syncResetVisibility();
+      }
+      btn.addEventListener('click', function () {
+        setOpen(!btn.classList.contains('az-open'));
+      });
+      document.addEventListener('click', function (e) {
+        if (!btn.classList.contains('az-open')) return;
+        if (e.target === btn || pop.contains(e.target)) return;
+        setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && btn.classList.contains('az-open')) setOpen(false);
+      });
+
+      document.body.appendChild(btn);
+      document.body.appendChild(pop);
+      document.body.appendChild(input);
+    }
+    if (document.body) addBgPicker();
+    else document.addEventListener('DOMContentLoaded', addBgPicker);
   })();
 })();
