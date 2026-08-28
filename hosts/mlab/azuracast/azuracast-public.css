@@ -1,18 +1,61 @@
+/* HUD chrome tokens (calm button, stream/background popovers, listen-time chip) - dark neon by
+   default. html.az-light (JS toggles it - see azuracast-public.js) swaps these to a light
+   variant when the "Device" background preset resolves to a light system theme. Only the fixed
+   HUD widgets read these; the player card itself (its own dark glass look) is untouched, since
+   a dark card reads fine floating over either a light or dark page background. */
+:root {
+  --hud-bg: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
+  --hud-bg-strong: linear-gradient(120deg, rgba(10, 0, 25, 0.96), rgba(0, 22, 38, 0.96));
+  --hud-bg-flat-rgb: 8, 8, 22;      /* flat (non-gradient) - for spots like the tooltip arrow
+                                       that must blend seamlessly with its own chip background */
+  --hud-accent-rgb: 0, 229, 255;    /* cyan */
+  --hud-accent-2-rgb: 255, 61, 240; /* magenta */
+  --hud-accent-3-rgb: 255, 230, 0;  /* yellow */
+  --hud-text-rgb: 207, 238, 251;
+  --hud-text-dim-rgb: 184, 214, 224;
+}
+html.az-light {
+  --hud-bg: linear-gradient(120deg, rgba(255, 255, 255, 0.92), rgba(230, 244, 250, 0.95));
+  --hud-bg-strong: linear-gradient(120deg, rgba(255, 255, 255, 0.98), rgba(230, 244, 250, 0.98));
+  --hud-bg-flat-rgb: 250, 250, 252;
+  --hud-accent-rgb: 0, 119, 168;    /* deep teal, readable on white */
+  --hud-accent-2-rgb: 163, 21, 127; /* deep magenta */
+  --hud-accent-3-rgb: 138, 106, 0;  /* amber */
+  --hud-text-rgb: 28, 43, 51;
+  --hud-text-dim-rgb: 28, 43, 51;
+}
+
 /* Hide Radio Marcel header */
 body.page-minimal .public-page .card-title {
   display: none;
 }
 
-/* Page layout - 1000px card */
+/* Page layout - 1000px card. border is transparent by default (reserves the box so toggling it
+   on below - see az-stopped - doesn't shift layout) and lights up while the stream is stopped,
+   so a paused player is easy to spot against a busy/plain background rather than blending in. */
 body.page-minimal .public-page .card {
   width: 1000px;
   margin: auto;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+html.az-stopped body.page-minimal .public-page .card {
+  border-color: rgba(var(--hud-accent-rgb), 0.6);
+  box-shadow: 0 0 16px rgba(var(--hud-accent-rgb), 0.3);
+}
+@media (prefers-reduced-motion: reduce) {
+  body.page-minimal .public-page .card { transition: none; }
 }
 
-/* Player card background - lighter (transparent) */
+/* Player card background - lighter (transparent); html.az-light (Device -> light system theme,
+   see azuracast-public.js) swaps it to a light glass card with dark text to match. */
 body.page-minimal .public-page .card,
 body.page-minimal .public-page .card-body {
   background: rgba(0, 0, 0, 0.45);
+}
+html.az-light body.page-minimal .public-page .card,
+html.az-light body.page-minimal .public-page .card-body {
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* No padding - use as much space as available */
@@ -120,6 +163,10 @@ body.page-minimal .public-page .card-body {
   overflow: hidden;
   line-height: 1.1;
 }
+html.az-light .radio-player-widget .now-playing-title,
+html.az-light .radio-player-widget .now-playing-artist {
+  color: rgb(var(--hud-text-rgb));
+}
 .radio-player-widget .now-playing-title {
   font-size: clamp(1.8rem, 14cqw, 5rem) !important;
   font-weight: 700 !important;
@@ -158,10 +205,10 @@ body.page-minimal .public-page .card-body {
   width: fit-content;
   max-width: calc(100% - 8px);
   padding: 10px 14px;
-  border: 1px solid rgba(255, 61, 240, 0.6);
+  border: 1px solid rgba(var(--hud-accent-2-rgb), 0.6);
   border-radius: 10px;
-  background: rgba(8, 8, 22, 0.96);
-  color: #fff;
+  background: rgba(var(--hud-bg-flat-rgb), 0.96);
+  color: rgb(var(--hud-text-rgb));
   font-size: 13px;
   line-height: 1.45;
   text-align: center;
@@ -183,9 +230,9 @@ body.page-minimal .public-page .card-body {
   width: 9px;
   height: 9px;
   margin-left: -4.5px;
-  background: rgba(8, 8, 22, 0.96);
-  border-left: 1px solid rgba(255, 61, 240, 0.6);
-  border-top: 1px solid rgba(255, 61, 240, 0.6);
+  background: rgba(var(--hud-bg-flat-rgb), 0.96);
+  border-left: 1px solid rgba(var(--hud-accent-2-rgb), 0.6);
+  border-top: 1px solid rgba(var(--hud-accent-2-rgb), 0.6);
   transform: rotate(45deg);
 }
 .radio-player-widget .az-bc-tip.az-on {
@@ -446,7 +493,9 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   z-index: 4;
   margin: 0;
   color: #fff;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));   /* no pill behind it -> legible over busy art */
+  /* themed glow (not a flat black shadow) so it still reads fine once html.az-light flips the
+     rest of the chrome to a light palette; also keeps it legible over busy album art either way. */
+  filter: drop-shadow(0 0 3px rgba(var(--hud-accent-rgb), 0.85)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
   --vol: 0.5;   /* 0-1, synced from JS on 'input'; this is just the pre-JS fallback */
   /* Eaten item, rotated by JS after every chomp (see setAzItem in the JS): --az-item-ch is
      the brain slot's content while at max, --az-item-img is the thumb. Defaults keep the
@@ -650,23 +699,24 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   }
 }
 
-/* Listen-time counter: square chip top-left, flush right of the stream-info button
-   (.az-stream-btn, same 34px box). Fed by the /listen-time endpoint; stays in calm mode.
-   Appended to <body> (like the button), so no widget-scoped selector. */
+/* Listen-time counter: square chip top-left, a bit clear of the stream-info button
+   (.az-stream-btn, same 34px box + 8px gap on desktop - flush read as one merged block).
+   Fed by the /listen-time endpoint; stays in calm mode. Appended to <body> (like the button),
+   so no widget-scoped selector. */
 .az-listen-time {
   position: fixed;
   top: 10px;
-  left: 44px;
+  left: 52px;
   height: 34px;
   z-index: 999;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 0 10px;
-  border: 2px solid rgba(0, 229, 255, 0.55);
+  border: 2px solid rgba(var(--hud-accent-rgb), 0.55);
   clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
-  background: linear-gradient(120deg, rgba(10, 0, 25, 0.7), rgba(0, 22, 38, 0.7));
-  color: rgba(255, 255, 255, 0.85);
+  background: var(--hud-bg);
+  color: rgb(var(--hud-text-rgb));
   font-family: 'Courier New', ui-monospace, monospace;
   font-size: 14px;
   letter-spacing: 0.3px;
@@ -715,12 +765,12 @@ html.az-calm .az-listen-time {
   right: 10px;
   z-index: 1000;
   padding: 9px 20px;
-  border: 2px solid #00e5ff;
+  border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
   /* notched corners: the neon-sign / HUD-panel silhouette, cut straight through the border */
   clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px));
-  background: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
-  color: #00e5ff;
+  background: var(--hud-bg);
+  color: rgb(var(--hud-accent-rgb));
   font-family: 'Courier New', ui-monospace, monospace;
   font-size: 17px;
   font-weight: 700;
@@ -730,13 +780,21 @@ html.az-calm .az-listen-time {
   opacity: 1;
   transition: opacity 0.6s ease;
   /* chromatic split (magenta left / cyan right) = the badly-tuned-CRT look */
-  text-shadow: -2px 0 #ff3df0, 2px 0 #00e5ff;
-  box-shadow: 0 0 14px rgba(0, 229, 255, 0.45), inset 0 0 12px rgba(255, 61, 240, 0.2);
+  text-shadow: -2px 0 rgb(var(--hud-accent-2-rgb)), 2px 0 rgb(var(--hud-accent-rgb));
+  box-shadow: 0 0 14px rgba(var(--hud-accent-rgb), 0.45), inset 0 0 12px rgba(var(--hud-accent-2-rgb), 0.2);
   animation: az-calm-btn-glitch 2.4s steps(1, end) infinite, az-calm-btn-neon 1.1s ease-in-out infinite alternate;
 }
 .az-calm-btn:hover {
   animation-duration: 0.7s, 0.35s;   /* hover = the sign is about to blow */
-  color: #ffe600;
+  color: rgb(var(--hud-accent-3-rgb));
+}
+/* Light theme: a still, static border instead of the CRT-glitch neon look - the glitch keyframes
+   below are hardcoded to the dark palette's hues and read as a bug (not a vibe) on a light chip. */
+html.az-light .az-calm-btn,
+html.az-light .az-calm-btn:hover {
+  animation: none;
+  text-shadow: none;
+  box-shadow: 0 0 10px rgba(var(--hud-accent-rgb), 0.2);
 }
 /* Mostly still, then a short burst of tearing - a glitch, not a strobe. */
 @keyframes az-calm-btn-glitch {
@@ -825,31 +883,31 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 2px solid #00e5ff;
+  border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
   clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
-  background: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
-  color: #00e5ff;
+  background: var(--hud-bg);
+  color: rgb(var(--hud-accent-rgb));
   font-family: 'Courier New', ui-monospace, monospace;
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+  text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.6);
+  box-shadow: 0 0 10px rgba(var(--hud-accent-rgb), 0.35);
   transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .az-stream-btn:hover,
 .az-stream-btn:focus-visible {
-  border-color: #ff3df0;
-  color: #ff3df0;
-  box-shadow: 0 0 16px rgba(255, 61, 240, 0.6);
+  border-color: rgb(var(--hud-accent-2-rgb));
+  color: rgb(var(--hud-accent-2-rgb));
+  box-shadow: 0 0 16px rgba(var(--hud-accent-2-rgb), 0.6);
   outline: none;
 }
 .az-stream-btn.az-open {
-  border-color: #ffe600;
-  color: #ffe600;
-  box-shadow: 0 0 16px rgba(255, 230, 0, 0.6);
+  border-color: rgb(var(--hud-accent-3-rgb));
+  color: rgb(var(--hud-accent-3-rgb));
+  box-shadow: 0 0 16px rgba(var(--hud-accent-3-rgb), 0.6);
 }
 .az-stream-pop {
   position: fixed;
@@ -859,14 +917,14 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   max-width: min(86vw, 360px);
   margin: 0;
   padding: 14px 16px;
-  border: 2px solid #00e5ff;
+  border: 2px solid rgb(var(--hud-accent-rgb));
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
-  background: linear-gradient(120deg, rgba(10, 0, 25, 0.96), rgba(0, 22, 38, 0.96));
-  color: #cfeefb;
+  background: var(--hud-bg-strong);
+  color: rgb(var(--hud-text-rgb));
   font-family: 'Courier New', ui-monospace, monospace;
   font-size: 13px;
   line-height: 1.45;
-  box-shadow: 0 0 18px rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 18px rgba(var(--hud-accent-rgb), 0.3);
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
@@ -879,31 +937,31 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
 }
 .az-stream-pop-title {
   margin: 0 0 6px;
-  color: #00e5ff;
+  color: rgb(var(--hud-accent-rgb));
   font-size: 14px;
   font-weight: 700;
-  text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+  text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.5);
 }
 .az-stream-pop-text {
   margin: 0 0 10px;
-  color: #b8d6e0;
+  color: rgb(var(--hud-text-dim-rgb));
 }
 .az-stream-pop-url {
   display: block;
   padding: 8px 10px;
-  border: 1px solid #ff3df0;
-  background: rgba(255, 61, 240, 0.08);
-  color: #ff3df0;
+  border: 1px solid rgb(var(--hud-accent-2-rgb));
+  background: rgba(var(--hud-accent-2-rgb), 0.08);
+  color: rgb(var(--hud-accent-2-rgb));
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
   word-break: break-all;
-  text-shadow: 0 0 6px rgba(255, 61, 240, 0.4);
+  text-shadow: 0 0 6px rgba(var(--hud-accent-2-rgb), 0.4);
   transition: background 0.15s ease;
 }
 .az-stream-pop-url:hover,
 .az-stream-pop-url:focus-visible {
-  background: rgba(255, 61, 240, 0.2);
+  background: rgba(var(--hud-accent-2-rgb), 0.2);
   outline: none;
 }
 /* "Copied!" flash after a click-to-copy: link flips green for ~1.3s (JS toggles .az-copied). */
@@ -916,17 +974,17 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
 .az-stream-pop-footer {
   margin: 12px 0 0;
   padding-top: 8px;
-  border-top: 1px solid rgba(0, 229, 255, 0.2);
-  color: rgba(184, 214, 224, 0.55);
+  border-top: 1px solid rgba(var(--hud-accent-rgb), 0.2);
+  color: rgba(var(--hud-text-dim-rgb), 0.55);
   font-size: 11px;
 }
 .az-stream-pop-footer a {
-  color: rgba(0, 229, 255, 0.7);
+  color: rgba(var(--hud-accent-rgb), 0.7);
   text-decoration: none;
 }
 .az-stream-pop-footer a:hover,
 .az-stream-pop-footer a:focus-visible {
-  color: #00e5ff;
+  color: rgb(var(--hud-accent-rgb));
   text-decoration: underline;
   outline: none;
 }
@@ -956,46 +1014,46 @@ html.az-calm .az-stream-pop-url {
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 2px solid #00e5ff;
+  border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
   clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
-  background: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
-  color: #00e5ff;
+  background: var(--hud-bg);
+  color: rgb(var(--hud-accent-rgb));
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+  text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.6);
+  box-shadow: 0 0 10px rgba(var(--hud-accent-rgb), 0.35);
   transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .az-bg-btn:hover,
 .az-bg-btn:focus-visible {
-  border-color: #ff3df0;
-  color: #ff3df0;
-  box-shadow: 0 0 16px rgba(255, 61, 240, 0.6);
+  border-color: rgb(var(--hud-accent-2-rgb));
+  color: rgb(var(--hud-accent-2-rgb));
+  box-shadow: 0 0 16px rgba(var(--hud-accent-2-rgb), 0.6);
   outline: none;
 }
 .az-bg-btn.az-open {
-  border-color: #ffe600;
-  color: #ffe600;
-  box-shadow: 0 0 16px rgba(255, 230, 0, 0.6);
+  border-color: rgb(var(--hud-accent-3-rgb));
+  color: rgb(var(--hud-accent-3-rgb));
+  box-shadow: 0 0 16px rgba(var(--hud-accent-3-rgb), 0.6);
 }
 .az-bg-pop {
   position: fixed;
   bottom: 50px;
   left: 10px;
   z-index: 1000;
-  max-width: min(86vw, 360px);
+  width: min(86vw, 360px);
   margin: 0;
   padding: 14px 16px;
-  border: 2px solid #00e5ff;
+  border: 2px solid rgb(var(--hud-accent-rgb));
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
-  background: linear-gradient(120deg, rgba(10, 0, 25, 0.96), rgba(0, 22, 38, 0.96));
-  color: #cfeefb;
+  background: var(--hud-bg-strong);
+  color: rgb(var(--hud-text-rgb));
   font-family: 'Courier New', ui-monospace, monospace;
   font-size: 13px;
   line-height: 1.45;
-  box-shadow: 0 0 18px rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 18px rgba(var(--hud-accent-rgb), 0.3);
   opacity: 0;
   transform: translateY(6px);
   pointer-events: none;
@@ -1008,10 +1066,10 @@ html.az-calm .az-stream-pop-url {
 }
 .az-bg-pop-title {
   margin: 0 0 6px;
-  color: #00e5ff;
+  color: rgb(var(--hud-accent-rgb));
   font-size: 14px;
   font-weight: 700;
-  text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+  text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.5);
 }
 /* Preset swatches: Party (the default floating-lights photo) + solid colors picked to match the
    page's own neon palette (cyan/magenta glow, dark HUD panels). */
@@ -1035,7 +1093,7 @@ html.az-calm .az-stream-pop-url {
   padding: 0;
   border: none;
   background: none;
-  color: #cfeefb;
+  color: rgb(var(--hud-text-rgb));
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1047,30 +1105,30 @@ html.az-calm .az-stream-pop-url {
   height: 30px;
   flex-shrink: 0;
   border-radius: 50%;
-  border: 2px solid rgba(0, 229, 255, 0.4);
+  border: 2px solid rgba(var(--hud-accent-rgb), 0.4);
   background-size: cover;
   background-position: center;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
 .az-bg-swatch:hover .az-bg-swatch-dot,
 .az-bg-swatch:focus-visible .az-bg-swatch-dot {
-  border-color: #ff3df0;
-  box-shadow: 0 0 10px rgba(255, 61, 240, 0.5);
+  border-color: rgb(var(--hud-accent-2-rgb));
+  box-shadow: 0 0 10px rgba(var(--hud-accent-2-rgb), 0.5);
   transform: scale(1.08);
   outline: none;
 }
 .az-bg-swatch.az-selected .az-bg-swatch-dot {
-  border-color: #ffe600;
-  box-shadow: 0 0 10px rgba(255, 230, 0, 0.6);
+  border-color: rgb(var(--hud-accent-3-rgb));
+  box-shadow: 0 0 10px rgba(var(--hud-accent-3-rgb), 0.6);
 }
 .az-bg-pop button {
   display: block;
   width: 100%;
   margin: 10px 0 0;
   padding: 8px 10px;
-  border: 1px solid #00e5ff;
-  background: rgba(0, 229, 255, 0.08);
-  color: #cfeefb;
+  border: 1px solid rgb(var(--hud-accent-rgb));
+  background: rgba(var(--hud-accent-rgb), 0.08);
+  color: rgb(var(--hud-text-rgb));
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -1079,12 +1137,12 @@ html.az-calm .az-stream-pop-url {
 }
 .az-bg-pop button:hover,
 .az-bg-pop button:focus-visible {
-  background: rgba(0, 229, 255, 0.2);
+  background: rgba(var(--hud-accent-rgb), 0.2);
   outline: none;
 }
 .az-bg-pop-msg {
   margin: 8px 0 0;
-  color: rgba(184, 214, 224, 0.75);
+  color: rgba(var(--hud-text-dim-rgb), 0.75);
   font-size: 12px;
 }
 html.az-calm .az-bg-btn,

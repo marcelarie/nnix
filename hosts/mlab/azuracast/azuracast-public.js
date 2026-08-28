@@ -440,6 +440,9 @@
       var label = playing ? 'PAUSE' : 'PLAY';
       if (overlay.textContent !== label) overlay.textContent = label;
       art.classList.toggle('az-paused', !playing);
+      // Drives the stopped-state card border (see html.az-stopped in the CSS) - lives on <html>,
+      // not the card itself, so it survives the card's own v-if rebuilds across track changes.
+      document.documentElement.classList.toggle('az-stopped', !playing);
     }
     // MutationObserver: the button's icon swaps when isPlaying changes -> update immediately.
     artObserver = new MutationObserver(sync);
@@ -1172,25 +1175,54 @@
     var MAX_DIM = 1920; // downscale target - keeps the base64 copy well under localStorage's ~5MB quota
 
     // Party = the default floating-lights photo (CSS falls back to it whenever --az-bg-custom is
-    // unset, so "select Party" is just clearing the key); the rest are solid colors picked to
-    // match the page's own neon palette. value is the exact string stored in --az-bg-custom -
-    // a plain color needs a flat gradient since background-image only accepts <image> values.
+    // unset, so "select Party" is just clearing the key); White/Black are solid colors. Device
+    // and Neon are both markers (not real CSS values) resolved at apply-time: Device picks White
+    // or Black from the OS color-scheme (and is the only preset that also switches the HUD chrome
+    // to a light theme - see html.az-light in the CSS, toggled below); Neon picks a fresh random
+    // pair from NEON_COLORS every time it's applied (including every page load), so re-clicking
+    // an already-selected Neon reshuffles it and each visit looks a little different.
     var BG_PRESETS = [
       { key: 'party', label: 'Party', value: null, dot: 'url("/party-bg.jpg")' },
+      { key: 'device', label: 'Device', value: 'device', dot: 'linear-gradient(90deg, #ffffff 50%, #000000 50%)' },
       { key: 'white', label: 'White', value: 'linear-gradient(#ffffff, #ffffff)', dot: '#ffffff' },
       { key: 'black', label: 'Black', value: 'linear-gradient(#000000, #000000)', dot: '#000000' },
-      { key: 'neon', label: 'Neon', value: 'linear-gradient(135deg, #3d0a66, #00263d)', dot: 'linear-gradient(135deg, #3d0a66, #00263d)' }
+      { key: 'neon', label: 'Neon', value: 'neon', dot: 'conic-gradient(#3d0a66, #00263d, #66083d, #0a3d1f, #1a0a66, #3d0a66)' }
     ];
+    var DEVICE_WHITE = 'linear-gradient(#ffffff, #ffffff)';
+    var DEVICE_BLACK = 'linear-gradient(#000000, #000000)';
+    var deviceLightMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+    function deviceIsLight() { return !!(deviceLightMQ && deviceLightMQ.matches); }
 
-    function apply(cssValue) {
-      if (cssValue) document.documentElement.style.setProperty('--az-bg-custom', cssValue);
-      else document.documentElement.style.removeProperty('--az-bg-custom');
+    // Deep jewel-tone hues (not the bright #00e5ff-style accents) - stays a moody backdrop
+    // rather than a blinding full-screen flash.
+    var NEON_COLORS = ['#3d0a66', '#00263d', '#66083d', '#0a3d1f', '#3d2a00', '#1a0a66', '#003d33', '#4d0033'];
+    function randomNeonValue() {
+      var a = NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
+      var b;
+      do { b = NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)]; } while (b === a);
+      var angle = Math.floor(Math.random() * 360);
+      return 'linear-gradient(' + angle + 'deg, ' + a + ', ' + b + ')';
     }
+
     function stored() {
       try { return localStorage.getItem(BG_KEY); } catch (e) { return null; }
     }
+    function apply(rawValue) {
+      var cssValue = rawValue;
+      if (rawValue === 'device') cssValue = deviceIsLight() ? DEVICE_WHITE : DEVICE_BLACK;
+      else if (rawValue === 'neon') cssValue = randomNeonValue();
+      if (cssValue) document.documentElement.style.setProperty('--az-bg-custom', cssValue);
+      else document.documentElement.style.removeProperty('--az-bg-custom');
+      document.documentElement.classList.toggle('az-light', rawValue === 'device' && deviceIsLight());
+    }
     var initial = stored();
     if (initial) apply(initial);
+    // Live-follow the OS theme while Device is selected, no reload needed.
+    if (deviceLightMQ) {
+      var onDeviceChange = function () { if (stored() === 'device') apply('device'); };
+      if (deviceLightMQ.addEventListener) deviceLightMQ.addEventListener('change', onDeviceChange);
+      else if (deviceLightMQ.addListener) deviceLightMQ.addListener(onDeviceChange);
+    }
 
     function addBgPicker() {
       if (!document.body || document.querySelector('.az-bg-btn')) return;
