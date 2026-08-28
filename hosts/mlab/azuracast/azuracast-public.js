@@ -1334,6 +1334,40 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
   })();
 
+  // --- current listener count (bottom-right chip) ---
+  // Aggregate "how many people are on the stream right now", from AzuraCast's own public API
+  // (same origin through the proxy, so no CORS). /api/nowplaying without a station returns an
+  // array of every station's payload - this deployment serves exactly one, so the first row is
+  // ours and nothing here has to know the shortcode (the page is served at "/" via an internal
+  // nginx rewrite, so the URL doesn't carry it either). Polled like the listen-time chip: once
+  // every 30s and on tab refocus, skipped while hidden.
+  (function () {
+    function paint(n) {
+      var e = document.querySelector('.az-listeners');
+      if (n == null) { if (e) e.remove(); return; } // API unreachable -> no chip at all, not a wrong number
+      if (!e) {
+        if (!document.body) return;
+        e = document.createElement('div');
+        e.className = 'az-listeners';
+        document.body.appendChild(e);
+      }
+      e.textContent = n + (n === 1 ? ' listener' : ' listeners');
+    }
+    function poll() {
+      if (document.hidden) return;
+      fetch('/api/nowplaying', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          var st = d && (d.length ? d[0] : d);
+          paint(st && st.listeners && typeof st.listeners.current === 'number' ? st.listeners.current : null);
+        })
+        .catch(function () {});
+    }
+    poll();
+    setInterval(poll, 30000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  })();
+
   // --- stream-link info popover ---
   // A "?" button fixed top-left (mirrors the calm button's top-right) reveals a small popover
   // with the direct stream URL, so listeners can add this station to internet-radio apps

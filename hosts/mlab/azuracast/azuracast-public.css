@@ -755,6 +755,46 @@ html.az-light.az-calm .az-listen-time {
   border-color: #1a7a1a;
 }
 
+/* Current listener count: the same HUD chip as the listen-time counter, parked bottom-right -
+   the one free corner (calm button top-right, stream/listen-time top-left, background picker
+   bottom-left). Notch mirrored to the top-left corner so it points into the page like the
+   others do. Fed by /api/nowplaying; stays in calm mode. */
+.az-listeners {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  height: 34px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 2px solid rgba(var(--hud-accent-rgb), 0.55);
+  clip-path: polygon(9px 0, 100% 0, 100% 100%, 0 100%, 0 9px);
+  background: var(--hud-bg);
+  color: rgb(var(--hud-text-rgb));
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  user-select: none;
+}
+@media (max-width: 767px) {
+  .az-listeners {
+    bottom: 8px;
+    right: 8px;
+    height: 30px;
+    font-size: 12px;
+    padding: 0 8px;
+  }
+}
+html.az-calm .az-listeners {
+  border-color: #2ee62e;
+  text-shadow: none;
+}
+html.az-light.az-calm .az-listeners {
+  border-color: #1a7a1a;
+}
+
 /* Real audio-reactive equalizer (Web Audio AnalyserNode -> SVG path ribbons). Each ribbon traces
    real frequency data; the strip is hidden unless the <audio> is playing AND carrying
    sound. Muted-but-playing is the one exception: the element mutes at the source, so the
