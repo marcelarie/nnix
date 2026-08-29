@@ -54,7 +54,16 @@ def systemctl(prop):
 
 def last_run_journal(since):
     r = subprocess.run(
-        ["journalctl", "-u", "bandcampsync.service", "--since", since, "--no-pager", "-o", "cat"],
+        [
+            "journalctl",
+            "-u",
+            "bandcampsync.service",
+            "--since",
+            since,
+            "--no-pager",
+            "-o",
+            "cat",
+        ],
         capture_output=True,
         text=True,
     )
@@ -79,7 +88,12 @@ def scan_albums():
             mtime = int(idf.stat().st_mtime)
             r = rows.setdefault(
                 item_id,
-                {"ar": artist_dir.name, "al": album_dir.name, "fmts": set(), "mtime": mtime},
+                {
+                    "ar": artist_dir.name,
+                    "al": album_dir.name,
+                    "fmts": set(),
+                    "mtime": mtime,
+                },
             )
             r["fmts"].add(fmt)
             r["mtime"] = min(r["mtime"], mtime)
@@ -94,7 +108,8 @@ def parse_journal(journal):
     errors = sum(
         1
         for l in lines
-        if ("[ERROR]" in l or "[WARNING]" in l) and "No valid notify target set" not in l
+        if ("[ERROR]" in l or "[WARNING]" in l)
+        and "No valid notify target set" not in l
     )
     will = {}
     for l in lines:
@@ -153,9 +168,14 @@ def generate():
     added = [(iid, r) for iid, r in albums if iid in done]
     o.append(f"<h2>Added in last run ({len(added)})</h2>")
     if added:
-        o.append("<table><tr><th>Artist / Album</th><th>Added</th><th>Format(s)</th></tr>")
+        o.append(
+            "<table><tr><th>Artist / Album</th><th>Added</th><th>Format(s)</th></tr>"
+        )
         for item_id, r in added:
-            url = urls.get(item_id) or f"https://{slug(r['ar'])}.bandcamp.com/album/{slug(r['al'])}"
+            url = (
+                urls.get(item_id)
+                or f"https://{slug(r['ar'])}.bandcamp.com/album/{slug(r['al'])}"
+            )
             o.append(
                 f"<tr><td><a href='{esc(url)}'>{esc(r['ar'])} / {esc(r['al'])}</a></td>"
                 f"<td>{madrid(r['mtime'])}</td><td>{','.join(sorted(r['fmts']))}</td></tr>"
@@ -168,7 +188,10 @@ def generate():
         "<table><tr><th>Artist / Album</th><th>Status</th><th>Added</th><th>Format(s)</th></tr>"
     )
     for item_id, r in albums:
-        url = urls.get(item_id) or f"https://{slug(r['ar'])}.bandcamp.com/album/{slug(r['al'])}"
+        url = (
+            urls.get(item_id)
+            or f"https://{slug(r['ar'])}.bandcamp.com/album/{slug(r['al'])}"
+        )
         fmts = ",".join(sorted(r["fmts"]))
         o.append(
             f"<tr><td><a href='{esc(url)}'>{esc(r['ar'])} / {esc(r['al'])}</a></td>"
@@ -177,7 +200,9 @@ def generate():
     for pid, name in pending:
         url = urls.get(pid)
         link = f"<a href='{esc(url)}'>{esc(name)}</a>" if url else esc(name)
-        o.append(f"<tr><td>{link}</td><td class=pend>pending</td><td>—</td><td>—</td></tr>")
+        o.append(
+            f"<tr><td>{link}</td><td class=pend>pending</td><td>—</td><td>—</td></tr>"
+        )
     o.append("</table>")
     o.append('<p><a href="last.log">Full log</a></p>')
 
@@ -186,7 +211,9 @@ def generate():
     (HTML_DIR / "last.log").write_text(journal)
     links = build_links(rows, urls)
     (HTML_DIR / "links.json").write_text(json.dumps(links))
-    print(f"wrote index.html ({len(albums)} albums, {len(pending)} pending), links.json ({len(links)} links)")
+    print(
+        f"wrote index.html ({len(albums)} albums, {len(pending)} pending), links.json ({len(links)} links)"
+    )
 
 
 def fetch_urls():

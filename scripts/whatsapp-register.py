@@ -20,6 +20,7 @@ Prereq: `make android-mirror` must be running (SSH tunnel + adb connected).
     make whatsapp-register WA_STAGE=code    # only inject the code
     make whatsapp-register WA_RETRIES=5
 """
+
 import os
 import re
 import sys
@@ -29,11 +30,15 @@ import uiautomator2 as u2
 
 DEVICE = os.environ.get("WA_DEVICE", "127.0.0.1:5555")
 PHONE = os.environ.get("WA_PHONE", "647147012")
-CODE = os.environ.get("WA_CODE", "")            # 6-digit code, or blank to wait
-CODE_LINK = os.environ.get("WA_CODE_LINK", "")    # https://v.whatsapp.com/<code> deep-link
+CODE = os.environ.get("WA_CODE", "")  # 6-digit code, or blank to wait
+CODE_LINK = os.environ.get(
+    "WA_CODE_LINK", ""
+)  # https://v.whatsapp.com/<code> deep-link
 CODE_WAIT = int(os.environ.get("WA_CODE_WAIT", "180"))  # seconds to wait for code
-COUNTRY = os.environ.get("WA_COUNTRY", "34")  # CC digits; typing '34' auto-detects Spain
-NAME = os.environ.get("WA_NAME", "Pi")         # profile name for the name-setup screen
+COUNTRY = os.environ.get(
+    "WA_COUNTRY", "34"
+)  # CC digits; typing '34' auto-detects Spain
+NAME = os.environ.get("WA_NAME", "Pi")  # profile name for the name-setup screen
 SETUP_ROUNDS = int(os.environ.get("WA_SETUP_ROUNDS", "20"))
 RETRIES = int(os.environ.get("WA_RETRIES", "3"))
 PACKAGE = os.environ.get("WA_PACKAGE", "com.whatsapp")
@@ -52,6 +57,7 @@ def norm_phone(s: str) -> str:
 
 # --- sendevent: the one tap method that works on redroid + WhatsApp --------
 
+
 def se_tap(d: u2.Device, x: int, y: int):
     """Tap at (x, y) via raw sendevent on the real input device.
 
@@ -60,16 +66,18 @@ def se_tap(d: u2.Device, x: int, y: int):
     and uiautomator2 .click() (accessibility) both fail here.
     """
     se = f"sendevent {INPUT_DEV}"
-    cmd = "; ".join([
-        f"{se} 1 330 1",      # EV_KEY  BTN_TOUCH down
-        f"{se} 3 57 0",       # EV_ABS  ABS_MT_TRACKING_ID = 0
-        f"{se} 3 53 {x}",     # EV_ABS  ABS_MT_POSITION_X
-        f"{se} 3 54 {y}",     # EV_ABS  ABS_MT_POSITION_Y
-        f"{se} 0 0 0",        # EV_SYN  SYN_REPORT
-        f"{se} 1 330 0",      # EV_KEY  BTN_TOUCH up
-        f"{se} 3 57 -1",      # EV_ABS  ABS_MT_TRACKING_ID = -1 (release)
-        f"{se} 0 0 0",        # EV_SYN  SYN_REPORT
-    ])
+    cmd = "; ".join(
+        [
+            f"{se} 1 330 1",  # EV_KEY  BTN_TOUCH down
+            f"{se} 3 57 0",  # EV_ABS  ABS_MT_TRACKING_ID = 0
+            f"{se} 3 53 {x}",  # EV_ABS  ABS_MT_POSITION_X
+            f"{se} 3 54 {y}",  # EV_ABS  ABS_MT_POSITION_Y
+            f"{se} 0 0 0",  # EV_SYN  SYN_REPORT
+            f"{se} 1 330 0",  # EV_KEY  BTN_TOUCH up
+            f"{se} 3 57 -1",  # EV_ABS  ABS_MT_TRACKING_ID = -1 (release)
+            f"{se} 0 0 0",  # EV_SYN  SYN_REPORT
+        ]
+    )
     d.shell(cmd)
 
 
@@ -96,6 +104,7 @@ def ensure_adbime(d: u2.Device):
 
 # --- screen detection -------------------------------------------------------
 
+
 def on_phone_screen(d: u2.Device) -> bool:
     return d(resourceId=rid("registration_phone")).exists
 
@@ -114,9 +123,18 @@ def on_main_screen(d: u2.Device) -> bool:
     cur = d.app_current()
     if cur.get("package") != PACKAGE:
         return False
-    act = (cur.get("activity") or "")
-    setup_markers = ("registration", "EULA", "Verify", "RequestPermission",
-                     "VerifyOtp", "profile", "Profile", "Setup", "Welcome")
+    act = cur.get("activity") or ""
+    setup_markers = (
+        "registration",
+        "EULA",
+        "Verify",
+        "RequestPermission",
+        "VerifyOtp",
+        "profile",
+        "Profile",
+        "Setup",
+        "Welcome",
+    )
     return not any(m in act for m in setup_markers)
 
 
@@ -132,6 +150,7 @@ def dump_screen(d: u2.Device, tag: str):
 
 
 # --- phone stage ------------------------------------------------------------
+
 
 def do_phone_stage(d: u2.Device) -> bool:
     """Enter the phone number and advance past the registration screen.
@@ -192,9 +211,10 @@ def do_phone_stage(d: u2.Device) -> bool:
 
 # --- code stage -------------------------------------------------------------
 
+
 def code_from_link(url: str) -> str:
     """Extract the 6-digit code from a v.whatsapp.com/<code> URL."""
-    m = re.search(r'v\.whatsapp\.com/(\d+)', url or "")
+    m = re.search(r"v\.whatsapp\.com/(\d+)", url or "")
     return m.group(1) if m else ""
 
 
@@ -214,12 +234,14 @@ def do_code_stage(d: u2.Device) -> bool:
     if CODE_LINK:
         print(f"  opening code link {CODE_LINK} (deep-link -> WhatsApp auto-verify)")
         d.shell(f"am start -a android.intent.action.VIEW -d '{CODE_LINK}' {PACKAGE}")
-        if wait_off_code(d, tries=12):   # ~6s for the deep-link to verify
+        if wait_off_code(d, tries=12):  # ~6s for the deep-link to verify
             print("  link auto-verified -- ADVANCED")
             return True
         # Fallback: open in the redroid webview app (also forwards to WhatsApp)
         print("  deep-link didn't clear it -- trying webview app")
-        d.shell(f"am start -a android.intent.action.VIEW -d '{CODE_LINK}' org.chromium.webview_shell")
+        d.shell(
+            f"am start -a android.intent.action.VIEW -d '{CODE_LINK}' org.chromium.webview_shell"
+        )
         if wait_off_code(d, tries=12):
             print("  webview forwarded the code -- ADVANCED")
             return True
@@ -235,8 +257,12 @@ def do_code_stage(d: u2.Device) -> bool:
         return _broadcast_code(d, CODE)
 
     # No code provided -- wait for the user to handle it (open a link, etc.).
-    print(f"  no WA_CODE/WA_CODE_LINK set -- waiting up to {CODE_WAIT}s for the code screen to clear")
-    print("  (open a v.whatsapp.com/<code> link in the redroid, or re-run with WA_CODE=...)")
+    print(
+        f"  no WA_CODE/WA_CODE_LINK set -- waiting up to {CODE_WAIT}s for the code screen to clear"
+    )
+    print(
+        "  (open a v.whatsapp.com/<code> link in the redroid, or re-run with WA_CODE=...)"
+    )
     return wait_off_code(d, tries=CODE_WAIT // 2)
 
 
@@ -274,13 +300,33 @@ def wait_off_code(d: u2.Device, tries: int = 10) -> bool:
 # skip-style last (for restore-backup-style screens where skipping is the
 # only way forward).
 SETUP_BUTTONS = [
-    "CONTINUAR", "Continue", "Siguiente", "Next",
-    "Permitir", "Allow", "Permitir siempre", "Permitir solo esta vez",
-    "S\u00ed", "Yes",                       # Sí (confirm dialogs)
-    "ACEPTAR Y CONTINUAR", "Agree and continue",
-    "Comenzar", "Get started", "Start messaging",
-    "Listo", "Hecho", "Done", "OK", "Aceptar", "Accept",
-    "Omitir", "Saltar", "Skip", "AHORA NO", "Not now", "Ahora no",
+    "CONTINUAR",
+    "Continue",
+    "Siguiente",
+    "Next",
+    "Permitir",
+    "Allow",
+    "Permitir siempre",
+    "Permitir solo esta vez",
+    "S\u00ed",
+    "Yes",  # Sí (confirm dialogs)
+    "ACEPTAR Y CONTINUAR",
+    "Agree and continue",
+    "Comenzar",
+    "Get started",
+    "Start messaging",
+    "Listo",
+    "Hecho",
+    "Done",
+    "OK",
+    "Aceptar",
+    "Accept",
+    "Omitir",
+    "Saltar",
+    "Skip",
+    "AHORA NO",
+    "Not now",
+    "Ahora no",
 ]
 
 # EditText resource IDs used for the profile-name step.
@@ -339,8 +385,16 @@ def _tap_system_allow(d: u2.Device) -> bool:
     System dialogs render UPPERCASE ("PERMITIR", "DENEGAR"); match (?i).
     Falls back to DENEGAR (deny still dismisses the dialog and advances setup).
     """
-    for label in ("Permitir", "Allow", "Permitir siempre", "While using the app",
-                  "Permitir solo esta vez", "Only this time", "DENEGAR", "Deny"):
+    for label in (
+        "Permitir",
+        "Allow",
+        "Permitir siempre",
+        "While using the app",
+        "Permitir solo esta vez",
+        "Only this time",
+        "DENEGAR",
+        "Deny",
+    ):
         elem = d(textMatches=r"(?i)^" + re.escape(label) + r"$")
         if elem.exists:
             print(f"  tapping system dialog [{label}]")

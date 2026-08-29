@@ -3,16 +3,19 @@
 ## Adding a New Host
 
 ### 1. Ensure the Host Has the PGP Key
+
 ```bash
 gpg --list-secret-keys
 ```
 
 If the fingerprint is missing, import it:
+
 ```bash
 gpg --import ~/path/to/backup.pub
 ```
 
 ### 2. Add the Fingerprint to `.sops.yaml`
+
 ```yaml
 keys:
   - &nixos 7A5F1B23C4D978EF
@@ -27,11 +30,13 @@ creation_rules:
 ```
 
 ### 3. Re-encrypt Secrets
+
 ```bash
 nix-shell -p sops --run "sops updatekeys secrets/secrets.yaml"
 ```
 
 ### 4. Commit Changes
+
 ```bash
 git add .sops.yaml secrets/secrets.yaml
 git commit -m "Add new host to sops configuration"
@@ -39,6 +44,7 @@ git push
 ```
 
 ### 5. Pull on New Host
+
 ```bash
 git pull
 sudo nixos-rebuild switch
@@ -87,6 +93,7 @@ Adjust `owner`, `group`, or `mode` on each secret so the consuming service can r
 ## Moving to a New Machine
 
 ### On the current machine
+
 ```bash
 # 1. Export the GPG private key used by SOPS/pass
 gpg --export-secret-keys --armor 7A5F1B23C4D978EF > ~/secure-backup/sops-pass-private.asc
@@ -100,6 +107,7 @@ git -C ~/.config/nix push
 ```
 
 ### On the new machine
+
 ```bash
 # 1. Import the private key
 gpg --import ~/secure-backup/sops-pass-private.asc
@@ -125,6 +133,7 @@ sudo nixos-rebuild switch --flake ~/.config/nix#nixos
 ## Troubleshooting
 
 If secrets fail to decrypt:
+
 - Check GPG key exists: `gpg --list-secret-keys`
 - Verify fingerprint in `.sops.yaml`
 - Re-run `sops updatekeys secrets/secrets.yaml`

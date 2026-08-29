@@ -6,11 +6,11 @@
 :root {
   --hud-bg: linear-gradient(120deg, rgba(10, 0, 25, 0.85), rgba(0, 22, 38, 0.85));
   --hud-bg-strong: linear-gradient(120deg, rgba(10, 0, 25, 0.96), rgba(0, 22, 38, 0.96));
-  --hud-bg-flat-rgb: 8, 8, 22;      /* flat (non-gradient) - for spots like the tooltip arrow
+  --hud-bg-flat-rgb: 8, 8, 22; /* flat (non-gradient) - for spots like the tooltip arrow
                                        that must blend seamlessly with its own chip background */
-  --hud-accent-rgb: 0, 229, 255;    /* cyan */
+  --hud-accent-rgb: 0, 229, 255; /* cyan */
   --hud-accent-2-rgb: 255, 61, 240; /* magenta */
-  --hud-accent-3-rgb: 255, 230, 0;  /* yellow */
+  --hud-accent-3-rgb: 255, 230, 0; /* yellow */
   --hud-text-rgb: 207, 238, 251;
   --hud-text-dim-rgb: 184, 214, 224;
 }
@@ -18,9 +18,9 @@ html.az-light {
   --hud-bg: linear-gradient(120deg, rgba(255, 255, 255, 0.92), rgba(230, 244, 250, 0.95));
   --hud-bg-strong: linear-gradient(120deg, rgba(255, 255, 255, 0.98), rgba(230, 244, 250, 0.98));
   --hud-bg-flat-rgb: 250, 250, 252;
-  --hud-accent-rgb: 0, 119, 168;    /* deep teal, readable on white */
+  --hud-accent-rgb: 0, 119, 168; /* deep teal, readable on white */
   --hud-accent-2-rgb: 163, 21, 127; /* deep magenta */
-  --hud-accent-3-rgb: 138, 106, 0;  /* amber */
+  --hud-accent-3-rgb: 138, 106, 0; /* amber */
   --hud-text-rgb: 28, 43, 51;
   --hud-text-dim-rgb: 28, 43, 51;
 }
@@ -37,7 +37,9 @@ body.page-minimal .public-page .card {
   width: 1000px;
   margin: auto;
   border: 2px solid transparent;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 /* Flat-background hairline (marker classes set by the picker's apply()). The border is
    otherwise a stopped cue - the card is borderless while playing - but on pure white/black
@@ -61,8 +63,12 @@ html.az-stopped body.page-minimal .public-page .card {
    specificity, later source order); the .az-stopped variant then re-adds the calm frame on
    top of the accent cue. Calm accent = soft powder blue (the --calm-rgb var; light theme
    takes the deeper steel blue) - calmer and cleaner than the old terminal green. */
-html.az-calm { --calm-rgb: 158, 200, 230; }
-html.az-light.az-calm { --calm-rgb: 68, 118, 155; }
+html.az-calm {
+  --calm-rgb: 158, 200, 230;
+}
+html.az-light.az-calm {
+  --calm-rgb: 68, 118, 155;
+}
 html.az-calm body.page-minimal .public-page .card {
   border-color: transparent;
 }
@@ -71,7 +77,9 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
   box-shadow: 0 0 12px rgba(var(--calm-rgb), 0.25);
 }
 @media (prefers-reduced-motion: reduce) {
-  body.page-minimal .public-page .card { transition: none; }
+  body.page-minimal .public-page .card {
+    transition: none;
+  }
 }
 /* Wave mode -> footer player. When the wave overlay is on (html.az-waves) the card docks to
    the bottom edge as a compact full-width bar: small art, track name left, controls right,
@@ -88,8 +96,8 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
     width: auto;
     margin: 0;
     border-radius: 0;
-    z-index: 1;   /* above the negative-z background layers, below the fixed HUD buttons */
-    border-width: 2px 0 0;   /* docked bar: any state border (calm/stopped/mode hairline) reads
+    z-index: 1; /* above the negative-z background layers, below the fixed HUD buttons */
+    border-width: 2px 0 0; /* docked bar: any state border (calm/stopped/mode hairline) reads
                                 as a top edge only - sides/bottom would box in the footer */
   }
   html.az-waves body.page-minimal .public-page .card-body {
@@ -105,7 +113,7 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
   }
   html.az-waves .radio-player-widget .now-playing-main {
     flex: 1 1 auto;
-    padding-right: 84px;   /* reserved slot so the marquee never scrolls under the controls */
+    padding-right: 84px; /* reserved slot so the marquee never scrolls under the controls */
   }
   /* !important: the desktop rules set clamp() sizes with !important (see above). */
   html.az-waves .radio-player-widget .now-playing-title {
@@ -143,7 +151,7 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
      together. */
   html.az-waves .radio-player-widget .now-playing-art {
     transition: transform 0.2s ease;
-    transform-origin: left bottom;   /* grows up and to the RIGHT - centre origin would push it
+    transform-origin: left bottom; /* grows up and to the RIGHT - centre origin would push it
                                         off the left screen edge (the art sits 12px from it) */
     z-index: 3;
   }
@@ -158,7 +166,7 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
   }
   html.az-waves .radio-player-widget .now-playing-art .az-overlay-play {
     padding: 0 2px;
-    font-size: 0.8rem;      /* PAUSE at Arial Black ~50px wide - just inside the 56px art */
+    font-size: 0.8rem; /* PAUSE at Arial Black ~50px wide - just inside the 56px art */
     letter-spacing: 0;
     -webkit-text-stroke-width: 1px;
     text-stroke-width: 1px;
@@ -222,7 +230,7 @@ body.page-minimal .public-page .card-body {
     flex: 1 1 auto;
     width: 100%;
     height: auto;
-    aspect-ratio: 1;   /* overrides the desktop fixed height above; keeps the container
+    aspect-ratio: 1; /* overrides the desktop fixed height above; keeps the container
                            sized (square, from width alone) during the push transition too */
   }
   .radio-player-widget .now-playing-details .now-playing-art img {
@@ -277,7 +285,7 @@ body.page-minimal .public-page .card-body {
    column, not the viewport, so it fills whatever space sits next to / below the
    album art. One line; if it overflows, JS adds .az-marquee for a seamless scroll. */
 .radio-player-widget .now-playing-main {
-  position: relative;   /* containing block for the floating bandcamp tip (below) */
+  position: relative; /* containing block for the floating bandcamp tip (below) */
   container-type: inline-size;
   min-width: 0;
   overflow: hidden;
@@ -337,7 +345,7 @@ html.az-light .radio-player-widget .now-playing-artist {
 .radio-player-widget .az-bc-tip {
   position: absolute;
   left: 50%;
-  top: 0;                          /* JS sets the real offset under the artist each show */
+  top: 0; /* JS sets the real offset under the artist each show */
   transform: translate(-50%, 4px);
   z-index: 6;
   width: fit-content;
@@ -351,17 +359,20 @@ html.az-light .radio-player-widget .now-playing-artist {
   line-height: 1.45;
   text-align: center;
   white-space: normal;
-  pointer-events: none;            /* never block the click it is trying to get */
+  pointer-events: none; /* never block the click it is trying to get */
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    visibility 0s linear 0.3s;
 }
 /* Arrow pointing up at the artist name: a rotated square (top two borders only) whose
    background matches the chip, so it reads as the chip's own pointer. Its horizontal position
    is set per-show by JS via --az-arrow-x (bottom-center of the name, clamped to the chip);
    50% is the fallback if JS never runs. */
 .radio-player-widget .az-bc-tip::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -5px;
   left: var(--az-arrow-x, 50%);
@@ -377,17 +388,23 @@ html.az-light .radio-player-widget .now-playing-artist {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 /* While the nudge tip is up, the artist name does the hover treatment (rainbow + wiggle) so
    the eye lands on it. JS only adds .az-nudge-on outside calm mode; the html.az-calm rule
    below is the backstop. A marqueeing artist keeps the marquee (it owns transform) and just
    gets the color cycle. */
 .radio-player-widget .now-playing-artist.az-nudge-on {
-  animation: az-rainbow-text 1.2s linear infinite, az-text-wiggle 0.4s ease-in-out infinite;
+  animation:
+    az-rainbow-text 1.2s linear infinite,
+    az-text-wiggle 0.4s ease-in-out infinite;
 }
 .radio-player-widget .now-playing-artist.az-nudge-on.az-marquee {
-  animation: az-rainbow-text 1.2s linear infinite, azscroll var(--az-dur, 12s) linear infinite;
+  animation:
+    az-rainbow-text 1.2s linear infinite,
+    azscroll var(--az-dur, 12s) linear infinite;
 }
 html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   animation: none;
@@ -403,19 +420,43 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
 .radio-player-widget .now-playing-title:hover,
 .radio-player-widget .now-playing-artist:hover {
   cursor: default;
-  animation: az-rainbow-text 1.2s linear infinite, az-text-wiggle 0.4s ease-in-out infinite;
+  animation:
+    az-rainbow-text 1.2s linear infinite,
+    az-text-wiggle 0.4s ease-in-out infinite;
 }
 @keyframes az-rainbow-text {
-  0%   { color: #00e5ff; text-shadow: 0 0 14px rgba(0, 229, 255, 0.9); }
-  25%  { color: #ff3df0; text-shadow: 0 0 14px rgba(255, 61, 240, 0.9); }
-  50%  { color: #ffe600; text-shadow: 0 0 14px rgba(255, 230, 0, 0.9); }
-  75%  { color: #1e40ff; text-shadow: 0 0 14px rgba(30, 64, 255, 0.9); }
-  100% { color: #00e5ff; text-shadow: 0 0 14px rgba(0, 229, 255, 0.9); }
+  0% {
+    color: #00e5ff;
+    text-shadow: 0 0 14px rgba(0, 229, 255, 0.9);
+  }
+  25% {
+    color: #ff3df0;
+    text-shadow: 0 0 14px rgba(255, 61, 240, 0.9);
+  }
+  50% {
+    color: #ffe600;
+    text-shadow: 0 0 14px rgba(255, 230, 0, 0.9);
+  }
+  75% {
+    color: #1e40ff;
+    text-shadow: 0 0 14px rgba(30, 64, 255, 0.9);
+  }
+  100% {
+    color: #00e5ff;
+    text-shadow: 0 0 14px rgba(0, 229, 255, 0.9);
+  }
 }
 @keyframes az-text-wiggle {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  25%      { transform: rotate(-1.5deg) scale(1.04); }
-  75%      { transform: rotate(1.5deg) scale(1.04); }
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-1.5deg) scale(1.04);
+  }
+  75% {
+    transform: rotate(1.5deg) scale(1.04);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .radio-player-widget .now-playing-title:hover,
@@ -440,11 +481,19 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   padding-left: 48px;
 }
 @keyframes azscroll {
-  0%, 8%    { transform: translateX(0); }                          /* hold at start so it's readable */
-  92%, 100% { transform: translateX(var(--az-shift, -50%)); }      /* hold at end (== start: invisible reset) */
+  0%,
+  8% {
+    transform: translateX(0);
+  } /* hold at start so it's readable */
+  92%,
+  100% {
+    transform: translateX(var(--az-shift, -50%));
+  } /* hold at end (== start: invisible reset) */
 }
 @media (prefers-reduced-motion: reduce) {
-  .radio-player-widget .az-marquee { animation: none; }
+  .radio-player-widget .az-marquee {
+    animation: none;
+  }
 }
 /* Background image lives on a fixed, oversized ::before layer (not directly on body) so the
    music-driven zoom/shake transform never shifts real page content or triggers a scrollbar.
@@ -457,7 +506,7 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
   position: relative;
 }
 [data-bs-theme] body.page-minimal::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: -6%;
   z-index: -2;
@@ -465,7 +514,7 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
      background image, stored client-side in localStorage; falls back to the default here.
      /party-bg.jpg is served declaratively by nginx (see proxy.nix), not AzuraCast's own asset
      uploader - so the default survives fresh installs/rebuilds without any manual re-upload. */
-  background-image: var(--az-bg-custom, url('/party-bg.jpg'));
+  background-image: var(--az-bg-custom, url("/party-bg.jpg"));
   background-size: cover;
   background-position: center;
   transform: scale(var(--az-bg-scale, 1)) translate(var(--az-bg-x, 0px), var(--az-bg-y, 0px));
@@ -474,7 +523,9 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
      is the color-cycling "tripping" look (mushroom, potion). Both settle back to plain/instant
      defaults if JS never runs. */
   filter: hue-rotate(var(--az-trip-hue, 0deg));
-  transition: transform var(--az-bg-speed, 0.05s) linear, filter 0.3s linear;
+  transition:
+    transform var(--az-bg-speed, 0.05s) linear,
+    filter 0.3s linear;
   will-change: transform;
   pointer-events: none;
 }
@@ -482,26 +533,32 @@ html.az-calm .radio-player-widget .now-playing-artist.az-nudge-on {
    extra element, no fight with the trip hue-rotate filter) lifts the neon lines off busy
    images. Solid white/black/neon skip it (no .az-bg-photo marker class). */
 html.az-waves.az-bg-photo body.page-minimal::before {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), var(--az-bg-custom, url('/party-bg.jpg'));
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+    var(--az-bg-custom, url("/party-bg.jpg"));
 }
 [data-bs-theme] body.page-minimal::after {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   /* position jumps to a new spot on each detected bass hit (see bgDropEnergy in JS) - a
      discrete relocate reads as a flash landing somewhere new, not a smooth drift. */
-  background: radial-gradient(circle at var(--az-glow-x, 50%) var(--az-glow-y, 35%), var(--az-glow-color, #ff3df0), transparent 60%);
+  background: radial-gradient(
+    circle at var(--az-glow-x, 50%) var(--az-glow-y, 35%),
+    var(--az-glow-color, #ff3df0),
+    transparent 60%
+  );
   opacity: var(--az-glow-opacity, 0);
   transition: opacity 0.08s linear;
-  mix-blend-mode: difference;   /* inverts the background under the glow rather than just adding light */
+  mix-blend-mode: difference; /* inverts the background under the glow rather than just adding light */
   pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
   [data-bs-theme] body.page-minimal::before {
     transition: none;
     transform: none !important;
-    filter: none !important;   /* the trip hue-rotate cycling is exactly the kind of motion this opts out of */
+    filter: none !important; /* the trip hue-rotate cycling is exactly the kind of motion this opts out of */
   }
   [data-bs-theme] body.page-minimal::after {
     display: none;
@@ -511,7 +568,7 @@ html.az-waves.az-bg-photo body.page-minimal::before {
 /* Overlay play button inside album art: flashing PLAY/PAUSE text (blue+yellow, border letters) */
 .radio-player-widget .now-playing-art {
   position: relative;
-  overflow: hidden;   /* clips the push-transition slides (see .az-art-slide below) */
+  overflow: hidden; /* clips the push-transition slides (see .az-art-slide below) */
 }
 /* Track-change "push" transition (see playArtPush in JS): on a track change, JS drops in
    two throwaway <img> clones - the old cover as .az-art-outgoing, the new one as
@@ -537,14 +594,26 @@ html.az-waves.az-bg-photo body.page-minimal::before {
   animation: az-art-push-out 1.4s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
 }
 @keyframes az-art-push-in {
-  0%   { transform: translateX(100%); }
-  60%  { transform: translateX(-3%); }   /* slight overshoot = the "force" on impact */
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(100%);
+  }
+  60% {
+    transform: translateX(-3%);
+  } /* slight overshoot = the "force" on impact */
+  100% {
+    transform: translateX(0);
+  }
 }
 @keyframes az-art-push-out {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(3%); }    /* nudged by the impact before being fully shoved out */
-  100% { transform: translateX(-100%); }
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(3%);
+  } /* nudged by the impact before being fully shoved out */
+  100% {
+    transform: translateX(-100%);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .radio-player-widget .now-playing-art img.az-art-incoming,
@@ -555,7 +624,7 @@ html.az-waves.az-bg-photo body.page-minimal::before {
 .radio-player-widget .now-playing-art,
 .radio-player-widget .now-playing-art a,
 .radio-player-widget .now-playing-art img {
-  cursor: pointer;                       /* whole art is the play/pause click target */
+  cursor: pointer; /* whole art is the play/pause click target */
 }
 .radio-player-widget .now-playing-art .az-overlay-play {
   position: absolute;
@@ -568,19 +637,19 @@ html.az-waves.az-bg-photo body.page-minimal::before {
   background: transparent;
   border: none;
   border-radius: 0;
-  font-family: 'Arial Black', 'Arial Bold', sans-serif;
+  font-family: "Arial Black", "Arial Bold", sans-serif;
   font-weight: 900;
   font-size: clamp(1.4rem, 6vw, 2.6rem);
   letter-spacing: 3px;
   line-height: 1;
-  color: #1e40ff;                      /* blue fill */
-  -webkit-text-stroke: 2px #ffe600;     /* yellow letter border */
+  color: #1e40ff; /* blue fill */
+  -webkit-text-stroke: 2px #ffe600; /* yellow letter border */
   text-stroke: 2px #ffe600;
   text-shadow: 0 0 10px rgba(255, 230, 0, 0.9);
   opacity: 0;
   transition: opacity 0.2s ease;
   animation: azflash 0.7s infinite steps(1, end);
-  pointer-events: none;                /* purely visual; .now-playing-art click handler toggles */
+  pointer-events: none; /* purely visual; .now-playing-art click handler toggles */
   z-index: 2;
 }
 /* show on hover, always show when paused */
@@ -594,8 +663,18 @@ html.az-waves.az-bg-photo body.page-minimal::before {
 }
 /* flashing lights: swap blue/yellow fill + border each tick */
 @keyframes azflash {
-  0%, 49%   { color: #1e40ff; -webkit-text-stroke-color: #ffe600; text-shadow: 0 0 10px rgba(255,230,0,0.9); }
-  50%, 100% { color: #ffe600; -webkit-text-stroke-color: #1e40ff; text-shadow: 0 0 14px rgba(30,64,255,0.9); }
+  0%,
+  49% {
+    color: #1e40ff;
+    -webkit-text-stroke-color: #ffe600;
+    text-shadow: 0 0 10px rgba(255, 230, 0, 0.9);
+  }
+  50%,
+  100% {
+    color: #ffe600;
+    -webkit-text-stroke-color: #1e40ff;
+    text-shadow: 0 0 14px rgba(30, 64, 255, 0.9);
+  }
 }
 /* Volume control - pinned to the top-right corner of now-playing-details (the art+text
    row), not the outer widget: the widget's own box is wider than the visible card
@@ -609,14 +688,14 @@ html.az-waves.az-bg-photo body.page-minimal::before {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: fit-content !important;   /* !important: beats AzuraCast's own fixed width on this
+  width: fit-content !important; /* !important: beats AzuraCast's own fixed width on this
                                        element, which otherwise left dead space after the
                                        mouth instead of hugging its real content */
   display: flex;
   align-items: center;
   gap: 4px;
   box-sizing: border-box;
-  padding-right: 22px;   /* reserved slot for the brain (::before, right:0); keeps it clear of
+  padding-right: 22px; /* reserved slot for the brain (::before, right:0); keeps it clear of
                              the range's end instead of guessing an offsetting margin */
   background: none;
   border: none;
@@ -626,18 +705,20 @@ html.az-waves.az-bg-photo body.page-minimal::before {
   color: #fff;
   /* themed glow (not a flat black shadow) so it still reads fine once html.az-light flips the
      rest of the chrome to a light palette; also keeps it legible over busy album art either way. */
-  filter: drop-shadow(0 0 3px rgba(var(--hud-accent-rgb), 0.85)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
-  --vol: 0.75;  /* 0-1, synced from JS on 'input'; this is just the pre-JS fallback (matches the 75% new-user default) */
+  filter: drop-shadow(0 0 3px rgba(var(--hud-accent-rgb), 0.85))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  --vol: 0.75; /* 0-1, synced from JS on 'input'; this is just the pre-JS fallback (matches the 75% new-user default) */
   /* Eaten item, rotated by JS after every chomp (see setAzItem in the JS): --az-item-ch is
      the brain slot's content while at max, --az-item-img is the thumb. Defaults match
      AZ_ITEMS[0] (the pill) so a fresh load shows the item the rotation will eat first. */
-  --az-item-ch: '\1F48A';
+  --az-item-ch: "\1F48A";
   --az-item-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%92%8A%3C/text%3E%3C/svg%3E");
 }
 /* Light theme: a white-hot neon core (not the deep teal accent, which reads muddy/dim here)
    with a soft colored halo behind it for the "neon" glow character. */
 html.az-light .radio-player-widget .radio-control-volume {
-  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 7px rgba(var(--hud-accent-rgb), 0.65));
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 7px rgba(var(--hud-accent-rgb), 0.65));
 }
 /* Mouth sits right on the range's end (right: 22px = the padding-right reserved for the
    brain, so it lines up exactly with the track's true right edge, no guessed offset) and is
@@ -645,7 +726,7 @@ html.az-light .radio-player-widget .radio-control-volume {
    visibly "maxes out" with the level; z-index keeps it under the thumb (z-index 2) so the
    mushroom reads as going INTO the mouth rather than sitting in front of it. */
 .radio-player-widget .radio-control-volume::after {
-  content: '👄';
+  content: "👄";
   position: absolute;
   right: 22px;
   top: 50%;
@@ -654,16 +735,19 @@ html.az-light .radio-player-widget .radio-control-volume {
   line-height: 1;
   transform: translateY(-50%) scale(calc(0.85 + var(--vol) * 0.35));
   filter: drop-shadow(0 0 calc(2px + var(--vol) * 8px) rgba(255, 225, 0, 0.9));
-  opacity: 1;   /* visible at every level; hidden only once the mushroom reaches the brain
+  opacity: 1; /* visible at every level; hidden only once the mushroom reaches the brain
                    (az-maxed, below), not tied to --vol anymore */
   pointer-events: none;
-  transition: transform 0.1s ease, filter 0.1s ease, opacity 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    filter 0.1s ease,
+    opacity 0.15s ease;
 }
 /* Brain lives in the padding-right slot reserved on the container, past the mouth and clear
    of the track. Dim while nothing is happening; it lights up while az-eaten is on -> the
    mushroom went in the mouth and reached the brain. */
 .radio-player-widget .radio-control-volume::before {
-  content: '\1F9E0';
+  content: "\1F9E0";
   position: absolute;
   right: 0;
   top: 50%;
@@ -685,16 +769,31 @@ html.az-light .radio-player-widget .radio-control-volume {
    rotation currently ate (--az-item-ch); the bare content line below is the fallback for
    browsers without var() in content. */
 .radio-player-widget .radio-control-volume.az-maxed::before {
-  content: '\1F48A';
-  content: var(--az-item-ch, '\1F48A');
+  content: "\1F48A";
+  content: var(--az-item-ch, "\1F48A");
   opacity: 1;
 }
 @keyframes azbrain {
-  0%   { transform: translateY(-50%) scale(1);    filter: none; }
-  25%  { transform: translateY(-50%) scale(1.55); filter: drop-shadow(0 0 10px rgba(255, 61, 240, 0.95)); }
-  50%  { transform: translateY(-50%) scale(1.15); filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.9)); }
-  75%  { transform: translateY(-50%) scale(1.35); filter: drop-shadow(0 0 8px rgba(255, 230, 0, 0.9)); }
-  100% { transform: translateY(-50%) scale(1);    filter: none; }
+  0% {
+    transform: translateY(-50%) scale(1);
+    filter: none;
+  }
+  25% {
+    transform: translateY(-50%) scale(1.55);
+    filter: drop-shadow(0 0 10px rgba(255, 61, 240, 0.95));
+  }
+  50% {
+    transform: translateY(-50%) scale(1.15);
+    filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.9));
+  }
+  75% {
+    transform: translateY(-50%) scale(1.35);
+    filter: drop-shadow(0 0 8px rgba(255, 230, 0, 0.9));
+  }
+  100% {
+    transform: translateY(-50%) scale(1);
+    filter: none;
+  }
 }
 
 /* Mario-style "1UP" - JS spawns this span (see syncVolVar) the moment the mushroom
@@ -707,22 +806,40 @@ html.az-light .radio-player-widget .radio-control-volume {
   font: 800 11px/1 monospace;
   letter-spacing: 0.5px;
   color: #2ee62e;
-  text-shadow: 1px 1px 0 #003300, -1px -1px 0 #003300, 1px -1px 0 #003300, -1px 1px 0 #003300;
+  text-shadow:
+    1px 1px 0 #003300,
+    -1px -1px 0 #003300,
+    1px -1px 0 #003300,
+    -1px 1px 0 #003300;
   pointer-events: none;
   animation: az1up 1.1s ease-out forwards;
 }
 @keyframes az1up {
-  0%   { opacity: 0; transform: translateY(0) scale(0.6); }
-  15%  { opacity: 1; transform: translateY(-4px) scale(1); }
-  75%  { opacity: 1; transform: translateY(-22px) scale(1); }
-  100% { opacity: 0; transform: translateY(-32px) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(-22px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-32px) scale(1);
+  }
 }
 .radio-player-widget .radio-control-volume .btn {
   flex: 0 0 auto;
   color: #fff;
   fill: currentColor;
   opacity: 0.9;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
 }
 .radio-player-widget .radio-control-volume .btn:hover {
   color: #fff;
@@ -733,7 +850,7 @@ html.az-light .radio-player-widget .radio-control-volume {
   width: 130px;
   accent-color: #ff3df0;
   position: relative;
-  z-index: 2;   /* mushroom (thumb) stacks above the mouth (::after, z-index 1) when it reaches it */
+  z-index: 2; /* mushroom (thumb) stacks above the mouth (::after, z-index 1) when it reaches it */
 }
 /* No more flat static bar - track background is a real percentage fill (--vol) instead of
    a decorative full-width gradient, glowing rainbow (cyan/magenta/yellow) for "filled",
@@ -743,7 +860,9 @@ html.az-light .radio-player-widget .radio-control-volume {
   background:
     linear-gradient(90deg, #00e5ff, #ff3df0, #ffe600) no-repeat,
     rgba(255, 255, 255, 0.15);
-  background-size: calc(var(--vol) * 100%) 100%, 100% 100%;
+  background-size:
+    calc(var(--vol) * 100%) 100%,
+    100% 100%;
   border-radius: 4px;
   height: 5px;
   box-shadow: 0 0 calc(var(--vol) * 6px) rgba(255, 61, 240, 0.7);
@@ -767,7 +886,7 @@ html.az-light .radio-player-widget .radio-control-volume {
   border-radius: 0;
   background-color: transparent;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%92%8A%3C/text%3E%3C/svg%3E");
-  background-image: var(--az-item-img);   /* rotated item (JS); line above = no-var fallback */
+  background-image: var(--az-item-img); /* rotated item (JS); line above = no-var fallback */
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -780,7 +899,7 @@ html.az-light .radio-player-widget .radio-control-volume {
   border-radius: 0;
   background-color: transparent;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ctext x='10' y='16' font-size='18' text-anchor='middle'%3E%F0%9F%92%8A%3C/text%3E%3C/svg%3E");
-  background-image: var(--az-item-img);   /* rotated item (JS); line above = no-var fallback */
+  background-image: var(--az-item-img); /* rotated item (JS); line above = no-var fallback */
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -792,7 +911,7 @@ html.az-light .radio-player-widget .radio-control-volume {
    added/removed by chompMushroom in the JS. */
 .radio-player-widget .radio-control-volume.az-chomp::after {
   animation: azchomp var(--az-bite-ms, 0.5s) ease-in-out;
-  opacity: 1;   /* volume is still at max here, but be explicit: the bite must be visible */
+  opacity: 1; /* volume is still at max here, but be explicit: the bite must be visible */
 }
 /* Bite over: the mouth is done for this run - it stays gone the whole time the volume is parked
    at max (az-maxed), so it only ever shows while the mushroom is approaching and during the bite.
@@ -801,11 +920,21 @@ html.az-light .radio-player-widget .radio-control-volume {
   opacity: 0;
 }
 @keyframes azchomp {
-  0%   { transform: translateY(-50%) scale(1.2, 1.2); }
-  20%  { transform: translateY(-50%) scale(1.45, 1.6); }
-  45%  { transform: translateY(-50%) scale(1.5, 0.55); }
-  70%  { transform: translateY(-50%) scale(1.35, 1.25); }
-  100% { transform: translateY(-50%) scale(1.2, 1.2); }
+  0% {
+    transform: translateY(-50%) scale(1.2, 1.2);
+  }
+  20% {
+    transform: translateY(-50%) scale(1.45, 1.6);
+  }
+  45% {
+    transform: translateY(-50%) scale(1.5, 0.55);
+  }
+  70% {
+    transform: translateY(-50%) scale(1.35, 1.25);
+  }
+  100% {
+    transform: translateY(-50%) scale(1.2, 1.2);
+  }
 }
 /* Mushroom (thumb) stays hidden for as long as volume is parked at max - it's the brain's
    mushroom now (above), not the slider's. Reappears the moment volume drops below max. */
@@ -830,7 +959,7 @@ html.az-light .radio-player-widget .radio-control-volume {
   z-index: 3;
 }
 html.az-light .radio-player-widget .az-hint {
-  color: rgba(var(--hud-text-rgb), 0.75);   /* 0.65 measures right at the AA cutoff; safety margin */
+  color: rgba(var(--hud-text-rgb), 0.75); /* 0.65 measures right at the AA cutoff; safety margin */
 }
 @media (max-width: 767px) {
   .radio-player-widget .az-hint {
@@ -856,7 +985,7 @@ html.az-light .radio-player-widget .az-hint {
   clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
   background: var(--hud-bg);
   color: rgb(var(--hud-text-rgb));
-  font-family: 'Courier New', ui-monospace, monospace;
+  font-family: "Courier New", ui-monospace, monospace;
   font-size: 14px;
   letter-spacing: 0.3px;
   white-space: nowrap;
@@ -893,7 +1022,7 @@ html.az-calm .az-listen-time {
   clip-path: polygon(9px 0, 100% 0, 100% 100%, 0 100%, 0 9px);
   background: var(--hud-bg);
   color: rgb(var(--hud-text-rgb));
-  font-family: 'Courier New', ui-monospace, monospace;
+  font-family: "Courier New", ui-monospace, monospace;
   font-size: 14px;
   letter-spacing: 0.3px;
   white-space: nowrap;
@@ -933,10 +1062,12 @@ html.az-calm .az-listeners {
   width: 100%;
   height: 100%;
   display: block;
-  overflow: visible;   /* SVG clips to its viewport by default */
+  overflow: visible; /* SVG clips to its viewport by default */
 }
 .radio-player-widget .az-eq path {
-  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));   /* soft neutral glow -> contrast on dark bg, works for all track colors */
+  filter: drop-shadow(
+    0 0 2px rgba(255, 255, 255, 0.4)
+  ); /* soft neutral glow -> contrast on dark bg, works for all track colors */
 }
 
 /* Fullscreen wave overlay (the "≈" toggle, bottom-left). A fixed SVG behind the page
@@ -968,7 +1099,9 @@ html.az-light .az-bgwaves {
    zoom/glow and the strobing text, not the wave field itself. Only the OS-level
    prefers-reduced-motion (below) still hides them. */
 @media (prefers-reduced-motion: reduce) {
-  .az-bgwaves { display: none !important; }
+  .az-bgwaves {
+    display: none !important;
+  }
 }
 
 /* Anti-seizure toggle: JS puts .az-calm on <html> (see azuracast-public.js) and the rules
@@ -984,11 +1117,18 @@ html.az-light .az-bgwaves {
   border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
   /* notched corners: the neon-sign / HUD-panel silhouette, cut straight through the border */
-  clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 13px) 0,
+    100% 13px,
+    100% 100%,
+    13px 100%,
+    0 calc(100% - 13px)
+  );
   background: var(--hud-bg);
   color: rgb(var(--hud-accent-rgb));
-  font-family: 'Courier New', ui-monospace, monospace;
-  font-size: 14px;   /* compact: matches the page's small HUD text, not a headline */
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 14px; /* compact: matches the page's small HUD text, not a headline */
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -996,12 +1136,18 @@ html.az-light .az-bgwaves {
   opacity: 1;
   transition: opacity 0.6s ease;
   /* chromatic split (magenta left / cyan right) = the badly-tuned-CRT look */
-  text-shadow: -2px 0 rgb(var(--hud-accent-2-rgb)), 2px 0 rgb(var(--hud-accent-rgb));
-  box-shadow: 0 0 14px rgba(var(--hud-accent-rgb), 0.45), inset 0 0 12px rgba(var(--hud-accent-2-rgb), 0.2);
-  animation: az-calm-btn-glitch 2.4s steps(1, end) infinite, az-calm-btn-neon 1.1s ease-in-out infinite alternate;
+  text-shadow:
+    -2px 0 rgb(var(--hud-accent-2-rgb)),
+    2px 0 rgb(var(--hud-accent-rgb));
+  box-shadow:
+    0 0 14px rgba(var(--hud-accent-rgb), 0.45),
+    inset 0 0 12px rgba(var(--hud-accent-2-rgb), 0.2);
+  animation:
+    az-calm-btn-glitch 2.4s steps(1, end) infinite,
+    az-calm-btn-neon 1.1s ease-in-out infinite alternate;
 }
 .az-calm-btn:hover {
-  animation-duration: 0.7s, 0.35s;   /* hover = the sign is about to blow */
+  animation-duration: 0.7s, 0.35s; /* hover = the sign is about to blow */
   color: rgb(var(--hud-accent-3-rgb));
 }
 /* Light theme: a still, static border instead of the CRT-glitch neon look - the glitch keyframes
@@ -1014,15 +1160,46 @@ html.az-light .az-calm-btn:hover {
 }
 /* Mostly still, then a short burst of tearing - a glitch, not a strobe. */
 @keyframes az-calm-btn-glitch {
-  0%, 87% { transform: none;                              text-shadow: -2px 0 #ff3df0, 2px 0 #00e5ff; }
-  90%     { transform: translate(-3px, 1px) skewX(-7deg);  text-shadow: -5px 0 #ff3df0, 5px 0 #ffe600; }
-  93%     { transform: translate(3px, -1px) skewX(7deg);   text-shadow: 4px 0 #00e5ff, -4px 0 #ff3df0; }
-  96%     { transform: translate(-1px, 0) skewX(-2deg);    text-shadow: -2px 0 #ffe600, 2px 0 #ff3df0; }
+  0%,
+  87% {
+    transform: none;
+    text-shadow:
+      -2px 0 #ff3df0,
+      2px 0 #00e5ff;
+  }
+  90% {
+    transform: translate(-3px, 1px) skewX(-7deg);
+    text-shadow:
+      -5px 0 #ff3df0,
+      5px 0 #ffe600;
+  }
+  93% {
+    transform: translate(3px, -1px) skewX(7deg);
+    text-shadow:
+      4px 0 #00e5ff,
+      -4px 0 #ff3df0;
+  }
+  96% {
+    transform: translate(-1px, 0) skewX(-2deg);
+    text-shadow:
+      -2px 0 #ffe600,
+      2px 0 #ff3df0;
+  }
 }
 /* Border/bloom breathe cyan <-> magenta, the same two colors the beat glow uses. */
 @keyframes az-calm-btn-neon {
-  from { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.45), inset 0 0 12px rgba(255, 61, 240, 0.2); }
-  to   { border-color: #ff3df0; box-shadow: 0 0 26px rgba(255, 61, 240, 0.75), inset 0 0 16px rgba(0, 229, 255, 0.3); }
+  from {
+    border-color: #00e5ff;
+    box-shadow:
+      0 0 12px rgba(0, 229, 255, 0.45),
+      inset 0 0 12px rgba(255, 61, 240, 0.2);
+  }
+  to {
+    border-color: #ff3df0;
+    box-shadow:
+      0 0 26px rgba(255, 61, 240, 0.75),
+      inset 0 0 16px rgba(0, 229, 255, 0.3);
+  }
 }
 /* Idle: JS adds .az-calm-idle a couple of seconds after the pointer leaves (only while
    music is playing; stopped keeps it fully visible), so the loud version is only there while
@@ -1052,7 +1229,9 @@ html.az-calm .az-calm-btn:hover {
   border-color: rgb(var(--calm-rgb));
   color: rgb(var(--calm-rgb));
   text-shadow: 0 0 8px rgba(var(--calm-rgb), 0.7);
-  box-shadow: 0 0 12px rgba(var(--calm-rgb), 0.35), inset 0 0 10px rgba(var(--calm-rgb), 0.12);
+  box-shadow:
+    0 0 12px rgba(var(--calm-rgb), 0.35),
+    inset 0 0 10px rgba(var(--calm-rgb), 0.12);
 }
 /* The soft blue above is unreadable on a light background (fails contrast badly) and the
    hardcoded near-black panel would float as a dark patch among otherwise-light chrome - the
@@ -1064,7 +1243,11 @@ html.az-light.az-calm .az-calm-btn:hover {
   box-shadow: 0 0 10px rgba(var(--calm-rgb), 0.25);
 }
 @media (prefers-reduced-motion: reduce) {
-  .az-calm-btn, .az-calm-btn:hover { animation: none; transform: none; }
+  .az-calm-btn,
+  .az-calm-btn:hover {
+    animation: none;
+    transform: none;
+  }
 }
 @media (max-width: 767px) {
   .az-calm-btn {
@@ -1076,7 +1259,7 @@ html.az-light.az-calm .az-calm-btn:hover {
 html.az-calm body.page-minimal::before {
   transition: none;
   transform: none !important;
-  filter: none !important;   /* trip hue-rotate cycling is exactly what calm mode is for */
+  filter: none !important; /* trip hue-rotate cycling is exactly what calm mode is for */
 }
 html.az-calm body.page-minimal::after {
   display: none;
@@ -1087,7 +1270,7 @@ html.az-calm .radio-player-widget .now-playing-artist:hover {
   color: #fff;
 }
 html.az-calm .radio-player-widget .az-bc-tip {
-  display: none;   /* nudge tooltip off in calm mode (JS also stops showing it) */
+  display: none; /* nudge tooltip off in calm mode (JS also stops showing it) */
 }
 html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   animation: none;
@@ -1114,14 +1297,17 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
   background: var(--hud-bg);
   color: rgb(var(--hud-accent-rgb));
-  font-family: 'Courier New', ui-monospace, monospace;
+  font-family: "Courier New", ui-monospace, monospace;
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
   text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.6);
   box-shadow: 0 0 10px rgba(var(--hud-accent-rgb), 0.35);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 .az-stream-btn:hover,
 .az-stream-btn:focus-visible {
@@ -1144,17 +1330,26 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   margin: 0;
   padding: 14px 16px;
   border: 2px solid rgb(var(--hud-accent-rgb));
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
   background: var(--hud-bg-strong);
   color: rgb(var(--hud-text-rgb));
-  font-family: 'Courier New', ui-monospace, monospace;
+  font-family: "Courier New", ui-monospace, monospace;
   font-size: 13px;
   line-height: 1.45;
   box-shadow: 0 0 18px rgba(var(--hud-accent-rgb), 0.3);
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 .az-stream-pop.az-open {
   opacity: 1;
@@ -1235,7 +1430,10 @@ html.az-calm .az-stream-pop-url {
   text-shadow: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .az-stream-pop { transition: none; transform: none; }
+  .az-stream-pop {
+    transition: none;
+    transform: none;
+  }
 }
 /* Custom-background picker button (bottom-left) + popover. Same HUD silhouette as
    .az-stream-btn, just bottom-anchored so it doesn't collide with the top-left
@@ -1259,7 +1457,10 @@ html.az-calm .az-stream-pop-url {
   cursor: pointer;
   text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.6);
   box-shadow: 0 0 10px rgba(var(--hud-accent-rgb), 0.35);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 .az-bg-btn:hover,
 .az-bg-btn:focus-visible {
@@ -1295,7 +1496,11 @@ html.az-calm .az-stream-pop-url {
   text-shadow: 0 0 6px rgba(var(--hud-accent-2-rgb), 0.6);
   box-shadow: 0 0 10px rgba(var(--hud-accent-2-rgb), 0.35);
   opacity: 0.45;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 .az-waves-btn.az-on {
   opacity: 1;
@@ -1321,17 +1526,26 @@ html.az-calm .az-stream-pop-url {
   margin: 0;
   padding: 14px 16px;
   border: 2px solid rgb(var(--hud-accent-rgb));
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
   background: var(--hud-bg-strong);
   color: rgb(var(--hud-text-rgb));
-  font-family: 'Courier New', ui-monospace, monospace;
+  font-family: "Courier New", ui-monospace, monospace;
   font-size: 13px;
   line-height: 1.45;
   box-shadow: 0 0 18px rgba(var(--hud-accent-rgb), 0.3);
   opacity: 0;
   transform: translateY(6px);
   pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 .az-bg-pop.az-open {
   opacity: 1;
@@ -1387,7 +1601,10 @@ html.az-calm .az-stream-pop-url {
   border: 2px solid rgba(var(--hud-accent-rgb), 0.4);
   background-size: cover;
   background-position: center;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
 }
 .az-bg-swatch:hover .az-bg-swatch-dot,
 .az-bg-swatch:focus-visible .az-bg-swatch-dot {
@@ -1434,14 +1651,37 @@ html.az-calm .az-bg-pop-title {
   text-shadow: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .az-bg-pop { transition: none; transform: none; }
+  .az-bg-pop {
+    transition: none;
+    transform: none;
+  }
 }
 @media (max-width: 767px) {
-  .az-bg-btn { width: 30px; height: 30px; font-size: 14px; bottom: 8px; left: 8px; }
-  .az-bg-pop { bottom: 46px; left: 8px; font-size: 12px; }
+  .az-bg-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    bottom: 8px;
+    left: 8px;
+  }
+  .az-bg-pop {
+    bottom: 46px;
+    left: 8px;
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 767px) {
-  .az-stream-btn { width: 30px; height: 30px; font-size: 16px; top: 8px; left: 8px; }
-  .az-stream-pop { top: 46px; left: 8px; font-size: 12px; }
+  .az-stream-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    top: 8px;
+    left: 8px;
+  }
+  .az-stream-pop {
+    top: 46px;
+    left: 8px;
+    font-size: 12px;
+  }
 }

@@ -2,7 +2,6 @@
 
 format:
 	@nix run .#ruff -- format
-	@nix run .#ruff -- check --fix
 	@nix run .#oxfmt -- .
 	alejandra .
 

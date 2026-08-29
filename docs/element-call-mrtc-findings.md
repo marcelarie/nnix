@@ -1,14 +1,17 @@
 # Element Call mRtc Setup — Findings
 
 ## Symptom
+
 Element Call (served from `call.matrix.marcel.cool`) fails to establish a call
 against the `marcel.cool` Synapse + LiveKit + lk-jwt-service stack. The browser
 attempts to POST a LiveKit JWT request to a server-local URL it cannot reach.
 
 ## The real failure chain (all verified live on mlab)
 
-### 1. Synapse advertises a browser-unreachable `livekit_service_url`  ← root cause
+### 1. Synapse advertises a browser-unreachable `livekit_service_url` ← root cause
+
 `hosts/mlab/matrix.nix` sets, in the Synapse `matrix_rtc` block:
+
 ```nix
 matrix_rtc = {
   transports = [{
@@ -17,12 +20,15 @@ matrix_rtc = {
   }];
 };
 ```
+
 Verified live with an admin access token:
+
 ```
 GET /_matrix/client/unstable/org.matrix.msc4143/rtc/transports (authed)
 → {"rtc_transports":[{"livekit_service_url":"http://localhost:8090","type":"livekit"}]}
 ```
-A browser resolves `localhost` against the *user's own machine*, where no
+
+A browser resolves `localhost` against the _user's own machine_, where no
 lk-jwt-service runs → connection refused. (CORS would also fail since the
 browser origin can't talk to `localhost:8090`.)
 
@@ -32,12 +38,14 @@ the public `https://matrix.marcel.cool/livekit/jwt` in both the element-call
 (see discovery priority below), so the bad URL overrides the good ones.
 
 ### 2. nginx `/livekit/jwt/` proxy doesn't strip the prefix → lk-jwt 404s
+
 ```nix
 locations."/livekit/jwt/" = {
   proxyPass = "http://127.0.0.1:8090";   # ← BUG: no trailing slash
   ...
 };
 ```
+
 Without a trailing slash on `proxy_pass`, nginx forwards the **full original
 URI** to the upstream. So `POST /livekit/jwt/sfu/get` → upstream
 `/livekit/jwt/sfu/get` → lk-jwt-service has no such route → `404 page not found`.
@@ -47,7 +55,8 @@ returns 404 through nginx, while the same paths work directly on `:8090` once th
 prefix is stripped.
 
 ### 3. `.well-known` `rtc_foci` is an array of strings, not objects
-```nix
+
+````nix
 "org.matrix.msc4143.rtc_foci" = ["https://${domain}/livekit/jwt"];
 ```  (string array — wrong)
 Element Call 0.18 expects an array of `{type, livekit_service_url}` objects
@@ -79,9 +88,11 @@ Then the JWT is fetched by appending a path to the chosen `livekit_service_url`
 
 `matrixRTCMode` defaults to `Legacy` (`src/settings/settings.ts`). So with the
 current bad config the browser issues exactly:
-```
+````
+
 POST http://localhost:8090/sfu/get
-```
+
+````
 and dies. No `/jwt`, no `/versions`, no `MISSING_MATRIX_RTC_TRANSPORT` — the
 old doc's whole `/versions` narrative was chasing a ghost.
 
@@ -94,7 +105,8 @@ edits in `hosts/mlab/matrix.nix`:
 1. **Synapse block** — advertise the public URL:
    ```nix
    livekit_service_url = "https://${domain}/livekit/jwt";
-   ```
+````
+
 2. **nginx `/livekit/jwt/` location** — trailing slash on `proxyPass` to strip
    the prefix (official nginx example uses `proxy_pass http://localhost:8080/;`):
    ```nix
@@ -116,7 +128,7 @@ edits in `hosts/mlab/matrix.nix`:
 
 ### Discovery eagerly fetches a JWT (this is why the next bug surfaces as `MISSING_MATRIX_RTC_TRANSPORT`)
 
-`makeTransport` does not just *list* candidate SFU URLs — for each candidate it
+`makeTransport` does not just _list_ candidate SFU URLs — for each candidate it
 **calls `getSFUConfigWithOpenID` which POSTs `/sfu/get` (or `/get_token`) to get a
 real LiveKit JWT**, treating a successful JWT response as proof the SFU is usable.
 Only if every candidate's JWT fetch fails does it `throw new Mtt(...)` →
@@ -142,11 +154,12 @@ Two independent breakages:
   strings as its key.
 
 Net effect: `POST /sfu/get` returned `500 {"errcode":"M_UNKNOWN","error":
-"Unable to create room on SFU"}` with a *valid* OpenID token, because lk-jwt's
+"Unable to create room on SFU"}` with a _valid_ OpenID token, because lk-jwt's
 key didn't match livekit-server's key. Discovery swallowed the 500, fell
 through every candidate, and threw `MISSING_MATRIX_RTC_TRANSPORT`.
 
 **Fix:** one shared sops template, format `KEY: SECRET` (space after colon):
+
 ```nix
 sops.templates."livekit-secrets" = {
   content = "${config.sops.placeholder.livekit_api_key}: ${config.sops.placeholder.livekit_api_secret}";
@@ -156,6 +169,7 @@ sops.templates."livekit-secrets" = {
 # services.lk-jwt-service.keyFile = config.sops.templates."livekit-secrets".path;
 # services.livekit.keyFile         = config.sops.templates."livekit-secrets".path;
 ```
+
 Why the space-after-colon matters: livekit-server's `--key-file` YAML-unmarshals
 into `map[string]string` — bare `KEY:SECRET` is a scalar ("cannot unmarshal
 !!str"), but `KEY: SECRET` is a valid single-entry map. lk-jwt splits on `:` then
@@ -168,11 +182,13 @@ CORS: lk-jwt-service 0.4.4 already returns
 live on `/get_token`). No nginx CORS config needed for the JWT endpoint.
 
 lk-jwt-service 0.4.4 routes (from upstream `main.go`):
+
 ```
 /sfu/get    legacy handler — accepts {room, openid_token, device_id}
 /get_token  modern handler — accepts {room_id, slot_id, openid_token, member, delay_*}
 /healthz
 ```
+
 No handler at `/` (returns 404). This is why every unprefixed probe 404'd.
 
 ## Verification commands (live, on mlab)
@@ -216,18 +232,20 @@ Findings #1 (`msc4143_enabled`) and #2 (`matrix_rtc: {transports:[...]}` shape)
 were correctly fixed and are verified live in the deployed Synapse config.
 
 ## Key files
+
 - `hosts/mlab/matrix.nix` — Synapse `matrix_rtc`, nginx vhost, well-known, lk-jwt service
 - Deployed element-call bundle: `/nix/store/8bb4swis20d955j46hj6q0fn1kvlzjjy-element-call-0.18.0`
   (source map at `assets/index-CN5lfP4r.js.map`)
 - Deployed lk-jwt-service: `/nix/store/kbb6k7jyckg530178axcvzgk3fgw7gji-lk-jwt-service-0.4.4`
 
 ## Services involved
-| Service | Status | Notes |
-|---------|--------|-------|
-| Synapse | ✅ running | `msc4143_enabled`, `matrix_rtc` shape, and public `livekit_service_url` all correct |
-| nginx | ✅ fixed | `/livekit/jwt/` proxyPass has trailing slash (prefix stripped) |
-| `.well-known` | ✅ fixed | `rtc_foci` is array of `{type, livekit_service_url}` objects |
-| lk-jwt-service 0.4.4 | ✅ running, key fixed | Reads shared sops template; routes `/sfu/get`, `/get_token`, `/healthz`; CORS OK |
-| LiveKit SFU | ✅ running, key fixed | Reads same shared sops template; `wss://livekit.marcel.cool` |
-| coturn | ✅ running | TURN for WebRTC |
-| Element Call 0.18 | ✅ deployed | Behaviour confirmed from source map; JWT chain verified end-to-end |
+
+| Service              | Status                | Notes                                                                               |
+| -------------------- | --------------------- | ----------------------------------------------------------------------------------- |
+| Synapse              | ✅ running            | `msc4143_enabled`, `matrix_rtc` shape, and public `livekit_service_url` all correct |
+| nginx                | ✅ fixed              | `/livekit/jwt/` proxyPass has trailing slash (prefix stripped)                      |
+| `.well-known`        | ✅ fixed              | `rtc_foci` is array of `{type, livekit_service_url}` objects                        |
+| lk-jwt-service 0.4.4 | ✅ running, key fixed | Reads shared sops template; routes `/sfu/get`, `/get_token`, `/healthz`; CORS OK    |
+| LiveKit SFU          | ✅ running, key fixed | Reads same shared sops template; `wss://livekit.marcel.cool`                        |
+| coturn               | ✅ running            | TURN for WebRTC                                                                     |
+| Element Call 0.18    | ✅ deployed           | Behaviour confirmed from source map; JWT chain verified end-to-end                  |

@@ -12,6 +12,7 @@ headers adds no new privilege. Data comes from the AzuraCast DB (one podman exec
 same pattern as azuracast-settings); the page polls at most once a minute and a 10s per-IP
 throttle keeps that near zero.
 """
+
 import json
 import os
 import re
@@ -31,10 +32,23 @@ throttle_lock = threading.Lock()
 def db(sql):
     """Run sql on the AzuraCast DB inside the container (podman exec; one round-trip)."""
     out = subprocess.run(
-        ["podman", "exec", "azuracast", "mariadb", "-N", "-B",
-         "-u", "azuracast", "-p" + os.environ["MYSQL_PASSWORD"], "azuracast",
-         "-e", sql],
-        capture_output=True, timeout=15)
+        [
+            "podman",
+            "exec",
+            "azuracast",
+            "mariadb",
+            "-N",
+            "-B",
+            "-u",
+            "azuracast",
+            "-p" + os.environ["MYSQL_PASSWORD"],
+            "azuracast",
+            "-e",
+            sql,
+        ],
+        capture_output=True,
+        timeout=15,
+    )
     if out.returncode != 0:
         raise RuntimeError(out.stderr.decode(errors="replace").strip()[:200])
     current, total = (int(x) for x in out.stdout.split())
@@ -84,7 +98,8 @@ class H(BaseHTTPRequestHandler):
                 "THEN TIMESTAMPDIFF(SECOND, timestamp_start, NOW()) ELSE 0 END), 0), "
                 "COALESCE(SUM(TIMESTAMPDIFF(SECOND, timestamp_start, "
                 "COALESCE(timestamp_end, NOW()))), 0) "
-                "FROM listener WHERE listener_ip='%s'" % ip)
+                "FROM listener WHERE listener_ip='%s'" % ip
+            )
         except Exception:
             return self.send(500, None)
         self.send(200, {"current": current, "total": total})
