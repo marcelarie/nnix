@@ -1,6 +1,9 @@
 .PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops android-mirror whatsapp-register azuracast-deploy
 
 format:
+	ruff format
+	ruff check --fix
+	oxfmt .
 	alejandra .
 
 nixos:
