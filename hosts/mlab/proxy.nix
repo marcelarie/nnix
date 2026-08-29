@@ -332,10 +332,12 @@ in {
             # AzuraCast sends `Permissions-Policy: autoplay=*, fullscreen=*, interest-cohort=()`.
             # interest-cohort is the dead FLoC token; Brave logs it as an unrecognized
             # directive. Drop the upstream header and re-issue a clean one without it.
-            extraConfig = base.extraConfig + ''
-              proxy_hide_header Permissions-Policy;
-              add_header Permissions-Policy "autoplay=*, fullscreen=*" always;
-            '';
+            extraConfig =
+              base.extraConfig
+              + ''
+                proxy_hide_header Permissions-Policy;
+                add_header Permissions-Policy "autoplay=*, fullscreen=*" always;
+              '';
             locations =
               base.locations
               // {
@@ -391,7 +393,7 @@ in {
                 # treatment as /stream.
                 "/live/" = {
                   proxyPass = "http://127.0.0.1:${toString services.azuracast.port}";
-                  proxyWebsockets = true;   # Centrifugo can fall back to a websocket transport under this prefix
+                  proxyWebsockets = true; # Centrifugo can fall back to a websocket transport under this prefix
                   extraConfig = ''
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;

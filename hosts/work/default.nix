@@ -164,8 +164,7 @@ in {
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".config/hypr/devices/WS0277.conf".source =
       link "${dots}/.config/hypr/devices/WS0277.conf";
-    ".local/state/udev-rules/70-openlogi.rules".source =
-      "${inputs.openlogi.packages.${pkgs.system}.default}/lib/udev/rules.d/70-openlogi.rules";
+    ".local/state/udev-rules/70-openlogi.rules".source = "${inputs.openlogi.packages.${pkgs.system}.default}/lib/udev/rules.d/70-openlogi.rules";
     ".config/xdg-desktop-portal/hyprland-portals.conf".source =
       link "${dots}/.config/xdg-desktop-portal/hyprland-portals.conf";
     ".mozilla/native-messaging-hosts/passff.json".source = "${pkgs.passff-host}/lib/mozilla/native-messaging-hosts/passff.json";

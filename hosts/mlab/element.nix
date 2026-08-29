@@ -1,5 +1,7 @@
-# {
-#   config,
+# Disabled Element Call config (superseded by cinny, commit "add cinny") - kept as
+# reference. A bare { } is needed so the file stays valid nix (a comments-only file is a
+# parse error); delete it (and re-add the multi-line string markers) when re-enabling.
+# { config,
 #   pkgs,
 #   ...
 # }: let
@@ -9,7 +11,7 @@
 #
 #   elementCallPackage = pkgs.element-web;
 #
-#   elementCallConfig = pkgs.writeText "element-call-config.json" ''
+#   elementCallConfig = pkgs.writeText "element-call-config.json" (multi-line string):
 #     {
 #       "default_server_config": {
 #         "m.homeserver": {
@@ -36,7 +38,6 @@
 #         "livekit_service_url": "https://${domain}/livekit/jwt"
 #       }
 #     }
-#   '';
 #
 # in {
 #   services.nginx.virtualHosts.${domain} = {
@@ -61,3 +62,4 @@
 #
 #   environment.etc."element-call/config.json".source = elementCallConfig;
 # }
+{}

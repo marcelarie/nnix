@@ -22,9 +22,11 @@
 # --replace-fail makes the build fail loudly so this can be updated.
 final: prev: {
   pi-coding-agent = prev.pi-coding-agent.overrideAttrs (old: {
-    postFixup = (old.postFixup or "") + ''
-      substituteInPlace "$out/lib/node_modules/pi-monorepo/dist/core/extensions/loader.js" \
-        --replace-fail 'moduleCache: false,' 'moduleCache: false, cache: process.env.PI_JITI_CACHE || path.join(process.env.XDG_CACHE_HOME || path.join(process.env.HOME || "/tmp", ".cache"), "pi", "jiti"),'
-    '';
+    postFixup =
+      (old.postFixup or "")
+      + ''
+        substituteInPlace "$out/lib/node_modules/pi-monorepo/dist/core/extensions/loader.js" \
+          --replace-fail 'moduleCache: false,' 'moduleCache: false, cache: process.env.PI_JITI_CACHE || path.join(process.env.XDG_CACHE_HOME || path.join(process.env.HOME || "/tmp", ".cache"), "pi", "jiti"),'
+      '';
   });
 }
