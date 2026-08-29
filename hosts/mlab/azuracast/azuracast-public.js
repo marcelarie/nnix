@@ -252,8 +252,8 @@
 
   // Spacebar toggles play/pause; ArrowUp/ArrowDown raise/lower volume; z toggles the album art
   // zoom lightbox; m toggles mute; w toggles the wave overlay (+ footer player); c toggles
-  // anti-seizure mode; t iterates the background themes (party -> device -> white -> black
-  // -> neon, plus the custom photo as a final stop when one is set). Registered
+  // anti-seizure mode; t/T iterate the background themes forward/back (party -> device ->
+  // white -> black -> neon, plus the custom photo as a stop when one is set). Registered
   // BEFORE the window 'unmute' keydown (capture) so
   // stopImmediatePropagation stops it also firing ensurePlaying (which would re-start right
   // after a pause). preventDefault stops the page scrolling on Space/arrow keys. Skipped while
@@ -262,6 +262,34 @@
   // Filled in by the background picker IIFE below: re-applies the stored custom photo as the
   // 't' theme cycle's final stop. null until the picker runs.
   var azBgCycleCustom = null;
+  // 't'/'T' theme cycle, shared with the keydown below: click the swatch after (dir>0) or
+  // before (dir<0) the selected one. The custom photo (when set) is a stop between the last
+  // preset and the first - azBgCycleCustom() re-applies it and returns false when none is
+  // set, so the cycle simply wraps. Clicking reuses the swatch path (localStorage + apply
+  // + selected state).
+  function cycleTheme(dir) {
+    var swatches = document.querySelectorAll('.az-bg-swatch');
+    var n = swatches.length;
+    if (!n) return;
+    var selIdx = -1;
+    for (var i = 0; i < swatches.length; i++) {
+      if (swatches[i].classList.contains('az-selected')) { selIdx = i; break; }
+    }
+    // selIdx=-1 = the custom photo itself is active; it is a stop BETWEEN the last and first
+    // preset (not a preset index), so each direction resolves its own target:
+    var target, hitsPhoto;
+    if (dir > 0) {
+      target = selIdx === -1 ? 0 : (selIdx + 1) % n;   // photo -> first preset
+      hitsPhoto = selIdx !== -1 && target === 0;       // last -> first boundary
+    } else {
+      target = selIdx === -1 ? n - 1 : (selIdx - 1 + n) % n; // photo -> last preset
+      hitsPhoto = selIdx !== -1 && target === n - 1;  // first -> last boundary
+    }
+    // Crossing the boundary lands on the custom photo (if set); from the photo there is no
+    // stop, it already WAS the stop.
+    if (hitsPhoto && azBgCycleCustom && azBgCycleCustom()) return;
+    swatches[target].click();
+  }
   window.addEventListener('keydown', function (e) {
     var isSpace = (e.key === ' ' || e.code === 'Space');
     var isVol = (e.key === 'ArrowUp' || e.key === 'ArrowDown');
@@ -269,8 +297,9 @@
     var isMute = (e.key === 'm' || e.key === 'M');
     var isWaves = (e.key === 'w' || e.key === 'W');
     var isCalm = (e.key === 'c' || e.key === 'C');
-    var isTheme = (e.key === 't' || e.key === 'T');
-    if (!isSpace && !isVol && !isZoom && !isMute && !isWaves && !isCalm && !isTheme) return;
+    var isThemeFwd = (e.key === 't');
+    var isThemeBwd = (e.key === 'T');
+    if (!isSpace && !isVol && !isZoom && !isMute && !isWaves && !isCalm && !isThemeFwd && !isThemeBwd) return;
     var target = e.target;
     // Only defer to a REAL text-entry control. Matching a focused <input type=range> here would
     // silently swallow Space/z; it keeps its own native arrow-key handling below regardless.
@@ -302,23 +331,9 @@
       // (read from localStorage) stale, so it's skipped rather than set raw.
       var calmBtn = document.querySelector('.az-calm-btn');
       if (calmBtn) calmBtn.click();
-    } else if (isTheme) {
+    } else if (isThemeFwd || isThemeBwd) {
       if (e.repeat) return;
-      // Iterate the background themes: click the swatch after the selected one. The custom
-      // photo (when set) is the final stop after the last preset - azBgCycleCustom returns
-      // false when none is set, so the cycle simply wraps to the first preset. Clicking
-      // reuses the swatch path (localStorage + apply + selected state).
-      var swatches = document.querySelectorAll('.az-bg-swatch');
-      if (swatches.length) {
-        var selIdx = -1;
-        for (var i = 0; i < swatches.length; i++) {
-          if (swatches[i].classList.contains('az-selected')) { selIdx = i; break; }
-        }
-        if (selIdx === -1) { swatches[0].click(); return; }   // custom photo active -> first preset
-        var next = (selIdx + 1) % swatches.length;
-        if (next === 0 && azBgCycleCustom && azBgCycleCustom()) return;   // wrap -> custom photo stop
-        swatches[next].click();
-      }
+      cycleTheme(isThemeFwd ? 1 : -1);
     } else {
       bumpVolume(e.key === 'ArrowUp' ? 5 : -5); // repeats allowed: hold to ramp volume
     }
@@ -1049,7 +1064,7 @@
     if (!host || host.querySelector('.az-hint')) return !!host;
     var hint = document.createElement('div');
     hint.className = 'az-hint';
-    hint.textContent = '↑/↓ volume  ·  space play/pause  ·  m mute  ·  z zoom  ·  w waves  ·  c calm  ·  t theme';
+    hint.textContent = '↑/↓ volume  ·  space play/pause  ·  m mute  ·  z zoom  ·  w waves  ·  c calm  ·  t/T theme';
     host.appendChild(hint);
     return true;
   }

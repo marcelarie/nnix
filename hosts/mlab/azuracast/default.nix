@@ -82,6 +82,18 @@ in {
           SID=$(mysql "SELECT id FROM station WHERE short_name='radio_marcel';")
           HLS_CHANGED=0
 
+          # avoid_duplicates makes the queue builder skip any track whose artist played
+          # recently. With an album-shaped library that means it selects artist-uniformly
+          # instead of track-uniformly: a 1-track artist got 18 plays in 3 days while each
+          # track of a 13-track album got 2.6. It also wipes the shuffle cycle whenever
+          # nothing passes the filter ("Duplicate prevention yielded no playable song;
+          # resetting song queue"), so the library never finishes a full pass. Off = plain
+          # shuffle, every track once per ~14h cycle.
+          if [ "$(mysql "SELECT avoid_duplicates FROM station_playlists WHERE station_id=$SID AND name='default';")" = "1" ]; then
+            mysql "UPDATE station_playlists SET avoid_duplicates=0 WHERE station_id=$SID AND name='default';" \
+              && echo "azuracast-settings: avoid_duplicates=0"
+          fi
+
           if [ "$(mysql "SELECT enable_hls FROM station WHERE id=$SID;")" = "0" ]; then
             if mysql "UPDATE station SET enable_hls=1 WHERE id=$SID;"; then
               HLS_CHANGED=1
