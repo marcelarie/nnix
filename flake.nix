@@ -115,6 +115,7 @@
         (final: prev: {"brave-origin" = inputs.brave-origin-channels.packages.${system}.nightly;})
       ];
     };
+    pkgs_rust = pkgs;
     pkgsAndroid = import nixpkgs2405 {
       system = androidSystem;
       config.allowUnfree = true;
@@ -133,6 +134,8 @@
       mautrix-whatsapp = pkgs.mautrix-whatsapp;
       # Commented out due to cycles
       # Commented out due to cycles
+      ruff = pkgs.ruff;
+      oxfmt = pkgs.oxfmt;
     };
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [
