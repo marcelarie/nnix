@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Listen-time endpoint for the radio page (systemd socket + nginx location; see azuracast.nix
 and the "= /listen-time" location in proxy.nix).
 
@@ -11,6 +10,8 @@ Only the radio nginx vhost (127.0.0.1) can reach this socket, so trusting the fo
 headers adds no new privilege. Data comes from the AzuraCast DB (one podman exec per request,
 same pattern as azuracast-settings); the page polls at most once a minute and a 10s per-IP
 throttle keeps that near zero.
+
+ponytail: note - run via python3, not shebang
 """
 
 import json
@@ -48,6 +49,7 @@ def db(sql):
         ],
         capture_output=True,
         timeout=15,
+        check=False,
     )
     if out.returncode != 0:
         raise RuntimeError(out.stderr.decode(errors="replace").strip()[:200])
@@ -98,9 +100,9 @@ class H(BaseHTTPRequestHandler):
                 "THEN TIMESTAMPDIFF(SECOND, timestamp_start, NOW()) ELSE 0 END), 0), "
                 "COALESCE(SUM(TIMESTAMPDIFF(SECOND, timestamp_start, "
                 "COALESCE(timestamp_end, NOW()))), 0) "
-                "FROM listener WHERE listener_ip='%s'" % ip
+                f"FROM listener WHERE listener_ip='{ip}'"
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             return self.send(500, None)
         self.send(200, {"current": current, "total": total})
 

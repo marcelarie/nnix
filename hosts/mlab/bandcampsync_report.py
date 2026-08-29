@@ -1,9 +1,10 @@
-#!/usr/bin/env python3
 """bandcampsync status page generator.
 
 Two modes:
   generate    scan filesystem + last-run journal + urls.json -> index.html  (stdlib only)
   fetch-urls  hit bandcamp collection API -> urls.json  (needs bandcampsync importable)
+
+ponytail: note - run via python3, not shebang
 """
 
 import html
@@ -48,6 +49,7 @@ def systemctl(prop):
         ["systemctl", "show", "-p", prop, "bandcampsync.service"],
         capture_output=True,
         text=True,
+        check=False,
     )
     return r.stdout.split("=", 1)[1].strip() if "=" in r.stdout else ""
 
@@ -66,6 +68,7 @@ def last_run_journal(since):
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
     return r.stdout
 
