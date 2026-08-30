@@ -83,6 +83,7 @@ in {
     wl-clipboard
     wlr-layout-ui
     wofi-emoji
+    gelly
     ydotool
     zathura
     penguin-subtitle-player

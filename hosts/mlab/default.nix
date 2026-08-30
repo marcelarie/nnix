@@ -31,6 +31,7 @@
     ./miniflux.nix
     ./navidrome.nix
     ./nitter.nix
+    ./offtiktok.nix
     ./ollama.nix
     ./open-webui.nix
     ./paperless.nix

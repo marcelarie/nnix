@@ -66,6 +66,14 @@
       href = "https://nitter.marcel.cool";
       protected = true;
     };
+    offtiktok = {
+      port = 3010;
+      href = "https://offtiktok.marcel.cool";
+    };
+    offtiktokapi = {
+      port = 2000;
+      href = "https://api.offtiktok.marcel.cool";
+    };
     openwebui = {
       port = 3000;
       href = "https://ai.marcel.cool";

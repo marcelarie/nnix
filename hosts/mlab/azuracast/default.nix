@@ -9,6 +9,8 @@
   # allowedTCPPorts, and this port must stay loopback-only.
   listenTimePort = 8320;
 in {
+  imports = [./radio-bot.nix];
+
   systemd.tmpfiles.rules = [
     "d /var/lib/azuracast 0755 1000 1000 -"
     "d /var/lib/azuracast/stations 0755 1000 1000 -"
@@ -152,7 +154,9 @@ in {
 
       # quote-doubling (MariaDB single-quoted string escape) for apostrophes in folder names
       q="'"
-      find /var/lib/media/music -maxdepth 1 -mindepth 1 -type d ! -name '.*' -printf '%f\n' 2>/dev/null \
+      # 'news' is excluded: radio-bot.nix uploads bulletins there and they get their own
+      # scheduled playlist, so they must not join the music rotation.
+      find /var/lib/media/music -maxdepth 1 -mindepth 1 -type d ! -name '.*' ! -name news -printf '%f\n' 2>/dev/null \
         | while IFS= read -r dir; do
             esc=$(printf '%s' "$dir" | sed "s/$q/$q$q/g")
             mysql "INSERT INTO station_playlist_folders (station_id, playlist_id, path) SELECT $SID, $PID, '$esc' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM station_playlist_folders WHERE station_id=$SID AND playlist_id=$PID AND path='$esc');"

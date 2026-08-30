@@ -114,6 +114,10 @@
           protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
         })
         (final: prev: {"brave-origin" = inputs.brave-origin-channels.packages.${system}.nightly;})
+        (final: prev: {
+          offtiktok = pkgs.callPackage ./packages/offtiktok/frontend.nix {};
+          offtiktokapi = pkgs.callPackage ./packages/offtiktok/backend.nix {};
+        })
       ];
     };
     pkgs_rust = pkgs;
