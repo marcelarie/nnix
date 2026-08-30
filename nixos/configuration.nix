@@ -161,6 +161,8 @@
     nameservers = ["1.1.1.1" "8.8.8.8"];
     networkmanager = {
       enable = true;
+      wifi.macAddress = "random";
+      ethernet.macAddress = "random";
       plugins = with pkgs; [networkmanager-openvpn];
       insertNameservers = ["1.1.1.1" "8.8.8.8"];
     };
