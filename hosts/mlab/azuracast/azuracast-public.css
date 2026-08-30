@@ -177,7 +177,8 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
      separation, and move the picker popover up to stay glued to its button. */
   html.az-waves .az-bg-btn,
   html.az-waves .az-waves-btn,
-  html.az-waves .az-listeners {
+  html.az-waves .az-listeners,
+  html.az-waves .az-listen-time {
     bottom: 100px;
   }
   html.az-waves .az-bg-pop {
@@ -967,14 +968,16 @@ html.az-light .radio-player-widget .az-hint {
   }
 }
 
-/* Listen-time counter: square chip top-left, a bit clear of the stream-info button
-   (.az-stream-btn, same 34px box + 8px gap on desktop - flush read as one merged block).
-   Fed by the /listen-time endpoint; stays in calm mode. Appended to <body> (like the button),
-   so no widget-scoped selector. */
+/* Listen-time counter: bottom-center, its own free spot (bottom-left is the background/waves
+   buttons, bottom-right the listener count) - parked here rather than top-left so the radio
+   program button above (.az-program-btn) has the whole top-center band to itself instead of
+   fighting this chip's variable width for room. Fed by the /listen-time endpoint; stays in calm
+   mode. Appended to <body>, so no widget-scoped selector. */
 .az-listen-time {
   position: fixed;
-  top: 10px;
-  left: 52px;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   height: 34px;
   z-index: 999;
   display: flex;
@@ -982,7 +985,14 @@ html.az-light .radio-player-widget .az-hint {
   gap: 6px;
   padding: 0 10px;
   border: 2px solid rgba(var(--hud-accent-rgb), 0.55);
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 9px) 0,
+    100% 9px,
+    100% 100%,
+    9px 100%,
+    0 calc(100% - 9px)
+  );
   background: var(--hud-bg);
   color: rgb(var(--hud-text-rgb));
   font-family: "Courier New", ui-monospace, monospace;
@@ -993,8 +1003,7 @@ html.az-light .radio-player-widget .az-hint {
 }
 @media (max-width: 767px) {
   .az-listen-time {
-    top: 8px;
-    left: 46px;
+    bottom: 8px;
     height: 30px;
     font-size: 12px;
     padding: 0 8px;
@@ -1006,9 +1015,10 @@ html.az-calm .az-listen-time {
 }
 
 /* Current listener count: the same HUD chip as the listen-time counter, parked bottom-right -
-   the one free corner (calm button top-right, stream/listen-time top-left, background picker
-   bottom-left). Notch mirrored to the top-left corner so it points into the page like the
-   others do. Fed by /api/nowplaying; stays in calm mode. */
+   the corners are stream-info top-left, calm button top-right, background/waves buttons
+   bottom-left; the listen-time counter itself sits bottom-center (see .az-listen-time above).
+   Notch mirrored to the top-left corner so it points into the page like the others do. Fed by
+   /api/nowplaying; stays in calm mode. */
 .az-listeners {
   position: fixed;
   bottom: 10px;
@@ -1280,18 +1290,17 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   text-shadow: none;
 }
 
-/* Radio program button: top-center, the one HUD position with room to spare (top-left/-right and
-   bottom-left/-right are already the stream-info/listen-time chips, calm button, background/waves
-   buttons and listener count). Same clickable-chip + popover shape as .az-stream-btn/.az-bg-btn
-   below, just wide enough to carry a label instead of a bare icon. Click expands the full
-   timetable (.az-program-pop); the chip itself always shows what's airing right now, and (when
-   there's room - see the min-width media query below) what's up next too.
-   One-line layout, fixed 34px height (matches .az-listen-time/.az-stream-btn): the chip grows
-   WIDER as more of the now/next text fits, never taller, so the top row's height stays uniform
-   whichever of these widgets happens to be tallest. On mobile it drops to its own row below the
-   corner icons (see the max-width query) rather than shrinking text to fit alongside them - three
-   independently-centered/cornered fixed elements sharing one narrow row is what caused the
-   cramping; a dedicated band underneath sidesteps it entirely instead of chasing breakpoints. */
+/* Radio program button: top-center, the one HUD position with room to spare - top-left is only
+   the stream-info button, top-right only the calm button (the listen-time chip that used to
+   share top-left moved to bottom-center, see .az-listen-time, specifically to leave this whole
+   band free). Same clickable-chip + popover shape as .az-stream-btn/.az-bg-btn below, just wide
+   enough to carry a label instead of a bare icon. Click expands the full timetable
+   (.az-program-pop); the chip itself always shows what's airing right now, and (when there's
+   room - see the min-width media query below) what's up next too.
+   One-line layout, fixed height (34px desktop, matches .az-stream-btn/.az-listen-time): the chip
+   grows WIDER as more of the now/next text fits, never taller, and its own max-width plus each
+   text span's ellipsis keep it from ever overflowing into the corner buttons even on a narrow
+   phone with a long playlist name. */
 .az-program-btn {
   position: fixed;
   top: 10px;
@@ -1369,7 +1378,7 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
 }
 .az-program-pop {
   position: fixed;
-  top: 52px; /* button top(10) + height(34) + gap(8), same arithmetic as .az-listen-time's left offset */
+  top: 52px; /* button top(10) + height(34) + gap(8) */
   left: 50%;
   z-index: 1000;
   width: min(86vw, 320px);
@@ -1440,14 +1449,12 @@ html.az-calm .az-program-row.az-now {
     transform: translate(-50%, 0);
   }
 }
-/* Own row below the top-left/top-right icons (which sit at top:8px, 30px tall on mobile - see
-   .az-stream-btn/.az-listen-time/.az-calm-btn below), instead of sharing their band: this chip is
-   centered independently of those corner-anchored ones, so keeping it on the same row is what
-   overlapped on narrow screens regardless of how much its own text got shrunk. 8(top)+30(height)+
-   8(gap)=46, then the popover continues that same arithmetic one row further down. */
+/* Same top:10px band as desktop (see .az-stream-btn/.az-calm-btn below, both top:8px on mobile) -
+   just shorter, matching those icons' 30px mobile height; only the top-left stream-info button
+   and top-right calm button share the row with it now, so there's no need to relocate it. */
 @media (max-width: 767px) {
   .az-program-btn {
-    top: 46px;
+    top: 8px;
     height: 30px;
     padding: 0 12px;
   }
@@ -1458,7 +1465,7 @@ html.az-calm .az-program-row.az-now {
     font-size: 10px;
   }
   .az-program-pop {
-    top: 84px;
+    top: 46px;
     font-size: 12px;
   }
 }
