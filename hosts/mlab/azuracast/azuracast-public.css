@@ -1284,7 +1284,14 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
    bottom-left/-right are already the stream-info/listen-time chips, calm button, background/waves
    buttons and listener count). Same clickable-chip + popover shape as .az-stream-btn/.az-bg-btn
    below, just wide enough to carry a label instead of a bare icon. Click expands the full
-   timetable (.az-program-pop); the chip itself always shows what's airing right now. */
+   timetable (.az-program-pop); the chip itself always shows what's airing right now, and (when
+   there's room - see the min-width media query below) what's up next too.
+   One-line layout, fixed 34px height (matches .az-listen-time/.az-stream-btn): the chip grows
+   WIDER as more of the now/next text fits, never taller, so the top row's height stays uniform
+   whichever of these widgets happens to be tallest. On mobile it drops to its own row below the
+   corner icons (see the max-width query) rather than shrinking text to fit alongside them - three
+   independently-centered/cornered fixed elements sharing one narrow row is what caused the
+   cramping; a dedicated band underneath sidesteps it entirely instead of chasing breakpoints. */
 .az-program-btn {
   position: fixed;
   top: 10px;
@@ -1292,10 +1299,11 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   transform: translateX(-50%);
   z-index: 1000;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1px;
-  padding: 6px 16px;
+  gap: 8px;
+  height: 34px;
+  max-width: calc(100vw - 16px);
+  padding: 0 16px;
   border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
   clip-path: polygon(
@@ -1310,6 +1318,7 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   color: rgb(var(--hud-accent-rgb));
   font-family: "Courier New", ui-monospace, monospace;
   cursor: pointer;
+  white-space: nowrap;
   text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.6);
   box-shadow: 0 0 10px rgba(var(--hud-accent-rgb), 0.35);
   transition:
@@ -1330,24 +1339,37 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   box-shadow: 0 0 16px rgba(var(--hud-accent-3-rgb), 0.6);
 }
 .az-program-title {
+  flex: 0 0 auto;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 1px;
-  white-space: nowrap;
 }
-.az-program-status {
-  max-width: 60vw;
+.az-program-status,
+.az-program-next {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
+  padding-left: 8px;
+  border-left: 1px solid rgba(var(--hud-accent-rgb), 0.3);
   color: rgb(var(--hud-text-dim-rgb));
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   text-shadow: none;
   text-overflow: ellipsis;
-  white-space: nowrap;
+}
+/* "Up next" is the first thing to go on a cramped viewport - "now playing" already covers the
+   chip's one job, this is a bonus shown only once there's real room for it. */
+.az-program-next {
+  display: none;
+}
+@media (min-width: 900px) {
+  .az-program-next {
+    display: block;
+  }
 }
 .az-program-pop {
   position: fixed;
-  top: 56px;
+  top: 52px; /* button top(10) + height(34) + gap(8), same arithmetic as .az-listen-time's left offset */
   left: 50%;
   z-index: 1000;
   width: min(86vw, 320px);
@@ -1418,10 +1440,16 @@ html.az-calm .az-program-row.az-now {
     transform: translate(-50%, 0);
   }
 }
+/* Own row below the top-left/top-right icons (which sit at top:8px, 30px tall on mobile - see
+   .az-stream-btn/.az-listen-time/.az-calm-btn below), instead of sharing their band: this chip is
+   centered independently of those corner-anchored ones, so keeping it on the same row is what
+   overlapped on narrow screens regardless of how much its own text got shrunk. 8(top)+30(height)+
+   8(gap)=46, then the popover continues that same arithmetic one row further down. */
 @media (max-width: 767px) {
   .az-program-btn {
-    top: 8px;
-    padding: 5px 12px;
+    top: 46px;
+    height: 30px;
+    padding: 0 12px;
   }
   .az-program-title {
     font-size: 11px;
@@ -1430,7 +1458,7 @@ html.az-calm .az-program-row.az-now {
     font-size: 10px;
   }
   .az-program-pop {
-    top: 50px;
+    top: 84px;
     font-size: 12px;
   }
 }

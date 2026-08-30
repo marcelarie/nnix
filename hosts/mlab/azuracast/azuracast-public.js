@@ -1978,6 +1978,7 @@
   // stream-info/background-picker widgets below, just parked top-center - the one HUD position
   // with room to spare (top-left/-right and bottom-left/-right are all already taken).
   (function () {
+    var FILLER = "Banging tunes";
     function toMinutes(iso) {
       var d = new Date(iso);
       return d.getHours() * 60 + d.getMinutes();
@@ -1998,11 +1999,19 @@
       var rows = [],
         prev = 0;
       items.forEach(function (it) {
-        if (it.start > prev) rows.push({ start: prev, end: it.start, name: "Banging tunes" });
+        if (it.start > prev) rows.push({ start: prev, end: it.start, name: FILLER });
         rows.push(it);
         prev = Math.max(prev, it.end);
       });
-      if (prev < 1440) rows.push({ start: prev, end: 1440, name: "Banging tunes" });
+      if (prev < 1440) rows.push({ start: prev, end: 1440, name: FILLER });
+      // Midnight wrap: the day-bounded grid can split one continuous filler stretch into a
+      // leading and a trailing row (e.g. 00:00-08:00 and 17:15-24:00) - merge them into a single
+      // row that wraps (17:15-08:00) instead of showing "Banging tunes" twice back to back.
+      if (rows.length > 1 && rows[0].name === FILLER && rows[rows.length - 1].name === FILLER) {
+        var last = rows.pop();
+        var first = rows.shift();
+        rows.push({ start: last.start, end: first.end, name: FILLER, wrap: true });
+      }
       return rows;
     }
     if (location.search.indexOf("azdebug") !== -1) {
@@ -2010,10 +2019,12 @@
         { start: "2026-01-01T08:00:00+02:00", end: "2026-01-01T08:15:00+02:00", name: "news" },
       ]);
       console.assert(
-        selfCheck.length === 3 &&
-          selfCheck[0].name === "Banging tunes" &&
-          selfCheck[1].name === "news" &&
-          selfCheck[2].name === "Banging tunes",
+        selfCheck.length === 2 &&
+          selfCheck[0].name === "news" &&
+          selfCheck[1].name === FILLER &&
+          selfCheck[1].wrap === true &&
+          selfCheck[1].start === 495 &&
+          selfCheck[1].end === 480,
         "az-program buildRows self-check failed",
         selfCheck,
       );
@@ -2028,9 +2039,11 @@
       btn.setAttribute("aria-label", "Radio program schedule");
       btn.setAttribute("aria-expanded", "false");
       btn.innerHTML =
-        '<span class="az-program-title">📻 RADIO PROGRAM</span>' +
-        '<span class="az-program-status"></span>';
+        '<span class="az-program-title">RADIO PROGRAM</span>' +
+        '<span class="az-program-status"></span>' +
+        '<span class="az-program-next"></span>';
       var statusEl = btn.querySelector(".az-program-status");
+      var nextEl = btn.querySelector(".az-program-next");
 
       var pop = document.createElement("div");
       pop.className = "az-program-pop";
@@ -2050,13 +2063,18 @@
       function highlight() {
         var now = new Date(),
           nowMin = now.getHours() * 60 + now.getMinutes();
-        var current = null;
+        var currentIdx = -1;
         rows.forEach(function (row, i) {
-          var isNow = nowMin >= row.start && nowMin < row.end;
+          var isNow = row.wrap
+            ? nowMin >= row.start || nowMin < row.end
+            : nowMin >= row.start && nowMin < row.end;
           rowEls[i].classList.toggle("az-now", isNow);
-          if (isNow) current = row;
+          if (isNow) currentIdx = i;
         });
+        var current = currentIdx === -1 ? null : rows[currentIdx];
+        var next = currentIdx === -1 ? null : rows[(currentIdx + 1) % rows.length];
         statusEl.textContent = current ? "now: " + current.name : "";
+        nextEl.textContent = next ? "next: " + next.name + " at " + fmt(next.start) : "";
       }
       highlight();
       setInterval(highlight, 30000);
