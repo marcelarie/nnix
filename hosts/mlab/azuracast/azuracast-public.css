@@ -1280,6 +1280,161 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   text-shadow: none;
 }
 
+/* Radio program button: top-center, the one HUD position with room to spare (top-left/-right and
+   bottom-left/-right are already the stream-info/listen-time chips, calm button, background/waves
+   buttons and listener count). Same clickable-chip + popover shape as .az-stream-btn/.az-bg-btn
+   below, just wide enough to carry a label instead of a bare icon. Click expands the full
+   timetable (.az-program-pop); the chip itself always shows what's airing right now. */
+.az-program-btn {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 16px;
+  border: 2px solid rgb(var(--hud-accent-rgb));
+  border-radius: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 11px) 0,
+    100% 11px,
+    100% 100%,
+    11px 100%,
+    0 calc(100% - 11px)
+  );
+  background: var(--hud-bg);
+  color: rgb(var(--hud-accent-rgb));
+  font-family: "Courier New", ui-monospace, monospace;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.6);
+  box-shadow: 0 0 10px rgba(var(--hud-accent-rgb), 0.35);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.az-program-btn:hover,
+.az-program-btn:focus-visible {
+  border-color: rgb(var(--hud-accent-2-rgb));
+  color: rgb(var(--hud-accent-2-rgb));
+  box-shadow: 0 0 16px rgba(var(--hud-accent-2-rgb), 0.6);
+  outline: none;
+}
+.az-program-btn.az-open {
+  border-color: rgb(var(--hud-accent-3-rgb));
+  color: rgb(var(--hud-accent-3-rgb));
+  box-shadow: 0 0 16px rgba(var(--hud-accent-3-rgb), 0.6);
+}
+.az-program-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.az-program-status {
+  max-width: 60vw;
+  overflow: hidden;
+  color: rgb(var(--hud-text-dim-rgb));
+  font-size: 11px;
+  font-weight: 400;
+  text-shadow: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.az-program-pop {
+  position: fixed;
+  top: 56px;
+  left: 50%;
+  z-index: 1000;
+  width: min(86vw, 320px);
+  max-height: 60vh;
+  margin: 0;
+  padding: 14px 16px;
+  overflow-y: auto;
+  border: 2px solid rgb(var(--hud-accent-rgb));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+  background: var(--hud-bg-strong);
+  color: rgb(var(--hud-text-rgb));
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 0 18px rgba(var(--hud-accent-rgb), 0.3);
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.az-program-pop.az-open {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.az-program-pop-title {
+  margin: 0 0 8px;
+  color: rgb(var(--hud-accent-rgb));
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(var(--hud-accent-rgb), 0.5);
+}
+.az-program-row {
+  padding: 3px 0;
+  color: rgb(var(--hud-text-dim-rgb));
+  white-space: nowrap;
+}
+.az-program-row.az-now {
+  color: rgb(var(--hud-accent-3-rgb));
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(var(--hud-accent-3-rgb), 0.5);
+}
+html.az-calm .az-program-btn,
+html.az-calm .az-program-pop {
+  border-color: rgb(var(--calm-rgb));
+  box-shadow: none;
+}
+html.az-calm .az-program-title,
+html.az-calm .az-program-pop-title {
+  text-shadow: none;
+}
+html.az-calm .az-program-row.az-now {
+  color: rgb(var(--calm-rgb));
+  text-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .az-program-pop {
+    transition: none;
+    transform: translate(-50%, 0);
+  }
+}
+@media (max-width: 767px) {
+  .az-program-btn {
+    top: 8px;
+    padding: 5px 12px;
+  }
+  .az-program-title {
+    font-size: 11px;
+  }
+  .az-program-status {
+    font-size: 10px;
+  }
+  .az-program-pop {
+    top: 50px;
+    font-size: 12px;
+  }
+}
+
 /* Stream-link info "?" button (top-left) + popover. Mirrors the calm button's HUD silhouette
    (notched corners, neon border, dark translucent panel) but STATIC - it's an info control, not
    an alert, so no glitch/breathe animation. Click toggles; outside click or Esc dismisses

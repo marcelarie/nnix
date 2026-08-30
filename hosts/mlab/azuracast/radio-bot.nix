@@ -52,26 +52,32 @@ in {
     wants = ["network-online.target"];
     after = ["network-online.target" "miniflux.service" "podman-azuracast.service"];
     path = [pkgs.ffmpeg];
+
+    # `environment`, not serviceConfig.Environment: the latter renders one unquoted
+    # `Environment=` line per entry, and systemd splits those on whitespace - BED_FILE arrived as
+    # "/var/lib/media/music/Paddy" and every bulletin silently went out without music. This
+    # option quotes each value, so paths with spaces survive.
+    environment = {
+      MINIFLUX_URL = "http://127.0.0.1:${toString services.miniflux.port}";
+      # not the loopback port: AzuraCast 307-redirects every API call to its own https
+      # base url, and a redirected multipart POST cannot replay its already-read body.
+      AZURACAST_URL = services.azuracast.href;
+      KOKORO_CONFIG = "${kokoroConfig}";
+      KOKORO_MODEL = "${kokoroModel}";
+      KOKORO_VOICE = "${kokoroVoice}";
+      MORNING_DOC = "${./radio-bot-morning.md}";
+      AFTERNOON_DOC = "${./radio-bot-afternoon.md}";
+      # Deliberately a library path, not a store path: a 50MB flac does not belong in the
+      # repo, and a missing bed downgrades to a dry read instead of failing the bulletin.
+      BED_FILE = "/var/lib/media/music/Paddy Thorne/Lost Cause (Part Two)/Paddy Thorne - Lost Cause (Part Two) - 08 Rendered.flac";
+      TZ = config.time.timeZone;
+      PYTHONTZPATH = "${pkgs.tzdata}/share/zoneinfo";
+    };
+
     serviceConfig = {
       Type = "oneshot";
       User = "dev";
       EnvironmentFile = config.sops.templates."radio-bot.env".path;
-      Environment = [
-        "MINIFLUX_URL=http://127.0.0.1:${toString services.miniflux.port}"
-        # not the loopback port: AzuraCast 307-redirects every API call to its own https
-        # base url, and a redirected multipart POST cannot replay its already-read body.
-        "AZURACAST_URL=${services.azuracast.href}"
-        "KOKORO_CONFIG=${kokoroConfig}"
-        "KOKORO_MODEL=${kokoroModel}"
-        "KOKORO_VOICE=${kokoroVoice}"
-        "MORNING_DOC=${./radio-bot-morning.md}"
-        "AFTERNOON_DOC=${./radio-bot-afternoon.md}"
-        # Deliberately a library path, not a store path: a 50MB flac does not belong in the
-        # repo, and a missing bed downgrades to a dry read instead of failing the bulletin.
-        "BED_FILE=/var/lib/media/music/Paddy Thorne/Lost Cause (Part Two)/Paddy Thorne - Lost Cause (Part Two) - 08 Rendered.flac"
-        "TZ=${config.time.timeZone}"
-        "PYTHONTZPATH=${pkgs.tzdata}/share/zoneinfo"
-      ];
       ExecStart = "${python}/bin/python3 ${./radio-bot.py}";
     };
   };

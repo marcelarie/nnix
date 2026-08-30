@@ -1967,6 +1967,131 @@
     });
   })();
 
+  // --- radio program button (top-center) + full-timetable popover ---
+  // Built from the AzuraCast public schedule API. That endpoint returns each playlist's own next
+  // upcoming occurrence, not "today's" occurrences - so once some of today's slots have already
+  // passed, their entries carry tomorrow's date while others still carry today's. The date part is
+  // irrelevant here: only the recurring HH:MM-of-day matters, so each occurrence is reduced to its
+  // local start/end time and the gaps between them are filled with "Banging tunes". One fetch on
+  // load (the lineup only changes on rebuild, so no polling); hidden entirely if the fetch fails or
+  // the schedule is empty (the page already works without it). Same button+popover shape as the
+  // stream-info/background-picker widgets below, just parked top-center - the one HUD position
+  // with room to spare (top-left/-right and bottom-left/-right are all already taken).
+  (function () {
+    function toMinutes(iso) {
+      var d = new Date(iso);
+      return d.getHours() * 60 + d.getMinutes();
+    }
+    function fmt(min) {
+      var h = Math.floor(min / 60),
+        m = min % 60;
+      return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+    }
+    function buildRows(occurrences) {
+      var items = occurrences
+        .map(function (o) {
+          return { start: toMinutes(o.start), end: toMinutes(o.end), name: o.name };
+        })
+        .sort(function (a, b) {
+          return a.start - b.start;
+        });
+      var rows = [],
+        prev = 0;
+      items.forEach(function (it) {
+        if (it.start > prev) rows.push({ start: prev, end: it.start, name: "Banging tunes" });
+        rows.push(it);
+        prev = Math.max(prev, it.end);
+      });
+      if (prev < 1440) rows.push({ start: prev, end: 1440, name: "Banging tunes" });
+      return rows;
+    }
+    if (location.search.indexOf("azdebug") !== -1) {
+      var selfCheck = buildRows([
+        { start: "2026-01-01T08:00:00+02:00", end: "2026-01-01T08:15:00+02:00", name: "news" },
+      ]);
+      console.assert(
+        selfCheck.length === 3 &&
+          selfCheck[0].name === "Banging tunes" &&
+          selfCheck[1].name === "news" &&
+          selfCheck[2].name === "Banging tunes",
+        "az-program buildRows self-check failed",
+        selfCheck,
+      );
+    }
+
+    function addProgramButton(rows) {
+      if (!document.body || document.querySelector(".az-program-btn")) return;
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "az-program-btn";
+      btn.setAttribute("aria-label", "Radio program schedule");
+      btn.setAttribute("aria-expanded", "false");
+      btn.innerHTML =
+        '<span class="az-program-title">📻 RADIO PROGRAM</span>' +
+        '<span class="az-program-status"></span>';
+      var statusEl = btn.querySelector(".az-program-status");
+
+      var pop = document.createElement("div");
+      pop.className = "az-program-pop";
+      pop.setAttribute("role", "dialog");
+      pop.setAttribute("aria-label", "Radio program schedule");
+      pop.innerHTML = '<p class="az-program-pop-title">Radio Program</p><div class="az-program-list"></div>';
+      var listEl = pop.querySelector(".az-program-list");
+
+      var rowEls = rows.map(function (row) {
+        var el = document.createElement("div");
+        el.className = "az-program-row";
+        el.textContent = fmt(row.start) + "–" + fmt(row.end) + "  " + row.name;
+        listEl.appendChild(el);
+        return el;
+      });
+
+      function highlight() {
+        var now = new Date(),
+          nowMin = now.getHours() * 60 + now.getMinutes();
+        var current = null;
+        rows.forEach(function (row, i) {
+          var isNow = nowMin >= row.start && nowMin < row.end;
+          rowEls[i].classList.toggle("az-now", isNow);
+          if (isNow) current = row;
+        });
+        statusEl.textContent = current ? "now: " + current.name : "";
+      }
+      highlight();
+      setInterval(highlight, 30000);
+
+      function setOpen(on) {
+        btn.classList.toggle("az-open", on);
+        pop.classList.toggle("az-open", on);
+        btn.setAttribute("aria-expanded", String(on));
+      }
+      btn.addEventListener("click", function () {
+        setOpen(!btn.classList.contains("az-open"));
+      });
+      document.addEventListener("click", function (e) {
+        if (!btn.classList.contains("az-open")) return;
+        if (e.target === btn || btn.contains(e.target) || pop.contains(e.target)) return;
+        setOpen(false);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && btn.classList.contains("az-open")) setOpen(false);
+      });
+
+      document.body.appendChild(btn);
+      document.body.appendChild(pop);
+    }
+
+    fetch("/api/station/radio_marcel/schedule", { cache: "no-store" })
+      .then(function (r) {
+        return r.ok ? r.json() : null;
+      })
+      .then(function (occurrences) {
+        if (occurrences && occurrences.length) addProgramButton(buildRows(occurrences));
+      })
+      .catch(function () {});
+  })();
+
   // --- stream-link info popover ---
   // A "?" button fixed top-left (mirrors the calm button's top-right) reveals a small popover
   // with the direct stream URL, so listeners can add this station to internet-radio apps
