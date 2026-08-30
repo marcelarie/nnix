@@ -69,8 +69,12 @@ PAUSE_SECONDS = 2.6
 INTRO_SECONDS = 7.0
 OUTRO_SECONDS = 8.0
 # The bed starts ducking this long before the first word, so music and voice never overlap on the
-# way in - you hear the music drop, a beat of air, then the anchor.
-DUCK_LEAD_SECONDS = 0.8
+# way in - you hear the music drop, a beat of air, then the anchor. It has to stay comfortably
+# longer than DUCK_ATTACK_MS or the fade would still be running over the opening syllables.
+DUCK_LEAD_SECONDS = 1.4
+# How gradually the music drops when the anchor comes back in after a pause. 15ms (a normal
+# compressor setting) is audible as a hard clamp; this eases it into a musical fade instead.
+DUCK_ATTACK_MS = 800
 
 miniflux_headers = {"X-Auth-Token": MINIFLUX_API_KEY}
 
@@ -231,7 +235,7 @@ def mix(vox_path, out_path):
         f"[1:a]{fmt},volume=0.5,afade=t=in:st=0:d=2,"
         f"afade=t=out:st={round(total - 3, 2)}:d=3[bedraw];"
         "[bedraw][key]sidechaincompress="
-        "threshold=0.003:ratio=20:attack=15:release=2600:makeup=1[bed];"
+        f"threshold=0.003:ratio=20:attack={DUCK_ATTACK_MS}:release=2600:makeup=1[bed];"
         "[bed][vox]amix=inputs=2:duration=first:dropout_transition=0,"
         "alimiter=limit=0.95,aformat=sample_fmts=s16[out]"
     )
