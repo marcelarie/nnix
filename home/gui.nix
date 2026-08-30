@@ -23,6 +23,7 @@ in {
     gimagereader
     tesseract
     grayjay
+    psysonic
     simplex-chat-desktop
     strawberry
 
