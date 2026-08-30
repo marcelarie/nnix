@@ -4,17 +4,33 @@
   services,
   ...
 }: let
-  # Piper voices are plain data files on huggingface; fetching them at build time keeps the
-  # unit stateless (no first-run download, no StateDirectory, no network dep at runtime).
-  voiceBase = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/amy/medium";
-  voiceOnnx = pkgs.fetchurl {
-    url = "${voiceBase}/en_US-amy-medium.onnx";
-    hash = "sha256-s6bke1e4x/vmoM4lGBYaUPWanN2KUINcAssCvdYgbBg=";
+  # Kokoro-82M rather than piper: piper's top tier ("high") still has an audible metallic
+  # vocoder edge, and kokoro renders at 24kHz instead of 22.05kHz. Weights are fetched at build
+  # time so the unit never touches huggingface at runtime.
+  kokoroBase = "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main";
+  kokoroConfig = pkgs.fetchurl {
+    url = "${kokoroBase}/config.json";
+    hash = "sha256-WrsB4kA7ByvwPQT94WBEPiCdeg2tSaQjvhUZa5tDwX8=";
   };
-  voiceJson = pkgs.fetchurl {
-    url = "${voiceBase}/en_US-amy-medium.onnx.json";
-    hash = "sha256-laI+tNQpCdON9zu5rH9F9Zfb/N4tG/lSb96vVGaXfXc=";
+  kokoroModel = pkgs.fetchurl {
+    url = "${kokoroBase}/kokoro-v1_0.pth";
+    hash = "sha256-SW26EY0aWPXz2y78iNvcIW4Eg/yJ/m5H7h8sU/GK0eQ=";
   };
+  kokoroVoice = pkgs.fetchurl {
+    url = "${kokoroBase}/voices/am_michael.pt";
+    hash = "sha256-mkQ7eaSyJImlsKt8ZRoLzRowvvZ1woMz8Glxq71HvTc=";
+  };
+
+  # spacy-models.en_core_web_sm is misaki's English G2P dependency; without it kokoro dies at
+  # import with "Can't find model 'en_core_web_sm'".
+  python = pkgs.python3.withPackages (p: [
+    p.requests
+    p.kokoro
+    p.misaki
+    p.soundfile
+    p.numpy
+    p.spacy-models.en_core_web_sm
+  ]);
 in {
   sops.secrets."azuracast_api_key" = {
     owner = "dev";
@@ -35,20 +51,28 @@ in {
     description = "Generate and upload AI radio news bulletin";
     wants = ["network-online.target"];
     after = ["network-online.target" "miniflux.service" "podman-azuracast.service"];
-    path = [pkgs.piper-tts];
+    path = [pkgs.ffmpeg];
     serviceConfig = {
       Type = "oneshot";
       User = "dev";
       EnvironmentFile = config.sops.templates."radio-bot.env".path;
       Environment = [
         "MINIFLUX_URL=http://127.0.0.1:${toString services.miniflux.port}"
-        "AZURACAST_URL=http://127.0.0.1:${toString services.azuracast.port}"
-        "PIPER_MODEL=${voiceOnnx}"
-        "PIPER_CONFIG=${voiceJson}"
+        # not the loopback port: AzuraCast 307-redirects every API call to its own https
+        # base url, and a redirected multipart POST cannot replay its already-read body.
+        "AZURACAST_URL=${services.azuracast.href}"
+        "KOKORO_CONFIG=${kokoroConfig}"
+        "KOKORO_MODEL=${kokoroModel}"
+        "KOKORO_VOICE=${kokoroVoice}"
+        "MORNING_DOC=${./radio-bot-morning.md}"
+        "AFTERNOON_DOC=${./radio-bot-afternoon.md}"
+        # Deliberately a library path, not a store path: a 50MB flac does not belong in the
+        # repo, and a missing bed downgrades to a dry read instead of failing the bulletin.
+        "BED_FILE=/var/lib/media/music/Paddy Thorne/Lost Cause (Part Two)/Paddy Thorne - Lost Cause (Part Two) - 08 Rendered.flac"
         "TZ=${config.time.timeZone}"
         "PYTHONTZPATH=${pkgs.tzdata}/share/zoneinfo"
       ];
-      ExecStart = "${pkgs.python3.withPackages (p: [p.requests])}/bin/python3 ${./radio-bot.py}";
+      ExecStart = "${python}/bin/python3 ${./radio-bot.py}";
     };
   };
 

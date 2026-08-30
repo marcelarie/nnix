@@ -110,6 +110,39 @@ in {
             fi
           fi
 
+          # News bulletin playlist. radio-bot.nix generates a bulletin at 07:30 and 16:30 and
+          # uploads it to the news/ folder; the folder row below makes AzuraCast attach each
+          # upload to this playlist on arrival (FlowUploadAction does that for any directory
+          # with a playlist binding), so no per-run playlist call is needed.
+          #
+          # 'scheduled' + loop_once: the bulletin plays once at the top of each window rather
+          # than looping for its whole length. The windows sit ~30 min after each generation
+          # run so the greeting the script writes ("good morning" / "good afternoon") matches
+          # when it actually airs. radio-bot prunes older bulletins after each upload, so the
+          # playlist only ever holds the current one.
+          NEWS_PID=$(mysql "SELECT id FROM station_playlists WHERE station_id=$SID AND name='news';")
+          if [ -z "$NEWS_PID" ]; then
+            mysql "INSERT INTO station_playlists (station_id, name, type, is_enabled, play_per_songs, play_per_minutes, weight, source, include_in_requests, playback_order, is_jingle, play_per_hour_minute, remote_timeout, include_in_on_demand, avoid_duplicates) VALUES ($SID, 'news', 'scheduled', 1, 0, 0, 3, 'songs', 0, 'sequential', 0, 0, 0, 0, 0);"
+            NEWS_PID=$(mysql "SELECT id FROM station_playlists WHERE station_id=$SID AND name='news';")
+            echo "azuracast-settings: created 'news' playlist (id=$NEWS_PID)"
+          fi
+
+          if [ -n "$NEWS_PID" ]; then
+            ensure_schedule() {
+              if [ "$(mysql "SELECT COUNT(*) FROM station_schedules WHERE playlist_id=$NEWS_PID AND start_time=$1;")" = "0" ]; then
+                mysql "INSERT INTO station_schedules (playlist_id, start_time, end_time, loop_once, prevent_requests) VALUES ($NEWS_PID, $1, $2, 1, 0);" \
+                  && echo "azuracast-settings: news airs $1-$2"
+              fi
+            }
+            ensure_schedule 800 815
+            ensure_schedule 1700 1715
+
+            if [ "$(mysql "SELECT COUNT(*) FROM station_playlist_folders WHERE station_id=$SID AND playlist_id=$NEWS_PID AND path='news';")" = "0" ]; then
+              mysql "INSERT INTO station_playlist_folders (station_id, playlist_id, path) VALUES ($SID, $NEWS_PID, 'news');" \
+                && echo "azuracast-settings: bound news/ folder to the news playlist"
+            fi
+          fi
+
           if [ "$HLS_CHANGED" = "1" ]; then
             podman exec azuracast azuracast_cli azuracast:radio:restart radio_marcel 2>/dev/null \
               && echo "azuracast-settings: radio restarted for hls"
@@ -148,8 +181,12 @@ in {
     script = ''
       mysql() { podman exec azuracast mariadb -N -B -u azuracast -p${config.virtualisation.oci-containers.containers.azuracast.environment.MYSQL_PASSWORD} azuracast -e "$1" 2>/dev/null; }
 
-      SID=$(mysql "SELECT id FROM station WHERE short_name='radio_marcel';")
-      PID=$(mysql "SELECT id FROM station_playlists WHERE station_id=$SID AND name='default' AND source='songs' LIMIT 1;")
+      # `|| true` on the two probes only: nixos runs this script under `sh -e`, so a failed
+      # query (container up but mariadb not listening yet) would abort with status 1 before
+      # reaching the guard below, reporting a routine startup race as a failed unit. The
+      # inserts further down keep their default behaviour - those failures are real.
+      SID=$(mysql "SELECT id FROM station WHERE short_name='radio_marcel';") || true
+      PID=$(mysql "SELECT id FROM station_playlists WHERE station_id=$SID AND name='default' AND source='songs' LIMIT 1;") || true
       [ -n "$SID" ] && [ -n "$PID" ] || { echo "azuracast-autoplaylist: station/playlist not ready"; exit 0; }
 
       # quote-doubling (MariaDB single-quoted string escape) for apostrophes in folder names
