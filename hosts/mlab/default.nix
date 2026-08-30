@@ -159,7 +159,7 @@
     enable = true;
     authentication = lib.mkForce ''
       # TYPE  DATABASE        USER            ADDRESS                 METHOD
-      local   all             all                                     trust
+      local   all             all                                     peer
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
     '';
@@ -222,19 +222,15 @@
     tempAddresses = "enabled";
     firewall = {
       enable = true;
-      allowedTCPPorts =
-        [
-          53 # DNS (dnsmasq) so router/LAN clients can redirect here
-          80 # nginx catch-all / http to https redirects
-          443 # Nginx HTTPS
-          23951 # Qbitorrent
-          50300 # Soulseek
-        ]
-        # qbit excluded: its WebUI binds 127.0.0.1 only (nginx fronts it); it was
-        # a compromise vector when world-open (unauthenticated + bypass).
-        ++ builtins.map (v: v.port) (
-          builtins.attrValues (removeAttrs services ["qbit"])
-        );
+      # Only ports that must be reachable off-host. Services in proxy.nix are
+      # fronted by nginx over loopback - do not list their backend ports here.
+      allowedTCPPorts = [
+        53 # DNS (dnsmasq), LAN only - see local-service below
+        80 # nginx catch-all / http to https redirects
+        443 # Nginx HTTPS
+        23951 # qBittorrent torrent port
+        50300 # Soulseek peer port
+      ];
       allowedUDPPorts = [53 23951];
       allowedUDPPortRanges = [
         {
@@ -262,14 +258,9 @@
         routes = [{Gateway = "192.168.1.1";}];
         networkConfig = {
           DHCP = "ipv6"; # SLAAC/DHCPv6 only; static IPv4 (was dhcpcd noipv4)
-          # RFC 7217 opaque addr (no MAC leak) for the link-local address...
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
-          # ...and a rotating temporary address preferred for the GLOBAL SLAAC address too -
-          # networkd's own IPv6PrivacyExtensions (default "no") overrides the top-level
-          # networking.tempAddresses sysctl for any interface it manages, so that setting alone
-          # left outbound connections using the EUI-64 address (MAC embedded in the low 64 bits,
-          # detected by myanonamouse.net as a MAC leak). "yes" = prefer the temporary address for
-          # outbound while still keeping the stable one for inbound.
+          # networkd's IPv6PrivacyExtensions overrides networking.tempAddresses on
+          # interfaces it manages; "yes" prefers a temporary address for outbound.
           IPv6PrivacyExtensions = "yes";
           # This USB 10G adapter drops carrier for ~5s several times a day (kernel:
           # "atlantic: link change old 10000 new 0"). By default networkd tears the whole IP
@@ -288,7 +279,7 @@
         networkConfig = {
           DHCP = "ipv6";
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
-          IPv6PrivacyExtensions = "yes"; # see 10-lan10g above - no MAC leak on the global address either
+          IPv6PrivacyExtensions = "yes"; # see 10-lan10g above
         };
       };
       "30-sfp0" = {
@@ -314,6 +305,8 @@
   services.dnsmasq.settings = {
     interface = "enp1s0";
     bind-interfaces = true;
+    # Answer only queries from directly-attached subnets.
+    local-service = true;
   };
 
   boot = {
@@ -355,7 +348,6 @@
     '';
   };
 
-  # rate limit brute-force attacks
   services.fail2ban = {
     enable = true;
     ignoreIP = [
@@ -363,13 +355,52 @@
       "192.168.0.0/24"
       "192.168.1.0/24"
     ];
-    bantime-increment.enable = true; # repeat offenders get longer bans each time
-    jails.sshd.settings = {
-      enabled = true;
-      backend = "systemd"; # sshd logs to journald on NixOS
-      maxretry = 5;
-      findtime = "10m";
-      bantime = "1h";
+    bantime-increment.enable = true;
+    jails = {
+      sshd.settings = {
+        enabled = true;
+        backend = "systemd";
+        maxretry = 5;
+        findtime = "10m";
+        bantime = "1h";
+      };
+
+      authelia = {
+        filter.Definition = {
+          failregex = ''^.*Unsuccessful .*attempt by user .*remote_ip="?<HOST>"?.*$'';
+          journalmatch = "_SYSTEMD_UNIT=authelia-main.service";
+        };
+        settings = {
+          enabled = true;
+          backend = "systemd";
+          port = "80,443";
+          maxretry = 5;
+          findtime = "10m";
+          bantime = "1h";
+        };
+      };
+
+      nginx-botsearch.settings = {
+        enabled = true;
+        filter = "nginx-botsearch";
+        backend = "polling";
+        logpath = "/var/log/nginx/access.log";
+        port = "80,443";
+        maxretry = 10;
+        findtime = "10m";
+        bantime = "1h";
+      };
+
+      nginx-bad-request.settings = {
+        enabled = true;
+        filter = "nginx-bad-request";
+        backend = "polling";
+        logpath = "/var/log/nginx/access.log";
+        port = "80,443";
+        maxretry = 10;
+        findtime = "10m";
+        bantime = "1h";
+      };
     };
   };
 

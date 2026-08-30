@@ -9,6 +9,6 @@
 
   services.prowlarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
   };
 }

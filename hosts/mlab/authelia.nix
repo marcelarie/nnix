@@ -29,14 +29,14 @@
         authelia:
           displayname: "Authelia Admin"
           password: "${config.sops.placeholder.authelia_admin_password}"
-          email: "authelia@auth.marcel.cool"
+          email: "authelia@marcel.cool"
           groups:
             - admins
             - youtube
         metube:
           displayname: "metube"
           password: "${config.sops.placeholder.ytify_user_password}"
-          email: "metube@auth.marcel.cool"
+          email: "metube@marcel.cool"
           groups:
             - youtube
     '';
@@ -51,7 +51,10 @@
 
     settings = {
       theme = "dark";
-      server.address = "tcp://0.0.0.0:${toString services.auth.port}";
+      # Enroll at auth.marcel.cool -> Methods.
+      default_2fa_method = "totp";
+      totp.issuer = "marcel.cool";
+      server.address = "tcp://127.0.0.1:${toString services.auth.port}"; # nginx fronts this
       server.buffers.read = 16384;
       server.buffers.write = 16384;
 
@@ -71,39 +74,46 @@
         # To protect a new subdomain, add a rule here too or it will 401.
         default_policy = "deny";
         rules = [
+          # Every `protected` vhost in proxy.nix needs a rule here; without one
+          # default_policy = "deny" returns 403 instead of the login page.
+          {
+            domain = "qbit.marcel.cool";
+            policy = "two_factor";
+            subject = ["group:admins"];
+          }
           {
             domain = "yt.marcel.cool";
-            policy = "one_factor";
+            policy = "two_factor";
             subject = ["group:youtube"];
           }
           {
             domain = "bailatube.marcel.cool";
-            policy = "one_factor";
+            policy = "two_factor";
             subject = ["group:youtube"];
           }
           {
             domain = "search.marcel.cool";
-            policy = "one_factor";
+            policy = "two_factor";
             subject = ["group:admins"];
           }
           {
             domain = "pinchflat.marcel.cool";
-            policy = "one_factor";
+            policy = "two_factor";
             subject = ["group:admins"];
           }
           {
             domain = "sync.marcel.cool";
-            policy = "one_factor";
+            policy = "two_factor";
             subject = ["group:admins"];
           }
           {
             domain = "bcsync.marcel.cool";
-            policy = "one_factor";
+            policy = "two_factor";
             subject = ["group:admins"];
           }
           {
             domain = "nitter.marcel.cool";
-            policy = "one_factor";
+            policy = "two_factor";
             subject = ["group:admins"];
           }
         ];
@@ -125,7 +135,7 @@
             client_name = "Tailscale";
             client_secret = "$pbkdf2-sha512$310000$nGGxzhdyKtIYCeeywAwYGA$IhOBt2rIZpnMhGb9.LuetMaU8TMyqZCtIdqepFJbzss34G8OC1ZP.a9m131ccd95ThKqOCb3hzMP8.ypTU0E/w";
             public = false;
-            authorization_policy = "one_factor";
+            authorization_policy = "two_factor";
             redirect_uris = ["https://login.tailscale.com/a/oauth_response"];
             scopes = ["openid" "profile" "email"];
             userinfo_signed_response_alg = "none";

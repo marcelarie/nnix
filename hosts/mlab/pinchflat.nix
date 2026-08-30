@@ -5,7 +5,7 @@
 }: {
   services.pinchflat = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
     port = services.pinchflat.port;
     mediaDir = "/var/lib/media/youtube";
     selfhosted = true;

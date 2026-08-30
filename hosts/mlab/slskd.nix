@@ -33,9 +33,11 @@
     "d /var/lib/slskd/music/share 0775 slskd media -"
   ];
 
+  # Disabled. Before re-enabling, supply the API key via the `slskd_api_key` sops
+  # secret and environmentFile - `settings` lands world-readable in the nix store.
   services.slskd = {
-    enable = true;
-    openFirewall = true;
+    enable = false;
+    openFirewall = false;
     domain = null;
     user = "slskd";
     group = "slskd";
@@ -53,15 +55,7 @@
       };
       web = {
         port = services.slskd.port;
-        address = "0.0.0.0";
-        authentication = {
-          api_keys = {
-            soulbeet = {
-              key = "slskdAPIkey9988776655aabbccdd";
-              role = "administrator";
-            };
-          };
-        };
+        address = "127.0.0.1"; # nginx fronts the web UI
       };
       global = {
         upload.slots = 10;

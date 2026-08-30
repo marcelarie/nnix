@@ -13,7 +13,7 @@
 in {
   services.shoko = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
   };
 
   systemd.tmpfiles.rules = [

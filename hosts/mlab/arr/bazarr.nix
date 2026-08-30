@@ -10,7 +10,7 @@
   services.bazarr = {
     enable = true;
     group = "media";
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
   };
 
   systemd.services.bazarr.serviceConfig = {

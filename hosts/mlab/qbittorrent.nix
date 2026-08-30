@@ -4,13 +4,10 @@
   services,
   ...
 }: {
-  # NOTE: qBittorrent's live config is /var/lib/qBittorrent/qBittorrent/config/qBittorrent.conf
-  # (the service runs with --profile=/var/lib/qBittorrent). It is NOT managed by nix: the
-  # module's profile path doesn't match /var/lib/qbittorrent/.config/... where a sops template
-  # used to be copied, so that file was never read (and its key names were wrong — e.g.
-  # `LocalHostAuth=false` would have ENABLED the localhost auth bypass, which an attacker
-  # abused on 2026-08-30 to inject a torrent-add AutoRun payload; it's now disabled in the
-  # live file). Editing settings: qbit WebUI, they persist on exit.
+  # The live config is /var/lib/qBittorrent/qBittorrent/config/qBittorrent.conf
+  # (the service runs with --profile=/var/lib/qBittorrent) and is NOT managed by
+  # nix - a sops template here would be written to a path the service never reads.
+  # Edit settings in the WebUI; they persist on exit.
 
   systemd.tmpfiles.rules = [
     "d /var/lib/qbittorrent 0775 qbittorrent media -"
@@ -19,7 +16,7 @@
 
   services.qbittorrent = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
     webuiPort = services.qbit.port;
   };
 

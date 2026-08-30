@@ -12,7 +12,7 @@
 
   services.sabnzbd = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
     configFile = null;
     group = "media";
     settings = {

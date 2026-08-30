@@ -11,7 +11,7 @@
 
   services.lidarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
   };
   users.users.lidarr = {
     extraGroups = ["media"];
