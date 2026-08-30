@@ -107,6 +107,7 @@
         (import ./overlays/rust.nix {inherit pkgs crane;})
         (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
         (final: prev: {discogs2xlsx = import ./packages/discogs2xlsx/package.nix {inherit pkgs;};})
+        (final: prev: {"nitter-session" = import ./packages/nitter-session/package.nix {inherit pkgs;};})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
         (final: prev: {cliflux = inputs.cliflux.packages.${system}.default;})
         (final: prev: {
@@ -131,6 +132,7 @@
       rff = pkgs.rff;
       "pulseaudio-next-output" = pkgs."pulseaudio-next-output";
       "git-commit-search" = pkgs."git-commit-search";
+      "nitter-session" = pkgs."nitter-session";
       mautrix-whatsapp = pkgs.mautrix-whatsapp;
       # Commented out due to cycles
       # Commented out due to cycles

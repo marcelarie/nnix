@@ -30,6 +30,7 @@
     ./mautrix-whatsapp.nix
     ./miniflux.nix
     ./navidrome.nix
+    ./nitter.nix
     ./ollama.nix
     ./open-webui.nix
     ./paperless.nix

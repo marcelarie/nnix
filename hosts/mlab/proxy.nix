@@ -61,6 +61,11 @@
       port = 4533;
       href = "https://music.marcel.cool";
     };
+    nitter = {
+      port = 8087;
+      href = "https://nitter.marcel.cool";
+      protected = true;
+    };
     openwebui = {
       port = 3000;
       href = "https://ai.marcel.cool";

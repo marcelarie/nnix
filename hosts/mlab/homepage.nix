@@ -363,6 +363,13 @@
             };
           }
           {
+            Nitter = {
+              icon = "nitter";
+              href = services.nitter.href;
+              description = "Twitter Frontend";
+            };
+          }
+          {
             SearXNG = {
               icon = "searxng";
               href = services.searxng.href;
