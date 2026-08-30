@@ -85,6 +85,10 @@
     qbit = {
       port = 8081;
       href = "https://qbit.marcel.cool";
+      # qBittorrent behind authelia: this vhost was the vector for an actual
+      # compromise (unauthenticated access -> malware AutoRun). Arr stack talks
+      # to qbit on localhost, so the extra login only affects browser access.
+      protected = true;
     };
     radarr = {
       port = 7878;

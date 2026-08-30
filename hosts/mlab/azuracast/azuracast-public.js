@@ -35,6 +35,24 @@
     return document.querySelector("audio");
   }
 
+  // Shared top HUD bar: the stream-info button, radio program button and calm button each live
+  // in one of its three flex slots (left/center/right - see .az-hud-top in the CSS) instead of
+  // being independently position:fixed, so the browser's own flex layout keeps them aligned and
+  // gives the center slot only as much room as the side buttons leave, shrinking/eliding its
+  // content instead of overlapping them. Built lazily by whichever of the three widgets below
+  // runs first.
+  function getHudSlot(name) {
+    var top = document.querySelector(".az-hud-top");
+    if (!top) {
+      top = document.createElement("div");
+      top.className = "az-hud-top";
+      top.innerHTML =
+        '<div class="az-hud-left"></div><div class="az-hud-center"></div><div class="az-hud-right"></div>';
+      document.body.appendChild(top);
+    }
+    return top.querySelector(".az-hud-" + name);
+  }
+
   // --- debug (gated on ?azdebug); remove once autoplay is confirmed ---
   var DBG = (function () {
     if (location.search.indexOf("azdebug") === -1) return function () {};
@@ -1582,7 +1600,7 @@
         } catch (e) {}
         idle(false); // touch has no hover: a tap must reveal it, then re-idle on leave
       });
-      document.body.appendChild(btn);
+      getHudSlot("right").appendChild(btn);
 
       // Music stopped -> button stays fully visible (no idle fade); playing -> usual hover/idle.
       // Polled: isPlaying() reads the play-button icon, which fires no event we can hook here.
@@ -2096,7 +2114,7 @@
         if (e.key === "Escape" && btn.classList.contains("az-open")) setOpen(false);
       });
 
-      document.body.appendChild(btn);
+      getHudSlot("center").appendChild(btn);
       document.body.appendChild(pop);
     }
 
@@ -2203,7 +2221,7 @@
         if (e.key === "Escape" && btn.classList.contains("az-open")) setOpen(false);
       });
 
-      document.body.appendChild(btn);
+      getHudSlot("left").appendChild(btn);
       document.body.appendChild(pop);
     }
     if (document.body) addStreamInfo();

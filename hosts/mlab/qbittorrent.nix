@@ -4,25 +4,13 @@
   services,
   ...
 }: {
-  sops.secrets."qbit_password_hash" = {};
-  sops.secrets."qbit_password_salt" = {};
-
-  sops.templates."qBittorrent.conf" = {
-    content = ''
-      [Preferences]
-      WebUI\Username=${config.sops.placeholder.web_user}
-      WebUI\Port=${toString services.qbit.port}
-      WebUI\LocalHostAuthentication=false
-      WebUI\AuthSubnetWhitelist=127.0.0.1/32,192.168.1.0/24
-      Connection\AddressFamily=Both
-      Connection\Interface=enp1s0
-      Downloads\SavePath=/var/lib/media/downloads/
-      Session\DefaultSavePath=/var/lib/media/downloads/
-      Session\TempPath=/var/lib/media/downloads/incomplete/
-    '';
-    owner = "qbittorrent";
-    group = "media";
-  };
+  # NOTE: qBittorrent's live config is /var/lib/qBittorrent/qBittorrent/config/qBittorrent.conf
+  # (the service runs with --profile=/var/lib/qBittorrent). It is NOT managed by nix: the
+  # module's profile path doesn't match /var/lib/qbittorrent/.config/... where a sops template
+  # used to be copied, so that file was never read (and its key names were wrong — e.g.
+  # `LocalHostAuth=false` would have ENABLED the localhost auth bypass, which an attacker
+  # abused on 2026-08-30 to inject a torrent-add AutoRun payload; it's now disabled in the
+  # live file). Editing settings: qbit WebUI, they persist on exit.
 
   systemd.tmpfiles.rules = [
     "d /var/lib/qbittorrent 0775 qbittorrent media -"
@@ -38,14 +26,6 @@
   users.users.qbittorrent.extraGroups = ["media"];
 
   systemd.services.qbittorrent = {
-    preStart = ''
-      # The directory structure is guaranteed by systemd.tmpfiles.rules
-      cp -f ${
-        config.sops.templates."qBittorrent.conf".path
-      } /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
-      # Ensure correct permissions for the copied config
-      chmod 600 /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
-    '';
     serviceConfig = {
       ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";

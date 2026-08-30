@@ -1119,10 +1119,14 @@ html.az-light .az-bgwaves {
    the animated text colors (rainbow title/artist hover, flashing PLAY/PAUSE) - the same
    opt-out prefers-reduced-motion already gets, on demand. */
 .az-calm-btn {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
+  /* Shrinkable (not 0 0 auto): on a narrow phone this and the radio-program chip's own
+     unshrinkable title both want more room than the viewport has - letting this one give up
+     width and ellipsis its short label is what stops it visually overflowing/colliding with the
+     chip beside it, same safety net the program chip's now/next text already relies on. */
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 7px 14px;
   border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
@@ -1142,6 +1146,8 @@ html.az-light .az-bgwaves {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   cursor: pointer;
   opacity: 1;
   transition: opacity 0.6s ease;
@@ -1261,9 +1267,9 @@ html.az-light.az-calm .az-calm-btn:hover {
 }
 @media (max-width: 767px) {
   .az-calm-btn {
-    font-size: 11px;
-    padding: 5px 10px;
-    letter-spacing: 0.5px;
+    font-size: 10px;
+    padding: 4px 8px;
+    letter-spacing: 0.3px;
   }
 }
 html.az-calm body.page-minimal::before {
@@ -1290,28 +1296,79 @@ html.az-calm .radio-player-widget .now-playing-art .az-overlay-play {
   text-shadow: none;
 }
 
+/* Shared top HUD bar: built lazily by JS (getHudSlot in azuracast-public.js) the first time any
+   of the stream-info/radio-program/calm buttons mounts, then reused by the other two - each
+   lands in one of the three slots below instead of being independently position:fixed. Real flex
+   layout replaces manual pixel offsets between these three: left/right get equal flex-grow off a
+   zero basis (the classic "1fr auto 1fr" trick, just in flexbox), so whichever one is wider still
+   leaves the center slot exactly viewport-centered and sized to whatever room is actually left,
+   rather than three independently-centered/cornered elements guessing at each other's width. */
+.az-hud-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  pointer-events: none; /* dead space between the slots shouldn't eat clicks */
+}
+.az-hud-top > div {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+/* Only the actual buttons re-enable pointer-events - the wide invisible flex-grow area around
+   them (left/right slots grow to balance the center one, see .az-hud-left/-right below) must
+   stay click-through, or the space-filling trick above would block clicks on whatever sits
+   under it (the player card, album art, etc). */
+.az-hud-top button {
+  pointer-events: auto;
+}
+.az-hud-left,
+.az-hud-right {
+  flex: 1 1 0;
+}
+.az-hud-left {
+  justify-content: flex-start;
+}
+.az-hud-right {
+  justify-content: flex-end;
+}
+.az-hud-center {
+  flex: 0 1 auto;
+  justify-content: center;
+  max-width: 60vw;
+}
+@media (max-width: 767px) {
+  .az-hud-top {
+    padding: 8px;
+  }
+}
+
 /* Radio program button: top-center, the one HUD position with room to spare - top-left is only
    the stream-info button, top-right only the calm button (the listen-time chip that used to
    share top-left moved to bottom-center, see .az-listen-time, specifically to leave this whole
-   band free). Same clickable-chip + popover shape as .az-stream-btn/.az-bg-btn below, just wide
-   enough to carry a label instead of a bare icon. Click expands the full timetable
-   (.az-program-pop); the chip itself always shows what's airing right now, and (when there's
-   room - see the min-width media query below) what's up next too.
+   band free). Lives in the shared flex header's center slot (.az-hud-center, see azuracast-public.js
+   getHudSlot and the .az-hud-top rules below) rather than being independently position:fixed, so
+   it only ever gets as much width as the side buttons leave - shrinking/eliding its own content
+   instead of overlapping them. Same clickable-chip + popover shape as .az-stream-btn/.az-bg-btn
+   below, just wide enough to carry a label instead of a bare icon. Click expands the full
+   timetable (.az-program-pop); the chip itself always shows what's airing right now, and (when
+   there's room - see the min-width media query below) what's up next too.
    One-line layout, fixed height (34px desktop, matches .az-stream-btn/.az-listen-time): the chip
-   grows WIDER as more of the now/next text fits, never taller, and its own max-width plus each
-   text span's ellipsis keep it from ever overflowing into the corner buttons even on a narrow
-   phone with a long playlist name. */
+   grows WIDER as more of the now/next text fits, never taller, and max-width:100% (bounded by its
+   flex slot) plus each text span's ellipsis keep it from ever overflowing into the corner
+   buttons even on a narrow phone with a long playlist name. */
 .az-program-btn {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
   display: flex;
   align-items: center;
   gap: 8px;
   height: 34px;
-  max-width: calc(100vw - 16px);
+  max-width: 100%;
+  min-width: 0;
   padding: 0 16px;
   border: 2px solid rgb(var(--hud-accent-rgb));
   border-radius: 0;
@@ -1449,12 +1506,8 @@ html.az-calm .az-program-row.az-now {
     transform: translate(-50%, 0);
   }
 }
-/* Same top:10px band as desktop (see .az-stream-btn/.az-calm-btn below, both top:8px on mobile) -
-   just shorter, matching those icons' 30px mobile height; only the top-left stream-info button
-   and top-right calm button share the row with it now, so there's no need to relocate it. */
 @media (max-width: 767px) {
   .az-program-btn {
-    top: 8px;
     height: 30px;
     padding: 0 12px;
   }
@@ -1475,10 +1528,7 @@ html.az-calm .az-program-row.az-now {
    an alert, so no glitch/breathe animation. Click toggles; outside click or Esc dismisses
    (see azuracast-public.js). URL derived from location.origin -> https://radio.marcel.cool/stream. */
 .az-stream-btn {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
+  flex: 0 0 auto;
   width: 34px;
   height: 34px;
   padding: 0;

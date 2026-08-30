@@ -230,7 +230,11 @@
           23951 # Qbitorrent
           50300 # Soulseek
         ]
-        ++ builtins.map (v: v.port) (builtins.attrValues services);
+        # qbit excluded: its WebUI binds 127.0.0.1 only (nginx fronts it); it was
+        # a compromise vector when world-open (unauthenticated + bypass).
+        ++ builtins.map (v: v.port) (
+          builtins.attrValues (removeAttrs services ["qbit"])
+        );
       allowedUDPPorts = [53 23951];
       allowedUDPPortRanges = [
         {
@@ -258,8 +262,15 @@
         routes = [{Gateway = "192.168.1.1";}];
         networkConfig = {
           DHCP = "ipv6"; # SLAAC/DHCPv6 only; static IPv4 (was dhcpcd noipv4)
-          # RFC 7217 opaque addr (no MAC leak). Was dhcpcd "slaac private".
+          # RFC 7217 opaque addr (no MAC leak) for the link-local address...
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+          # ...and a rotating temporary address preferred for the GLOBAL SLAAC address too -
+          # networkd's own IPv6PrivacyExtensions (default "no") overrides the top-level
+          # networking.tempAddresses sysctl for any interface it manages, so that setting alone
+          # left outbound connections using the EUI-64 address (MAC embedded in the low 64 bits,
+          # detected by myanonamouse.net as a MAC leak). "yes" = prefer the temporary address for
+          # outbound while still keeping the stable one for inbound.
+          IPv6PrivacyExtensions = "yes";
           # This USB 10G adapter drops carrier for ~5s several times a day (kernel:
           # "atlantic: link change old 10000 new 0"). By default networkd tears the whole IP
           # config down on carrier loss and re-acquires on return ("DHCPv6 lease lost"),
@@ -277,6 +288,7 @@
         networkConfig = {
           DHCP = "ipv6";
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
+          IPv6PrivacyExtensions = "yes"; # see 10-lan10g above - no MAC leak on the global address either
         };
       };
       "30-sfp0" = {

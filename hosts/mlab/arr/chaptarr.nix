@@ -10,7 +10,9 @@
   ];
 
   virtualisation.oci-containers.containers.chaptarr = {
-    image = "robertlordhood/chaptarr:latest";
+    # pinned: >=0.9.9xx accepts qBittorrent 5.2's 204 login response (older
+    # versions throw "Failed to authenticate with qBittorrent" even with valid creds)
+    image = "robertlordhood/chaptarr:0.9.936";
     volumes = [
       "/var/lib/chaptarr:/config"
       "/var/lib/media/books:/var/lib/media/books"
