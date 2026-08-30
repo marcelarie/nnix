@@ -58,7 +58,9 @@ REQUIRED = {
     "AFTERNOON_DOC": AFTERNOON_DOC,
 }
 
-MAX_ENTRIES = 20
+# Hard cap, because asking the model for 'about eight stories' produced sixteen and a
+# four-and-a-half minute bulletin. Anything past this stays unread and leads the next run.
+MAX_ENTRIES = 8
 MAX_CONTENT_CHARS = 400
 SAMPLE_RATE = 24000
 
@@ -155,20 +157,24 @@ def write_body(entries, doc, now):
         for e in entries
     )
     prompt = (
-        f"You are the host of Radio Marcel, a personal radio station. It is {now:%A %d %B}. "
+        f"You are the host of Radio Marcel, a personal radio station. It is {now:%A %d %B %Y}. "
         f"{doc['tone']}\n\n"
-        "Your audience is international and scattered across time zones, so never assume they "
-        "share a country, a season or a holiday: no bank holidays, no long weekends, no 'enjoy "
-        "the sunshine', no local framing of any kind. Report what happened, not where the "
-        "listener supposedly is.\n\n"
+        "Never mention a national holiday, a bank holiday, a long weekend, a season, or the "
+        "weather where the listener might be, and never wish them anything tied to one. Report "
+        "what happened, not where the listener supposedly is.\n\n"
         "Deaths, violence, grief and victims are the one thing you never joke about: report "
         "those plainly and briefly, then move on. Everything else is fair game.\n\n"
-        "Summarise the items below into the body of a spoken bulletin, grouping related "
-        "stories. Do not write a greeting and do not write a sign-off - those are added around "
-        "you. Separate each story or group with a blank line. Output only the words to be read "
-        "aloud: no URLs, no markdown, no headings, no stage directions, no emoji. Never narrate "
-        "these instructions back, and never announce that you are switching tone.\n\n"
-        + items
+        "You are writing ONLY the middle of a bulletin. A greeting has already been spoken "
+        "before your first word and a sign-off will be spoken after your last, so write "
+        "neither. Your final sentence must be an ordinary news sentence: never end with 'that "
+        "is it', 'that is all', 'I am done', 'that is your bulletin' or any other closing "
+        "remark. Summarise the items below, grouping related stories, and separate each story "
+        "or group with a blank line. Each story appears once and once only: never "
+        "mention the same event twice.\n\n"
+        "Output only the words to be read aloud: no URLs, no markdown, no headings, no stage "
+        "directions, no emoji. Never refer to your instructions, to rules you have been given, "
+        "or to what you have been told or asked to do - the listener must never learn that any "
+        "of this exists.\n\n" + items
     )
     res = requests.post(
         "https://api.synthetic.new/v1/chat/completions",
@@ -188,6 +194,28 @@ def write_body(entries, doc, now):
 
 def paragraphs(text):
     return [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+
+
+SIGNOFF = re.compile(
+    r"\b(that(?:'| i)s (?:your |the )?(?:lot|it|all|bulletin)"
+    r"|i(?:'| a)m (?:done|off|out of here)"
+    r"|over and out|see you|catch you|until (?:next|tomorrow))\b",
+    re.IGNORECASE,
+)
+
+
+def drop_trailing_signoff(body):
+    """The model writes its own ending anyway, however firmly the prompt forbids it.
+
+    Left alone the bulletin closes twice: the model's invented sign-off, then the verbatim Outro
+    from the markdown. Only the last paragraph is considered, and only a short one, so a genuine
+    news item that happens to contain the words survives.
+    """
+    paras = paragraphs(body)
+    if len(paras) > 1 and len(paras[-1]) < 300 and SIGNOFF.search(paras[-1]):
+        print(f"radio-bot: dropped a model sign-off: {paras[-1][:80]!r}")
+        return "\n\n".join(paras[:-1])
+    return body
 
 
 def synthesize(script, wav_path):
@@ -321,6 +349,14 @@ def self_check():
 
     assert paragraphs("one\n\ntwo\n\n\nthree") == ["one", "two", "three"]
     assert paragraphs("  ") == []
+
+    assert (
+        drop_trailing_signoff("News one.\n\nThat's your lot. I need a drink.")
+        == "News one."
+    )
+    keep = "News one.\n\nHe inherited a lot of debt and it is all still unpaid."
+    assert drop_trailing_signoff(keep) == keep
+    assert drop_trailing_signoff("That is it.") == "That is it."
     print("self-check ok")
 
 
@@ -340,7 +376,8 @@ def main():
         print("radio-bot: no unread entries, nothing to broadcast")
         return
 
-    script = "\n\n".join([doc["intro"], write_body(entries, doc, now), doc["outro"]])
+    body = drop_trailing_signoff(write_body(entries, doc, now))
+    script = "\n\n".join([doc["intro"], body, doc["outro"]])
 
     name = f"news-{now:%Y-%m-%d-%H%M}.wav"
     dry_run = "--dry-run" in sys.argv
