@@ -101,6 +101,11 @@
             policy = "one_factor";
             subject = ["group:admins"];
           }
+          {
+            domain = "nitter.marcel.cool";
+            policy = "one_factor";
+            subject = ["group:admins"];
+          }
         ];
       };
 

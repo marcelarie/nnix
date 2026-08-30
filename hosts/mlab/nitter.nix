@@ -7,7 +7,7 @@
 
   services.nitter = {
     enable = true;
-    # jsonl, one {"kind":"cookie",...} session per line (tools/create_session_curl.py)
+    # jsonl, one {"kind":"cookie",...} session per line (nix run .#nitter-session)
     sessionsFile = config.sops.secrets."nitter_sessions".path;
     # 6379 is livekit's; own instance on 6380
     redisCreateLocally = false;
@@ -20,6 +20,12 @@
       https = true;
       title = "nitter";
     };
+  };
+
+  # module doesn't order nitter against the redis it needs; first start loses the race
+  systemd.services.nitter = {
+    after = ["redis-nitter.service"];
+    requires = ["redis-nitter.service"];
   };
 
   services.redis.servers.nitter = {
