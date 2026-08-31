@@ -1990,7 +1990,9 @@
   // upcoming occurrence, not "today's" occurrences - so once some of today's slots have already
   // passed, their entries carry tomorrow's date while others still carry today's. The date part is
   // irrelevant here: only the recurring HH:MM-of-day matters, so each occurrence is reduced to its
-  // local start/end time and the gaps between them are filled with "Banging tunes". One fetch on
+  // local start/end time, repeats of the same HH:MM slot on a later day are dropped (otherwise a
+  // slot like the news is listed twice) and the gaps between them are filled with "Banging tunes".
+  // One fetch on
   // load (the lineup only changes on rebuild, so no polling); hidden entirely if the fetch fails or
   // the schedule is empty (the page already works without it). Same button+popover shape as the
   // stream-info/background-picker widgets below, just parked top-center - the one HUD position
@@ -2007,9 +2009,16 @@
       return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
     }
     function buildRows(occurrences) {
+      var seen = Object.create(null);
       var items = occurrences
         .map(function (o) {
           return { start: toMinutes(o.start), end: toMinutes(o.end), name: o.name };
+        })
+        .filter(function (it) {
+          var key = it.start + "-" + it.end + "-" + it.name;
+          if (seen[key]) return false;
+          seen[key] = true;
+          return true;
         })
         .sort(function (a, b) {
           return a.start - b.start;
@@ -2035,6 +2044,7 @@
     if (location.search.indexOf("azdebug") !== -1) {
       var selfCheck = buildRows([
         { start: "2026-01-01T08:00:00+02:00", end: "2026-01-01T08:15:00+02:00", name: "news" },
+        { start: "2026-01-02T08:00:00+02:00", end: "2026-01-02T08:15:00+02:00", name: "news" },
       ]);
       console.assert(
         selfCheck.length === 2 &&
