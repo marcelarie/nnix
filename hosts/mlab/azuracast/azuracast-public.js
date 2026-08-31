@@ -2147,12 +2147,14 @@
   // A "?" button fixed top-left (mirrors the calm button's top-right) reveals a small popover
   // with the direct stream URL, so listeners can add this station to internet-radio apps
   // (TuneIn / VLC / Sonos / Apple Music radio / etc). Toggle: click "?" again or click anywhere
-  // outside to dismiss; Esc also closes. URL is derived from location.origin so it's correct on
-  // any deployment (radio.marcel.cool -> https://radio.marcel.cool/stream).
+  // outside to dismiss; Esc also closes. URLs are derived from location.origin so they're
+  // correct on any deployment (radio.marcel.cool -> /stream MP3 + /lossless-stream FLAC, both
+  // nginx aliases in proxy.nix; the FLAC one 404s until the declarative mount exists).
   (function () {
     function addStreamInfo() {
       if (!document.body || document.querySelector(".az-stream-btn")) return;
       var streamUrl = location.origin + "/stream";
+      var losslessUrl = location.origin + "/lossless-stream";
 
       var btn = document.createElement("button");
       btn.type = "button";
@@ -2167,11 +2169,18 @@
       pop.setAttribute("aria-label", "Stream link for radio apps");
       pop.innerHTML =
         '<p class="az-stream-pop-title">Listen in any radio app</p>' +
-        '<p class="az-stream-pop-text">Add this URL as a station in Sonos, Apple Music radio, VLC, mpv, RadioDroid, Strawberry, or any internet-radio player:</p>' +
+        '<p class="az-stream-pop-text">Add a URL as a station in Sonos, Apple Music radio, VLC, mpv, RadioDroid, Strawberry, or any internet-radio player - click a URL to copy it:</p>' +
+        '<p class="az-stream-pop-label">standard - MP3 192kbps</p>' +
         '<a class="az-stream-pop-url" href="' +
         streamUrl +
         '" target="_blank" rel="noopener">' +
         streamUrl +
+        "</a>" +
+        '<p class="az-stream-pop-label">lossless - FLAC, for FLAC-capable players (~10x the data)</p>' +
+        '<a class="az-stream-pop-url" href="' +
+        losslessUrl +
+        '" target="_blank" rel="noopener">' +
+        losslessUrl +
         "</a>" +
         '<p class="az-stream-pop-footer">made by <a href="https://marcel.cool" target="_blank" rel="noopener">marcel.cool</a></p>';
 
@@ -2203,17 +2212,20 @@
           }
         }
       }
-      var urlEl = pop.querySelector(".az-stream-pop-url");
-      urlEl.addEventListener("click", function (e) {
-        e.preventDefault();
-        var orig = urlEl.textContent;
-        copyText(streamUrl, function (ok) {
-          urlEl.textContent = ok ? "Copied!" : "Copy failed - select & \u2318C";
-          urlEl.classList.toggle("az-copied", ok);
-          setTimeout(function () {
-            urlEl.textContent = orig;
-            urlEl.classList.remove("az-copied");
-          }, 1300);
+      // Each URL row copies itself on click (shown text = copied text, so the loop just reads
+      // it back off the element; href stays for right-click / open-in-new-tab / no-JS).
+      Array.prototype.forEach.call(pop.querySelectorAll(".az-stream-pop-url"), function (urlEl) {
+        urlEl.addEventListener("click", function (e) {
+          e.preventDefault();
+          var orig = urlEl.textContent;
+          copyText(urlEl.textContent, function (ok) {
+            urlEl.textContent = ok ? "Copied!" : "Copy failed - select & \u2318C";
+            urlEl.classList.toggle("az-copied", ok);
+            setTimeout(function () {
+              urlEl.textContent = orig;
+              urlEl.classList.remove("az-copied");
+            }, 1300);
+          });
         });
       });
 

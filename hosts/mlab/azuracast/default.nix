@@ -82,7 +82,7 @@ in {
           mysql() { podman exec azuracast mariadb -N -B -u azuracast -p${config.virtualisation.oci-containers.containers.azuracast.environment.MYSQL_PASSWORD} azuracast -e "$1" 2>/dev/null; }
 
           SID=$(mysql "SELECT id FROM station WHERE short_name='radio_marcel';")
-          HLS_CHANGED=0
+          RADIO_CHANGED=0
 
           # avoid_duplicates makes the queue builder skip any track whose artist played
           # recently. With an album-shaped library that means it selects artist-uniformly
@@ -98,15 +98,28 @@ in {
 
           if [ "$(mysql "SELECT enable_hls FROM station WHERE id=$SID;")" = "0" ]; then
             if mysql "UPDATE station SET enable_hls=1 WHERE id=$SID;"; then
-              HLS_CHANGED=1
+              RADIO_CHANGED=1
               echo "azuracast-settings: enable_hls=1"
             fi
           fi
 
           if [ "$(mysql "SELECT COUNT(*) FROM station_hls_streams WHERE station_id=$SID;")" = "0" ]; then
             if mysql "INSERT INTO station_hls_streams (station_id, name, format, bitrate, listeners) VALUES ($SID, 'aac_192', 'aac', 192, 0);"; then
-              HLS_CHANGED=1
+              RADIO_CHANGED=1
               echo "azuracast-settings: added hls stream aac_192"
+            fi
+          fi
+
+          # FLAC mount for the /lossless-stream alias in proxy.nix. Not the default mount:
+          # /stream (radio.mp3) keeps serving web/mobile listeners, FLAC is opt-in by URL.
+          # autodj_bitrate is inert for FLAC (liquidsoap %flac is compression-based; the
+          # entity renders the display name as '... (FLAC)' regardless) - 0 keeps the API
+          # honest instead of advertising a fake kbps. All NOT NULL columns are set
+          # explicitly because DB-side defaults on station_mounts are not guaranteed.
+          if [ "$(mysql "SELECT COUNT(*) FROM station_mounts WHERE station_id=$SID AND name='/radio.flac';")" = "0" ]; then
+            if mysql "INSERT INTO station_mounts (station_id, name, display_name, is_visible_on_public_pages, is_default, is_public, max_listener_duration, enable_autodj, autodj_format, autodj_bitrate, listeners_unique, listeners_total) VALUES ($SID, '/radio.flac', '/radio.flac (FLAC)', 1, 0, 0, 0, 1, 'flac', 0, 0, 0);"; then
+              RADIO_CHANGED=1
+              echo "azuracast-settings: added flac mount /radio.flac"
             fi
           fi
 
@@ -152,7 +165,7 @@ in {
             fi
           fi
 
-          if [ "$HLS_CHANGED" = "1" ]; then
+          if [ "$RADIO_CHANGED" = "1" ]; then
             podman exec azuracast azuracast_cli azuracast:radio:restart radio_marcel 2>/dev/null \
               && echo "azuracast-settings: radio restarted for hls"
           else

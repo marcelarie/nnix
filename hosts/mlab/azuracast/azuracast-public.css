@@ -1607,6 +1607,15 @@ html.az-calm .az-program-row.az-now {
   margin: 0 0 10px;
   color: rgb(var(--hud-text-dim-rgb));
 }
+/* Section label above each stream URL row (see the JS that builds the two rows). */
+.az-stream-pop-label {
+  margin: 10px 0 4px;
+  color: rgb(var(--hud-text-dim-rgb));
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 .az-stream-pop-url {
   display: block;
   padding: 8px 10px;
