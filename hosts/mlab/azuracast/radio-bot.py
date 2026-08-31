@@ -58,10 +58,13 @@ REQUIRED = {
     "AFTERNOON_DOC": AFTERNOON_DOC,
 }
 
-# Hard cap, because asking the model for 'about eight stories' produced sixteen and a
-# four-and-a-half minute bulletin. Anything past this stays unread and leads the next run.
-MAX_ENTRIES = 8
-MAX_CONTENT_CHARS = 400
+# The news slot is fifteen minutes (see radio-program-plan.md), so there is room for a real
+# bulletin rather than a handful of headlines. Anything past MAX_ENTRIES stays unread and leads
+# the next run. FETCH_LIMIT is what the round-robin in by_source() picks from: Miniflux returns
+# the newest entries overall, so a fetch the size of MAX_ENTRIES would often be one chatty feed.
+MAX_ENTRIES = 24
+MAX_CONTENT_CHARS = 800
+FETCH_LIMIT = 250
 SAMPLE_RATE = 24000
 
 # Each blank line in the assembled script becomes this much silence, which is the only place the
@@ -77,6 +80,12 @@ DUCK_LEAD_SECONDS = 1.4
 # How gradually the music drops when the anchor comes back in after a pause. 15ms (a normal
 # compressor setting) is audible as a hard clamp; this eases it into a musical fade instead.
 DUCK_ATTACK_MS = 800
+# How far the bed drops under the voice, and the only knob left for it: ffmpeg caps
+# sidechaincompress ratio at 20, so depth comes from the threshold instead - every halving of it
+# buys about 6dB more duck. 0.003 left the music audible under the anchor; this sits it further
+# back without muting it. Raise it if the bed ever disappears entirely.
+DUCK_THRESHOLD = 0.001
+DUCK_RATIO = 20
 
 miniflux_headers = {"X-Auth-Token": MINIFLUX_API_KEY}
 
@@ -139,15 +148,33 @@ def category_id():
     sys.exit(f"No Miniflux category named {MINIFLUX_CATEGORY!r}. Available: {titles}")
 
 
+def by_source(entries, limit):
+    """Round-robin across feeds so every source in the category makes it on air.
+
+    Miniflux hands back the newest entries overall, and one busy feed can own that whole list -
+    the bulletin then covers two sources and ignores the rest. Taking one entry per feed at a
+    time keeps the quiet sources represented while still preferring the newest of each.
+    """
+    queues = {}
+    for entry in entries:
+        queues.setdefault((entry.get("feed") or {}).get("id"), []).append(entry)
+    picked = []
+    while len(picked) < limit and any(queues.values()):
+        for queue in queues.values():
+            if queue and len(picked) < limit:
+                picked.append(queue.pop(0))
+    return picked
+
+
 def unread_entries():
     res = requests.get(
         f"{MINIFLUX_URL}/v1/categories/{category_id()}/entries",
-        params={"status": "unread", "limit": MAX_ENTRIES, "direction": "desc"},
+        params={"status": "unread", "limit": FETCH_LIMIT, "direction": "desc"},
         headers=miniflux_headers,
         timeout=30,
     )
     res.raise_for_status()
-    return res.json().get("entries", [])
+    return by_source(res.json().get("entries", []), MAX_ENTRIES)
 
 
 def write_body(entries, doc, now):
@@ -168,9 +195,11 @@ def write_body(entries, doc, now):
         "before your first word and a sign-off will be spoken after your last, so write "
         "neither. Your final sentence must be an ordinary news sentence: never end with 'that "
         "is it', 'that is all', 'I am done', 'that is your bulletin' or any other closing "
-        "remark. Summarise the items below, grouping related stories, and separate each story "
-        "or group with a blank line. Each story appears once and once only: never "
-        "mention the same event twice.\n\n"
+        "remark. Cover every item below - each one comes from a different corner of the "
+        "listener's feeds and none may be dropped, however minor it looks. Give each story two "
+        "to four sentences: what happened, and why it matters. Group closely related stories "
+        "together and separate each story or group with a blank line. Each story appears once "
+        "and once only: never mention the same event twice.\n\n"
         "Output only the words to be read aloud: no URLs, no markdown, no headings, no stage "
         "directions, no emoji. Never refer to your instructions, to rules you have been given, "
         "or to what you have been told or asked to do - the listener must never learn that any "
@@ -183,6 +212,9 @@ def write_body(entries, doc, now):
             "model": SYNTHETIC_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "reasoning_effort": "none",
+            # A full-length bulletin is a few thousand tokens; without this the provider default
+            # cuts the read off mid-story.
+            "max_tokens": 8000,
         },
         timeout=300,
     )
@@ -263,7 +295,8 @@ def mix(vox_path, out_path):
         f"[1:a]{fmt},volume=0.5,afade=t=in:st=0:d=2,"
         f"afade=t=out:st={round(total - 3, 2)}:d=3[bedraw];"
         "[bedraw][key]sidechaincompress="
-        f"threshold=0.003:ratio=20:attack={DUCK_ATTACK_MS}:release=2600:makeup=1[bed];"
+        f"threshold={DUCK_THRESHOLD}:ratio={DUCK_RATIO}:attack={DUCK_ATTACK_MS}:"
+        "release=2600:makeup=1[bed];"
         "[bed][vox]amix=inputs=2:duration=first:dropout_transition=0,"
         "alimiter=limit=0.95,aformat=sample_fmts=s16[out]"
     )
@@ -339,6 +372,18 @@ def self_check():
     ]
     assert stale_paths(rows, "news/new.wav") == ["news/old.wav"]
     assert stale_paths(rows[:1], "news/new.wav") == []
+
+    feed_a = {"id": 1}
+    feed_b = {"id": 2}
+    mixed = [
+        {"id": 1, "feed": feed_a},
+        {"id": 2, "feed": feed_a},
+        {"id": 3, "feed": feed_a},
+        {"id": 4, "feed": feed_b},
+    ]
+    assert [e["id"] for e in by_source(mixed, 4)] == [1, 4, 2, 3]
+    assert [e["id"] for e in by_source(mixed, 2)] == [1, 4]
+    assert by_source([], 5) == []
 
     assert sanitise("<think>hmm</think>Real text") == "Real text"
     assert sanitise("first 望远镜 telescope") == "first telescope"

@@ -17,8 +17,11 @@ into it. Do not add blank lines mid-sentence.
 ## Tone
 
 Warm, awake and easy going. A dry aside now and then is welcome, but do not reach for jokes and
-do not try to be funny - let the stories carry it. Keep it tight: at most five stories, and aim
-for about ninety seconds of speech.
+do not try to be funny - let the stories carry it.
+
+Cover every story you are given, from every source, and give each one two to four sentences
+rather than a headline. The slot is fifteen minutes, so aim for about ten minutes of speech and
+do not rush: this is a full bulletin, not a summary of one.
 
 ## Outro
 
