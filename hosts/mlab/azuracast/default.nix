@@ -158,9 +158,14 @@ in {
           # playlist only ever holds the current one.
           NEWS_PID=$(mysql "SELECT id FROM station_playlists WHERE station_id=$SID AND name='news';")
           if [ -z "$NEWS_PID" ]; then
-            mysql "INSERT INTO station_playlists (station_id, name, type, is_enabled, play_per_songs, play_per_minutes, weight, source, include_in_requests, playback_order, is_jingle, play_per_hour_minute, remote_timeout, include_in_on_demand, avoid_duplicates) VALUES ($SID, 'news', 'default', 1, 0, 0, 3, 'songs', 0, 'sequential', 0, 0, 0, 0, 0);"
+            mysql "INSERT INTO station_playlists (station_id, name, type, is_enabled, play_per_songs, play_per_minutes, weight, source, include_in_requests, playback_order, is_jingle, play_per_hour_minute, remote_timeout, include_in_on_demand, avoid_duplicates) VALUES ($SID, 'news', 'default', 1, 0, 0, 20, 'songs', 0, 'sequential', 0, 0, 0, 0, 0);"
             NEWS_PID=$(mysql "SELECT id FROM station_playlists WHERE station_id=$SID AND name='news';")
             echo "azuracast-settings: created 'news' playlist (id=$NEWS_PID)"
+          fi
+
+          if [ "$(mysql "SELECT weight FROM station_playlists WHERE id=$NEWS_PID;")" != "20" ]; then
+            mysql "UPDATE station_playlists SET weight=20 WHERE id=$NEWS_PID;" \
+              && echo "azuracast-settings: news playlist weight=20"
           fi
 
           if [ -n "$NEWS_PID" ]; then
