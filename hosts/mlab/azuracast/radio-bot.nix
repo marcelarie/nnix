@@ -4,6 +4,10 @@
   services,
   ...
 }: let
+  # Bulletin archive: the mp3s and the index.html the bot writes each run, served as-is by the
+  # vhost below. Same shape as bandcampsync's status page.
+  htmlDir = "/var/lib/radio-news";
+
   # Kokoro-82M rather than piper: piper's top tier ("high") still has an audible metallic
   # vocoder edge, and kokoro renders at 24kHz instead of 22.05kHz. Weights are fetched at build
   # time so the unit never touches huggingface at runtime.
@@ -70,6 +74,7 @@ in {
       # Deliberately a library path, not a store path: a 50MB flac does not belong in the
       # repo, and a missing bed downgrades to a dry read instead of failing the bulletin.
       BED_FILE = "/var/lib/media/music/Paddy Thorne/Lost Cause (Part Two)/Paddy Thorne - Lost Cause (Part Two) - 08 Rendered.flac";
+      ARCHIVE_DIR = htmlDir;
       TZ = config.time.timeZone;
       PYTHONTZPATH = "${pkgs.tzdata}/share/zoneinfo";
     };
@@ -79,7 +84,19 @@ in {
       User = "dev";
       EnvironmentFile = config.sops.templates."radio-bot.env".path;
       ExecStart = "${python}/bin/python3 ${./radio-bot.py}";
+      # 0755, not the 0700 default: nginx has to read the archive back out.
+      StateDirectory = "radio-news";
+      StateDirectoryMode = "0755";
     };
+  };
+
+  # static bulletin archive at https://bulletins.marcel.cool (linked from the radio-program
+  # popover on the public player, see azuracast-public.js)
+  services.nginx.virtualHosts."bulletins.marcel.cool" = {
+    forceSSL = true;
+    useACMEHost = "marcel.cool";
+    root = htmlDir;
+    extraConfig = "autoindex off;";
   };
 
   systemd.timers.azuracast-radio-bot = {

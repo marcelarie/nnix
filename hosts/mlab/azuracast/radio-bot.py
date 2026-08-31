@@ -1,5 +1,8 @@
 """Generate a spoken news bulletin from unread Miniflux entries and upload it to AzuraCast.
 
+Every bulletin is also kept as mp3 in ARCHIVE_DIR with a static index.html listing it, which is
+what https://bulletins.marcel.cool serves; the Monday run clears the previous week out.
+
 Run twice a day by the azuracast-radio-bot systemd timer (see radio-bot.nix). All secrets and
 endpoints arrive as environment variables; nothing is configured in this file.
 
@@ -13,7 +16,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import numpy as np
@@ -42,6 +45,10 @@ AFTERNOON_DOC = os.environ.get("AFTERNOON_DOC")
 
 # Optional. A missing bed downgrades to a dry read rather than failing the bulletin.
 BED_FILE = os.environ.get("BED_FILE")
+
+# Web archive of this week's bulletins. Served straight off disk by the bulletins.marcel.cool
+# vhost in radio-bot.nix, so there is no service behind the page.
+ARCHIVE_DIR = os.environ.get("ARCHIVE_DIR")
 
 TZ = ZoneInfo(os.environ.get("TZ", "Europe/Madrid"))
 
@@ -306,6 +313,99 @@ def mix(vox_path, out_path):
     subprocess.run(cmd, check=True)
 
 
+def archived_at(name):
+    """The timestamp encoded in an archive filename, or None if the file is not one of ours."""
+    try:
+        return datetime.strptime(os.path.splitext(name)[0], "%Y-%m-%d-%H%M")
+    except ValueError:
+        return None
+
+
+def expired(names, cutoff):
+    """Archived bulletins from before `cutoff`.
+
+    main() passes this week's Monday, so a Monday run is the one that clears last week out and
+    every other run finds nothing to do - no separate timer needed for the weekly sweep.
+    """
+    return [n for n in names if (archived_at(n) or datetime.max).date() < cutoff]
+
+
+def slot_label(name):
+    return "morning bulletin" if archived_at(name).hour < 12 else "afternoon bulletin"
+
+
+def render_index(names):
+    """One self-contained page: a section per day, newest first, with a player per bulletin.
+
+    Plain text on plain background, light or dark by browser preference. `color-scheme` is what
+    makes the native <audio> controls follow along - without it they stay light on a dark page.
+    """
+    days = {}
+    for name in names:
+        days.setdefault(name[:10], []).append(name)
+    sections = "\n".join(
+        "<section><h2>{day:%A %-d %B}</h2><ul>{rows}</ul></section>".format(
+            day=datetime.strptime(day, "%Y-%m-%d"),
+            rows="".join(
+                f"<li><p>{archived_at(n):%H:%M} {slot_label(n)}</p>"
+                f'<audio controls preload="none" src="{n}"></audio></li>'
+                for n in sorted(days[day])
+            ),
+        )
+        for day in sorted(days, reverse=True)
+    )
+    return (
+        "<!doctype html>\n"
+        '<html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        "<title>Radio Marcel - news bulletins</title><style>"
+        ":root{color-scheme:light dark;--bg:#fff;--fg:#1a1a1a;--dim:#666;--line:#ddd}"
+        "@media(prefers-color-scheme:dark){"
+        ":root{--bg:#2b2b2b;--fg:#eaeaea;--dim:#aaa;--line:#444}}"
+        "body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);"
+        "font:16px/1.6 system-ui,sans-serif}"
+        "main{max-width:36rem;margin:0 auto}"
+        "h1{margin:0;font-size:1.25rem;font-weight:600}"
+        "p.sub{margin:.25rem 0 2rem;color:var(--dim)}"
+        "h2{margin:2rem 0 .5rem;padding-bottom:.3rem;font-size:1rem;font-weight:600;"
+        "border-bottom:1px solid var(--line)}"
+        "ul{list-style:none;margin:0;padding:0}"
+        "li{margin:0 0 1rem}"
+        "li p{margin:0 0 .3rem;color:var(--dim)}"
+        "audio{width:100%}"
+        "a{color:inherit}"
+        "</style></head><body><main>"
+        '<h1><a href="https://radio.marcel.cool">Radio Marcel</a> news</h1>'
+        '<p class="sub">This week\'s bulletins. Cleared every Monday.</p>'
+        + (sections or "<p>Nothing archived yet.</p>")
+        + "</main></body></html>\n"
+    )
+
+
+def archive(wav_path, now):
+    """Keep the week's bulletins on disk as mp3 and rewrite the page that lists them.
+
+    mp3 rather than the broadcast wav: a bulletin is ~22MB of 24kHz mono wav and this page is
+    meant to be opened on a phone.
+    """
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
+    name = f"{now:%Y-%m-%d-%H%M}.mp3"
+    subprocess.run(
+        ["ffmpeg", "-y", "-v", "error", "-i", wav_path]
+        + ["-codec:a", "libmp3lame", "-q:a", "5", "-ac", "1"]
+        + [os.path.join(ARCHIVE_DIR, name)],
+        check=True,
+    )
+    monday = now.date() - timedelta(days=now.weekday())
+    for stale in expired(os.listdir(ARCHIVE_DIR), monday):
+        os.remove(os.path.join(ARCHIVE_DIR, stale))
+        print(f"radio-bot: dropped last week's {stale}")
+    names = [n for n in os.listdir(ARCHIVE_DIR) if archived_at(n)]
+    with open(os.path.join(ARCHIVE_DIR, "index.html"), "w", encoding="utf-8") as page:
+        page.write(render_index(names))
+    print(f"radio-bot: archived {name}, {len(names)} bulletin(s) on the page")
+
+
 def upload(wav_path, name):
     with open(wav_path, "rb") as wav:
         res = requests.post(
@@ -392,6 +492,19 @@ def self_check():
     assert say_spanish_properly("Buenos dias, all").startswith("[Buenos días](/")
     assert say_spanish_properly("no greeting here") == "no greeting here"
 
+    week = ["2026-08-24-0800.mp3", "2026-08-31-0800.mp3", "2026-08-31-1700.mp3"]
+    assert expired(week + ["index.html"], datetime(2026, 8, 31).date()) == [
+        "2026-08-24-0800.mp3"
+    ]
+    assert expired(week, datetime(2026, 8, 24).date()) == []
+    assert slot_label(week[1]) == "morning bulletin"
+    assert slot_label(week[2]) == "afternoon bulletin"
+
+    page = render_index(week)
+    assert page.count("<section>") == 2 and page.count("<audio") == 3
+    assert page.index("2026-08-31-0800.mp3") < page.index("2026-08-24-0800.mp3")
+    assert "Nothing archived yet" in render_index([])
+
     assert paragraphs("one\n\ntwo\n\n\nthree") == ["one", "two", "three"]
     assert paragraphs("  ") == []
 
@@ -440,6 +553,8 @@ def main():
             print(f"radio-bot: dry run, wrote {wav_path}\n\n{script}")
             return
         upload(wav_path, name)
+        if ARCHIVE_DIR:
+            archive(wav_path, now)
 
     mark_read(entries)
     print(f"radio-bot: uploaded {AZURACAST_DIR}/{name} from {len(entries)} entries")
