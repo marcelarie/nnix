@@ -46,6 +46,12 @@
       else
         echo "qbittorrent preStart: $conf or its Password_PBKDF2 line missing; start once to create it" >&2
       fi
+      # trust the local nginx proxy so bans/real IPs work; without this qbit bans
+      # 127.0.0.1 after failed logins = whole world locked out for BanDuration
+      grep -q "^WebUI.ReverseProxySupportEnabled=" "$conf" || \
+        sed -i "/^\[Preferences\]/a WebUI\\\\ReverseProxySupportEnabled=true" "$conf"
+      grep -q "^WebUI.TrustedReverseProxiesList=" "$conf" || \
+        sed -i "/^\[Preferences\]/a WebUI\\\\TrustedReverseProxiesList=127.0.0.1" "$conf"
     '';
   };
 }
