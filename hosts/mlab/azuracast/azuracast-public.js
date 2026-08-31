@@ -255,8 +255,9 @@
   // semantics: same URL = stop), and the muted-autoplay unmute restore never runs -> the
   // page wakes up silent in every browser. Clicking the item runs setActiveStream -> toggle,
   // which starts the picked stream itself; with no (or matching) pick, the play button is
-  // exactly the old behavior. FLAC is never auto-picked: liquidsoap serves it as Ogg-FLAC,
-  // which Chrome's <audio> cannot decode.
+  // exactly the old behavior. FLAC is never auto-picked (matched on the label, which names the
+  // format - see the mount display_name in azuracast/default.nix): browsers do play Ogg-FLAC,
+  // but on a live stream the granule positions make their buffering heuristics stutter.
   function applyPickOrPlay() {
     var pick = null;
     try {
@@ -266,15 +267,12 @@
       ".radio-player-widget .radio-control-select-stream",
     );
     var selBtn = document.getElementById("btn-select-stream");
-    if (pick && pick !== "high" && selBox && selBtn) {
+    if (pick && pick.indexOf("flac") === -1 && selBox && selBtn) {
       var items = selBox.querySelectorAll(".dropdown-item");
       var currentName = selBtn.textContent.trim().toLowerCase();
       for (var j = 0; j < items.length; j++) {
         var name = items[j].textContent.trim().toLowerCase();
-        if (name === "high") {
-          items[j].title =
-            "FLAC for radio apps - most browsers cannot play this in-page";
-        } else if (name === pick && currentName !== name) {
+        if (name === pick && currentName !== name) {
           DBG("applyPickOrPlay: picking '" + name + "' via dropdown item");
           items[j].click();
           return; // the item click already starts the stream
@@ -835,6 +833,20 @@
     var volCtrl = document.querySelector(".radio-player-widget .radio-control-volume");
     if (selStream && volCtrl && selStream.parentElement !== volCtrl) {
       volCtrl.insertBefore(selStream, volCtrl.firstChild);
+    }
+    // Why the lossless item comes with a caveat: see applyPickOrPlay. Set here (not there, which
+    // only runs at start) so every visitor gets it, and re-applied by this poller across Vue's
+    // re-renders. Matched on the label, which names the format (mount display_name, default.nix).
+    if (selStream) {
+      var selItems = selStream.querySelectorAll(".dropdown-item");
+      for (var s2 = 0; s2 < selItems.length; s2++) {
+        if (
+          !selItems[s2].title &&
+          selItems[s2].textContent.toLowerCase().indexOf("flac") !== -1
+        )
+          selItems[s2].title =
+            "lossless, for radio apps - a live FLAC stream stutters in most browsers";
+      }
     }
     // Remember the visitor's stream pick (localStorage) for applyPickOrPlay() to honor at
     // start time. Delegated capture listener, registered once - it survives AzuraCast

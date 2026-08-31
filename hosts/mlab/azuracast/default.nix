@@ -116,23 +116,25 @@ in {
           # the API honest instead of advertising a fake kbps. All NOT NULL columns are set
           # explicitly because DB-side defaults on station_mounts are not guaranteed.
           if [ "$(mysql "SELECT COUNT(*) FROM station_mounts WHERE station_id=$SID AND name='/radio.flac';")" = "0" ]; then
-            if mysql "INSERT INTO station_mounts (station_id, name, display_name, is_visible_on_public_pages, is_default, is_public, max_listener_duration, enable_autodj, autodj_format, autodj_bitrate, listeners_unique, listeners_total) VALUES ($SID, '/radio.flac', 'high', 1, 0, 0, 0, 1, 'flac', 0, 0, 0);"; then
+            if mysql "INSERT INTO station_mounts (station_id, name, display_name, is_visible_on_public_pages, is_default, is_public, max_listener_duration, enable_autodj, autodj_format, autodj_bitrate, listeners_unique, listeners_total) VALUES ($SID, '/radio.flac', 'FLAC', 1, 0, 0, 0, 1, 'flac', 0, 0, 0);"; then
               RADIO_CHANGED=1
               echo "azuracast-settings: added flac mount /radio.flac"
             fi
           fi
 
           # Selector labels for the player's built-in stream dropdown: its item titles are the
-          # mounts' display_name, so 'medium' = MP3 192k and 'high' = FLAC. Cosmetic, DB-only
+          # mounts' display_name, so they name the format and its bitrate. FLAC carries no
+          # number - liquidsoap's %flac is compression-based, so its rate floats with the
+          # material (~1 Mbps measured); a fixed kbps there would be a lie. Cosmetic, DB-only
           # values - no radio restart needed. The player itself prepends a fixed "HLS" entry
           # whenever HLS is enabled; that one is not renamable from the DB.
-          if [ "$(mysql "SELECT display_name FROM station_mounts WHERE station_id=$SID AND name='/radio.mp3';")" != "medium" ]; then
-            mysql "UPDATE station_mounts SET display_name='medium' WHERE station_id=$SID AND name='/radio.mp3';" \
-              && echo "azuracast-settings: mp3 mount labelled 'medium'"
+          if [ "$(mysql "SELECT display_name FROM station_mounts WHERE station_id=$SID AND name='/radio.mp3';")" != "MP3 192k" ]; then
+            mysql "UPDATE station_mounts SET display_name='MP3 192k' WHERE station_id=$SID AND name='/radio.mp3';" \
+              && echo "azuracast-settings: mp3 mount labelled 'MP3 192k'"
           fi
-          if [ "$(mysql "SELECT display_name FROM station_mounts WHERE station_id=$SID AND name='/radio.flac';")" != "high" ]; then
-            mysql "UPDATE station_mounts SET display_name='high' WHERE station_id=$SID AND name='/radio.flac';" \
-              && echo "azuracast-settings: flac mount labelled 'high'"
+          if [ "$(mysql "SELECT display_name FROM station_mounts WHERE station_id=$SID AND name='/radio.flac';")" != "FLAC" ]; then
+            mysql "UPDATE station_mounts SET display_name='FLAC' WHERE station_id=$SID AND name='/radio.flac';" \
+              && echo "azuracast-settings: flac mount labelled 'FLAC'"
           fi
 
           # Repair rows written with a type the current PlaylistTypes enum no longer has (an

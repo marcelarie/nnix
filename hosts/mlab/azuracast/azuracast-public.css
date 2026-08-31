@@ -269,7 +269,7 @@ body.page-minimal .public-page .card-body {
     margin-top: 8px;
   }
   /* No room for the caption beside the chip and the volume bar - the chip's own label
-     ('medium'/'high') already says what it is. */
+     (the format) already says what it is. */
   .radio-player-widget .radio-control-select-stream::before {
     display: none;
   }
@@ -277,7 +277,7 @@ body.page-minimal .public-page .card-body {
 
 /* --- stream quality selector: the built-in #btn-select-stream dropdown --- */
 /* Shows once the station has 2+ public mounts; item titles are the mounts' display_name
-   ('medium' = MP3 192k, 'high' = FLAC, set in azuracast/default.nix; the player itself
+   (format + bitrate, from each mount's display_name in azuracast/default.nix; the player itself
    prepends a fixed "HLS" entry while HLS is enabled). Restyled from stock Bootstrap gray
    to the HUD chip vocabulary and made compact - stock flex:auto stretches it to 60% of the
    row, which wrapped it onto its own full-width line under the album art. relocate() in the
