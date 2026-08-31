@@ -270,6 +270,7 @@
           # keep addresses/routes/leases across a carrier loss up to 60s.
           IgnoreCarrierLoss = "60s";
         };
+        ipv6AcceptRAConfig.Token = "prefixstable";
       };
       "20-lan2g5" = {
         # Built-in 2.5G (igc) — fallback cable NIC, same .140
@@ -281,6 +282,7 @@
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
           IPv6PrivacyExtensions = "yes"; # see 10-lan10g above
         };
+        ipv6AcceptRAConfig.Token = "prefixstable";
       };
       "30-sfp0" = {
         # SFP+ port 0 (i40e) — DHCP if ever plugged
@@ -289,6 +291,7 @@
           DHCP = "yes";
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
         };
+        ipv6AcceptRAConfig.Token = "prefixstable";
       };
       "31-sfp1" = {
         # SFP+ port 1 (i40e) — DHCP if ever plugged
@@ -297,6 +300,7 @@
           DHCP = "yes";
           IPv6LinkLocalAddressGenerationMode = "stable-privacy";
         };
+        ipv6AcceptRAConfig.Token = "prefixstable";
       };
     };
   };

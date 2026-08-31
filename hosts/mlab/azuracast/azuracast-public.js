@@ -29,7 +29,9 @@
     return document.querySelector(".radio-control-play-button");
   }
   function getMuteButton() {
-    return document.querySelector(".radio-control-volume .btn");
+    // :not(.dropdown-toggle) - the quality selector rides inside the volume pill (see relocate())
+    // and its toggle is a .btn too, first in DOM order.
+    return document.querySelector(".radio-control-volume .btn:not(.dropdown-toggle)");
   }
   function getAudioEl() {
     return document.querySelector("audio");
@@ -112,7 +114,7 @@
     }
     setInterval(function () {
       watchBtn(".radio-control-play-button", "PLAYBTN");
-      watchBtn(".radio-control-volume .btn", "MUTEBTN");
+      watchBtn(".radio-control-volume .btn:not(.dropdown-toggle)", "MUTEBTN");
     }, 200);
 
     // attachAudioLog only ever instruments the FIRST <audio> found. If AzuraCast ever leaves a
@@ -246,6 +248,44 @@
     }
   })();
 
+  // Start playback on AzuraCast's own controls, honoring the visitor's saved stream pick
+  // (az_stream_pick, saved by the delegated listener in relocate()). The pick is applied
+  // HERE - never on page load: a synthetic dropdown click at load pre-commits the store's
+  // current stream, so start()'s play click would toggle it straight back off (toggle
+  // semantics: same URL = stop), and the muted-autoplay unmute restore never runs -> the
+  // page wakes up silent in every browser. Clicking the item runs setActiveStream -> toggle,
+  // which starts the picked stream itself; with no (or matching) pick, the play button is
+  // exactly the old behavior. FLAC is never auto-picked: liquidsoap serves it as Ogg-FLAC,
+  // which Chrome's <audio> cannot decode.
+  function applyPickOrPlay() {
+    var pick = null;
+    try {
+      pick = localStorage.getItem("az_stream_pick");
+    } catch (e) {}
+    var selBox = document.querySelector(
+      ".radio-player-widget .radio-control-select-stream",
+    );
+    var selBtn = document.getElementById("btn-select-stream");
+    if (pick && pick !== "high" && selBox && selBtn) {
+      var items = selBox.querySelectorAll(".dropdown-item");
+      var currentName = selBtn.textContent.trim().toLowerCase();
+      for (var j = 0; j < items.length; j++) {
+        var name = items[j].textContent.trim().toLowerCase();
+        if (name === "high") {
+          items[j].title =
+            "FLAC for radio apps - most browsers cannot play this in-page";
+        } else if (name === pick && currentName !== name) {
+          DBG("applyPickOrPlay: picking '" + name + "' via dropdown item");
+          items[j].click();
+          return; // the item click already starts the stream
+        }
+      }
+    }
+    DBG("applyPickOrPlay: play button");
+    var playBtn = getPlayButton();
+    if (playBtn) playBtn.click();
+  }
+
   function start() {
     DBG("start", "started=" + started, "autoplayOk=" + autoplayOk);
     if (started) return;
@@ -253,10 +293,19 @@
     var playBtn = getPlayButton();
     if (!playBtn) return;
     started = true;
-    clearInterval(autoplayPollId);
-    DBG("start -> b.click()");
-    playBtn.click();
+    DBG("start -> applyPickOrPlay()");
+    applyPickOrPlay();
     if (wasUnmuted) unmuteAfterPlay(); // restore the saved unmuted state once playback lands
+    // AzuraCast's current stream is still null until now-playing lands, and toggle(null) is a
+    // no-op stop: the click creates no <audio> at all. So keep the poll alive and re-arm until
+    // a click actually lands playback, instead of latching started=true on a dead click.
+    setTimeout(function () {
+      if (getAudioEl()) clearInterval(autoplayPollId);
+      else {
+        DBG("start: no <audio> after click -> re-arm");
+        started = false;
+      }
+    }, 700);
   }
   // AzuraCast fires 'now-playing' on the document when stream metadata arrives (same hook native autoplay uses).
   document.addEventListener(
@@ -302,11 +351,10 @@
       unmuteAfterPlay();
       return;
     }
-    DBG("ensurePlaying: no src -> b.click() start");
+    DBG("ensurePlaying: no src -> applyPickOrPlay() start");
     started = true;
     clearInterval(autoplayPollId);
-    var playBtn = getPlayButton();
-    if (playBtn) playBtn.click(); // no stream loaded -> AzuraCast loads+plays in nextTick
+    applyPickOrPlay(); // no stream loaded -> the picked item or play button loads+plays it
     unmuteAfterPlay();
   }
 
@@ -341,7 +389,10 @@
     if (e && e.target && e.target.closest) {
       // let the volume/mute control and the play button run their OWN real click (avoids a
       // double-toggle: our synthetic click + the real click = start then stop)
-      if (e.target.closest(".radio-control-volume")) {
+      if (
+        e.target.closest(".radio-control-volume") &&
+        !e.target.closest(".radio-control-select-stream")
+      ) {
         DBG("unmute: on volume ctrl, skip");
         return;
       }
@@ -775,6 +826,35 @@
     if (volInput && !volInput._azVolSynced) {
       volInput._azVolSynced = true;
       syncVolVar(volInput);
+    }
+    // Quality selector rides INSIDE the volume pill, so it always sits immediately left of
+    // the mute button + slider wherever the pill lives: corner-pinned over the card (normal
+    // desktop), in-row (mobile) or in the docked footer bar (waves mode). Re-applied by this
+    // poller because AzuraCast re-renders; the node keeps its dropdown listeners when moved.
+    var selStream = document.querySelector(".radio-player-widget .radio-control-select-stream");
+    var volCtrl = document.querySelector(".radio-player-widget .radio-control-volume");
+    if (selStream && volCtrl && selStream.parentElement !== volCtrl) {
+      volCtrl.insertBefore(selStream, volCtrl.firstChild);
+    }
+    // Remember the visitor's stream pick (localStorage) for applyPickOrPlay() to honor at
+    // start time. Delegated capture listener, registered once - it survives AzuraCast
+    // re-renders, unlike the dropdown nodes themselves.
+    if (!window._azPickListener) {
+      window._azPickListener = true;
+      document.addEventListener(
+        "click",
+        function (e) {
+          var it =
+            e.target.closest &&
+            e.target.closest(".radio-control-select-stream .dropdown-item");
+          if (it)
+            localStorage.setItem(
+              "az_stream_pick",
+              it.textContent.trim().toLowerCase(),
+            );
+        },
+        true,
+      );
     }
     if (!art || !playBtn || art._azInit) return !!(art && playBtn);
     art._azInit = true;

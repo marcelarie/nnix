@@ -122,9 +122,15 @@ html.az-calm.az-stopped body.page-minimal .public-page .card {
   html.az-waves .radio-player-widget .now-playing-artist {
     font-size: 1rem !important;
   }
-  html.az-waves .radio-player-widget .az-eq,
-  html.az-waves .radio-player-widget .radio-control-volume {
+  html.az-waves .radio-player-widget .az-eq {
     display: none;
+  }
+  /* Volume pill (with the quality selector riding inside it - see relocate() in the JS)
+     stays visible in the docked bar but in-flow: the corner-pin makes no sense in a
+     full-width bar, and the selector needs a volume bar to sit left of. */
+  html.az-waves .radio-player-widget .radio-control-volume {
+    position: static;
+    margin-top: 0;
   }
   /* Shortcut hint: instead of the bottom-right corner pin it floats dead-centre in the bar
      (the title/artist marquee scrolls under it - z-index 3 is already above the text). */
@@ -261,6 +267,107 @@ body.page-minimal .public-page .card-body {
        and comes later in the file, so it wins the cascade on mobile too without this. */
     position: static !important;
     margin-top: 8px;
+  }
+  /* No room for the caption beside the chip and the volume bar - the chip's own label
+     ('medium'/'high') already says what it is. */
+  .radio-player-widget .radio-control-select-stream::before {
+    display: none;
+  }
+}
+
+/* --- stream quality selector: the built-in #btn-select-stream dropdown --- */
+/* Shows once the station has 2+ public mounts; item titles are the mounts' display_name
+   ('medium' = MP3 192k, 'high' = FLAC, set in azuracast/default.nix; the player itself
+   prepends a fixed "HLS" entry while HLS is enabled). Restyled from stock Bootstrap gray
+   to the HUD chip vocabulary and made compact - stock flex:auto stretches it to 60% of the
+   row, which wrapped it onto its own full-width line under the album art. relocate() in the
+   JS moves the whole node inside the volume pill so it always sits immediately LEFT of the
+   volume bar (corner-pinned pill on normal desktop, in-row on mobile, in the docked footer
+   bar in waves mode). */
+.radio-player-widget .radio-control-select-stream {
+  flex: none;
+  max-width: none;
+  display: flex;
+  align-items: center;
+}
+/* Caption on the chip's left, riding inside the volume pill (text over the art corner in
+   normal mode, so keep a readability shadow - this is not the calm-mode glow). */
+.radio-player-widget .radio-control-select-stream::before {
+  content: "stream quality:";
+  margin-right: 8px;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgb(var(--hud-text-dim-rgb));
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.radio-player-widget #btn-select-stream,
+.radio-player-widget .radio-control-select-stream .dropdown-item {
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.radio-player-widget #btn-select-stream {
+  padding: 4px 12px;
+  flex: none;
+  white-space: nowrap; /* it shares the pill with the volume bar now - without this a squeezed
+                          row wraps the label one letter per line */
+  border: 1px solid rgba(var(--hud-accent-rgb), 0.4);
+  border-radius: 0;
+  background: none;
+  color: rgb(var(--hud-text-dim-rgb));
+  box-shadow: none;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.radio-player-widget #btn-select-stream:hover,
+.radio-player-widget #btn-select-stream:focus-visible,
+.radio-player-widget #btn-select-stream.show {
+  border-color: rgb(var(--hud-accent-2-rgb));
+  background: rgba(var(--hud-accent-2-rgb), 0.08);
+  color: rgb(var(--hud-accent-2-rgb));
+  outline: none;
+}
+.radio-player-widget .radio-control-select-stream .dropdown-menu {
+  min-width: 0;
+  padding: 6px;
+  border: 2px solid rgb(var(--hud-accent-rgb));
+  border-radius: 0;
+  background: var(--hud-bg-strong);
+  box-shadow: 0 0 18px rgba(var(--hud-accent-rgb), 0.3);
+}
+.radio-player-widget .radio-control-select-stream .dropdown-item {
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  color: rgb(var(--hud-text-rgb));
+  white-space: nowrap;
+}
+.radio-player-widget .radio-control-select-stream .dropdown-item:hover,
+.radio-player-widget .radio-control-select-stream .dropdown-item:focus {
+  background: rgba(var(--hud-accent-2-rgb), 0.12);
+  color: rgb(var(--hud-accent-2-rgb));
+  outline: none;
+  box-shadow: none;
+}
+@media (min-width: 769px) {
+  /* Footer mode: the bar is docked to the screen's bottom edge, so the menu unfurls upward
+     and right-aligned (the controls are parked at the bar's right edge). !important beats
+     the inline transform/inset styles Bootstrap's Popper writes onto the menu. */
+  html.az-waves .radio-player-widget .radio-control-select-stream .dropdown-menu {
+    top: auto !important;
+    bottom: calc(100% + 8px) !important;
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+    margin: 0 !important;
   }
 }
 
@@ -835,6 +942,8 @@ html.az-light .radio-player-widget .radio-control-volume {
 }
 .radio-player-widget .radio-control-volume .btn {
   flex: 0 0 auto;
+  position: relative;
+  z-index: 3; /* above the bar (z 2) and the mouth/brain (z 1) - the bar's glow used to wash over it */
   color: #fff;
   fill: currentColor;
   opacity: 0.9;
@@ -847,8 +956,11 @@ html.az-light .radio-player-widget .radio-control-volume {
   opacity: 1;
 }
 .radio-player-widget .radio-control-volume .form-range {
-  flex: 0 0 130px;
-  width: 130px;
+  /* 130px is the CAP, not a fixed width: the quality selector rides inside the pill now, so the
+     slider's slot can be narrower than 130 and a fixed width overflowed it - the bar's tail ran
+     over the mouth. Filling the slot keeps the mouth exactly at the bar's end at any width. */
+  width: 100%;
+  max-width: 130px;
   accent-color: #ff3df0;
   position: relative;
   z-index: 2; /* mushroom (thumb) stacks above the mouth (::after, z-index 1) when it reaches it */
