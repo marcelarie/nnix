@@ -1566,7 +1566,7 @@ html.az-calm .az-program-row.az-now {
   top: 50px;
   left: 10px;
   z-index: 1000;
-  width: min(86vw, 360px);
+  width: min(86vw, 420px);
   margin: 0;
   padding: 14px 16px;
   border: 2px solid rgb(var(--hud-accent-rgb));
@@ -1611,7 +1611,7 @@ html.az-calm .az-program-row.az-now {
 .az-stream-pop-label {
   margin: 10px 0 4px;
   color: rgb(var(--hud-text-dim-rgb));
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
