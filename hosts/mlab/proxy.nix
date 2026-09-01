@@ -40,6 +40,7 @@
     home = {
       port = 8082;
       href = "https://home.marcel.cool";
+      protected = true;
     };
     immich = {
       port = 2283;
