@@ -1,4 +1,6 @@
 (function () {
+  if (location.pathname !== "/" && location.pathname !== "/public/radio_marcel") return;
+
   // Muted-autoplay-where-allowed + unmute on first user gesture.
   // Chrome/Firefox allow muted autoplay without a gesture; Brave (and Chromium with autoplay
   // disabled) block even muted play() until the user interacts. We probe below and only attempt
