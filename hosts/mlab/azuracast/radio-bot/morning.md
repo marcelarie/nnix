@@ -1,6 +1,6 @@
 # Radio Marcel - morning bulletin
 
-Read out by `azuracast-radio-bot` (see `radio-bot.nix`). The **Intro** and **Outro** sections are
+Read out by `azuracast-radio-bot` (see `default.nix`). The **Intro** and **Outro** sections are
 spoken verbatim: the language model never sees them and never rewrites them. Only **Tone** steers
 the part in between. Edit this file to change what the station says - no code change needed.
 

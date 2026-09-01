@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ssh to the mlab box running azuracast (mlab-local preferred, else mlab).
-#   azuracast-connect 'bash -s' < script.sh   pipe a local script over ssh
-#   azuracast-connect sql 'SELECT ...'        run SQL in the azuracast mariadb
-#   azuracast-connect sql < file.sql          SQL from stdin
-#   azuracast-connect <remote command...>     plain ssh passthrough
+#   connect 'bash -s' < script.sh   pipe a local script over ssh
+#   connect sql 'SELECT ...'        run SQL in the azuracast mariadb
+#   connect sql < file.sql          SQL from stdin
+#   connect <remote command...>     plain ssh passthrough
 set -eu
 # -n on the probe: without it ssh drains stdin (a piped script or SQL query)
 # before the real command ever reads it.

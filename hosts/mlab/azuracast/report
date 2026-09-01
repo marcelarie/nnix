@@ -4,10 +4,10 @@
 #   2. which library tracks have never been played?
 set -u
 DIR=$(cd "$(dirname "$0")" && pwd)
-CONNECT="$DIR/azuracast-connect"
+CONNECT="$DIR/connect"
 
 echo "=== 1. sync with /var/lib/media/music ==="
-"$CONNECT" 'bash -s' < "$DIR/azuracast-sync-check.sh"
+"$CONNECT" 'bash -s' < "$DIR/sync-check.sh"
 SYNC=$?  # sync-check exits 1 when out of sync; keep going, part 2 is independent
 
 echo

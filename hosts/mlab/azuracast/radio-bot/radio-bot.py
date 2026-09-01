@@ -3,10 +3,10 @@
 Every bulletin is also kept as mp3 in ARCHIVE_DIR with a static index.html listing it, which is
 what https://bulletins.marcel.cool serves; the Monday run clears the previous week out.
 
-Run twice a day by the azuracast-radio-bot systemd timer (see radio-bot.nix). All secrets and
+Run twice a day by the azuracast-radio-bot systemd timer (see default.nix). All secrets and
 endpoints arrive as environment variables; nothing is configured in this file.
 
-What the station actually says lives in radio-bot-morning.md / radio-bot-afternoon.md - their
+What the station actually says lives in morning.md / afternoon.md - their
 Intro and Outro are spoken verbatim and never reach the model, which only writes the middle.
 """
 
@@ -52,7 +52,7 @@ BED_FILE = os.environ.get("BED_FILE")
 NEWS_ART_FONT = os.environ.get("NEWS_ART_FONT")
 
 # Web archive of this week's bulletins. Served straight off disk by the bulletins.marcel.cool
-# vhost in radio-bot.nix, so there is no service behind the page.
+# vhost in default.nix, so there is no service behind the page.
 ARCHIVE_DIR = os.environ.get("ARCHIVE_DIR")
 
 TZ = ZoneInfo(os.environ.get("TZ", "Europe/Madrid"))
@@ -70,7 +70,7 @@ REQUIRED = {
     "AFTERNOON_DOC": AFTERNOON_DOC,
 }
 
-# The news slot is fifteen minutes (see radio-program-plan.md), so there is room for a real
+# The news slot is fifteen minutes (see program-plan.md), so there is room for a real
 # bulletin rather than a handful of headlines. Anything past MAX_ENTRIES stays unread and leads
 # the next run. FETCH_LIMIT is what the round-robin in by_source() picks from: Miniflux returns
 # the newest entries overall, so a fetch the size of MAX_ENTRIES would often be one chatty feed.
