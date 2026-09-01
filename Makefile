@@ -1,4 +1,4 @@
-.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops android-mirror whatsapp-register azuracast-deploy
+.PHONY: format nixos nixos-nixbuild mlab nixos-nixbuild-mlab droid hm news sops android-mirror whatsapp-register azuracast-deploy azuracast-connect azuracast-report
 
 lint: 
 	@nix run .#ruff -- check --fix
@@ -54,6 +54,16 @@ azuracast-deploy:
 	scp hosts/mlab/azuracast/azuracast-public.css hosts/mlab/azuracast/azuracast-public.js $$HOST:/tmp/ && \
 	ssh $$HOST 'podman exec azuracast azuracast_cli azuracast:settings:set public_custom_css "$$(cat /tmp/azuracast-public.css)" && podman exec azuracast azuracast_cli azuracast:settings:set public_custom_js "$$(cat /tmp/azuracast-public.js)" && rm -f /tmp/azuracast-public.css /tmp/azuracast-public.js' && \
 	echo "azuracast css/js updated on $$HOST."
+
+# two commands, both thin wrappers over the scripts in hosts/mlab/azuracast/:
+#   azuracast-connect - ssh to the azuracast box (mlab-local/mlab autodetect);
+#                       ARGS='sql "SELECT 1"' for ad-hoc queries
+#   azuracast-report  - 1) music dir vs library/playlist sync  2) never-played tracks
+azuracast-connect:
+	@hosts/mlab/azuracast/azuracast-connect $(ARGS)
+
+azuracast-report:
+	@hosts/mlab/azuracast/azuracast-report
 
 # a bit complex but its the only way to deploy to android that I (claude) found so the phone does not do the build
 droid:
