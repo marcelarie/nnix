@@ -297,7 +297,7 @@ def mix(vox_path, out_path):
     lead = int((INTRO_SECONDS - DUCK_LEAD_SECONDS) * 1000)
     fmt = f"aformat=sample_fmts=fltp:sample_rates={SAMPLE_RATE}:channel_layouts=mono"
     graph = (
-        f"[0:a]{fmt},adelay={int(INTRO_SECONDS * 1000)},apad[vox];"
+        f"[0:a]{fmt},volume=1.4,adelay={int(INTRO_SECONDS * 1000)},apad[vox];"
         f"[0:a]{fmt},adelay={lead},apad[key];"
         f"[1:a]{fmt},volume=0.5,afade=t=in:st=0:d=2,"
         f"afade=t=out:st={round(total - 3, 2)}:d=3[bedraw];"

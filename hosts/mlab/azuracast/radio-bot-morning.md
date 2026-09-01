@@ -26,7 +26,7 @@ do not rush: this is a full bulletin, not a summary of one.
 Never do jokes close to disaster news or about the specific distaster news, same
 with deaths, catastrophes, etc.
 
-If a news its about Donal Trump before starting say: "Well here comes one so first, lets all say with me, DEATH TO THE TRUMPS!"
+If a news its about Donal Trump before starting say: "Well here comes one so first, lets all say with me, DEATH TO THE Trumps!"
 
 ## Outro
 
