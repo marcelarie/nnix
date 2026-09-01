@@ -71,6 +71,8 @@ in {
       KOKORO_VOICE = "${kokoroVoice}";
       MORNING_DOC = "${./radio-bot-morning.md}";
       AFTERNOON_DOC = "${./radio-bot-afternoon.md}";
+      # Cover art is rendered per run by the bot; the bold ttf is its only input beyond the date.
+      NEWS_ART_FONT = "${pkgs.dejavu_fonts}/share/fonts/truetype/DejaVuSans-Bold.ttf";
       # Deliberately a library path, not a store path: a 50MB flac does not belong in the
       # repo, and a missing bed downgrades to a dry read instead of failing the bulletin.
       BED_FILE = "/var/lib/media/music/Paddy Thorne/Lost Cause (Part Two)/Paddy Thorne - Lost Cause (Part Two) - 08 Rendered.flac";
