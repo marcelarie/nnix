@@ -1864,14 +1864,10 @@
       preloaded[url] = new Image();
       preloaded[url].src = url;
     }
-    // AzuraCast's own player (Player.vue) only ever binds the art <img> to
-    // now_playing.song.art - np.live.art (the streamer's uploaded broadcast image, set in
-    // Station -> Streamers/DJs) is real data the API sends but the stock player never reads it.
-    // .now-playing-art is Vue's v-if on song.art, so during a live set with no song metadata
-    // that whole container doesn't exist - we build the same markup AlbumArt.vue would (div >
-    // a.album-art > img.album_art) so relocate()'s overlay/zoom and attachImgWatch's push
-    // transition pick it up exactly like a Vue-rendered one. If a real song.art node already
-    // exists (stale AutoDJ art), its <img> src is swapped instead of duplicating the container.
+    // AzuraCast's player only ever binds art to now_playing.song.art; it never reads live.art
+    // (the streamer's uploaded image), even though the API sends it. .now-playing-art is Vue's
+    // v-if on song.art, so with no song metadata during a live set the container doesn't exist -
+    // build the same markup AlbumArt.vue would so relocate()/attachImgWatch treat it the same.
     function applyLiveArt(live, songArt) {
       var details = document.querySelector(".radio-player-widget .now-playing-details");
       if (!details) return;
@@ -1915,10 +1911,8 @@
       }
     }
     // Same gap as the art: now_playing.song.title/artist stay frozen on the last AutoDJ track
-    // for the whole live broadcast (AzuraCast never rewrites them), so the big title/artist text
-    // just sits on stale/finished-track info next to the "Live" badge. Swap it to the streamer's
-    // name while live; idempotent (always sets the value the current poll says is correct, live
-    // or not), so no create/restore bookkeeping needed like the art container.
+    // for the whole live broadcast. Idempotent (always sets what the current poll says is
+    // correct), so no create/restore bookkeeping needed like the art container.
     function applyLiveText(live, song) {
       var titleEl = document.querySelector(".radio-player-widget .now-playing-title");
       var artistEl = document.querySelector(".radio-player-widget .now-playing-artist");

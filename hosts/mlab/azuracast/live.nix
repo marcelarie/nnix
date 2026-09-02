@@ -6,12 +6,9 @@
 }: {
   sops.secrets."azuracast_dj_password" = {};
 
-  # Captures the Scarlett 2i2 (Behringer mixer feed) and pushes it live into AzuraCast's
-  # DJ harbor (127.0.0.1:8005, published from the container in ./default.nix), so the
-  # public stream cuts over from auto-DJ to the live mix while this is running.
-  # Not started at boot: an idle mixer would push dead air over the auto-DJ.
-  # Toggle it via https://livedj.marcel.cool (see azuracast-live-web below) or
-  # systemctl start|stop azuracast-live-capture.
+  # Captures the Scarlett 2i2 and pushes it into AzuraCast's DJ harbor (127.0.0.1:8005,
+  # published from the container in ./default.nix). Not started at boot: an idle mixer would
+  # push dead air over the auto-DJ. Toggle via https://livedj.marcel.cool or systemctl.
   systemd.services.azuracast-live-capture = {
     description = "Capture Scarlett 2i2 input and stream it live to AzuraCast";
     after = ["sound.target" "podman-azuracast.service"];
@@ -22,14 +19,11 @@
       Restart = "on-failure";
       RestartSec = "5s";
     };
-    # darkice's config is a plain file (no CLI password flag), so it's generated at
-    # start into RuntimeDirectory (tmpfs, root-only) with the password read from sops
-    # at runtime - never written into the nix store.
-    # Input uses plughw, not hw: the Scarlett 2i2 doesn't support 16-bit natively over
-    # raw hw, so ALSA's plugin layer has to do the conversion.
-    # mountPoint is intentionally blank: darkice's IceCast2 client always sends
-    # "SOURCE /" + mountPoint, so a mountPoint of "/" would send "SOURCE //" -
-    # a mismatch against AzuraCast's DJ mount point, which is "/" (backend_config.dj_mount_point).
+    # darkice's config is a plain file, so it's generated at start into RuntimeDirectory
+    # (tmpfs, root-only) with the password read from sops at runtime - never written to the
+    # nix store. plughw (not hw): the Scarlett 2i2 needs ALSA's plugin layer for format
+    # conversion. mountPoint is blank: darkice always sends "SOURCE /" + mountPoint, so "/"
+    # would send "SOURCE //", which doesn't match AzuraCast's DJ mount point ("/").
     script = ''
       DJ_PASSWORD=$(cat ${config.sops.secrets.azuracast_dj_password.path})
       cat > /run/azuracast-live-capture/darkice.cfg <<EOF
