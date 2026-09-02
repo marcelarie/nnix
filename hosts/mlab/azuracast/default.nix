@@ -9,7 +9,7 @@
   # allowedTCPPorts, and this port must stay loopback-only.
   listenTimePort = 8320;
 in {
-  imports = [./radio-bot ./live.nix];
+  imports = [./radio-bot ./live.nix ./webcam.nix];
 
   systemd.tmpfiles.rules = [
     "d /var/lib/azuracast 0755 1000 1000 -"
