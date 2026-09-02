@@ -1960,6 +1960,88 @@
     fetchSong();
   })();
 
+  // --- live webcam ---
+  // Only mounted once the admin flips the "go live" toggle at streamcam.marcel.cool
+  // (webcam-control.py); /webcam-status is same-origin, unauthenticated, cheap to poll. Same
+  // WHEP negotiation as the private test page - MediaMTX allows any origin to read the stream
+  // (webrtcAllowOrigins), so the only gate on whether this ever shows is the status flag.
+  (function () {
+    var STATUS_URL = "/webcam-status";
+    var WHEP_URL = "https://radio.marcel.cool/webcam/whep";
+    var POLL_MS = 5000;
+    var pc = null,
+      videoEl = null,
+      mounted = false;
+
+    function mount() {
+      if (mounted) return;
+      mounted = true;
+      var host = document.querySelector(".radio-player-widget");
+      if (!host) {
+        mounted = false;
+        return;
+      }
+      videoEl = document.createElement("video");
+      videoEl.className = "az-webcam";
+      videoEl.autoplay = true;
+      videoEl.muted = true;
+      videoEl.playsInline = true;
+      host.insertBefore(videoEl, host.firstChild);
+
+      pc = new RTCPeerConnection();
+      pc.ontrack = function (e) {
+        videoEl.srcObject = e.streams[0];
+      };
+      pc.addTransceiver("video", { direction: "recvonly" });
+      pc
+        .createOffer()
+        .then(function (offer) {
+          return pc.setLocalDescription(offer).then(function () {
+            return fetch(WHEP_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/sdp" },
+              body: offer.sdp,
+            });
+          });
+        })
+        .then(function (res) {
+          return res.ok ? res.text() : Promise.reject();
+        })
+        .then(function (answer) {
+          return pc.setRemoteDescription({ type: "answer", sdp: answer });
+        })
+        .catch(function () {
+          unmount();
+        });
+    }
+
+    function unmount() {
+      mounted = false;
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+      if (videoEl) {
+        videoEl.remove();
+        videoEl = null;
+      }
+    }
+
+    function poll() {
+      fetch(STATUS_URL, { cache: "no-store" })
+        .then(function (r) {
+          return r.ok ? r.json() : { live: false };
+        })
+        .then(function (data) {
+          if (data && data.live) mount();
+          else unmount();
+        })
+        .catch(function () {});
+    }
+    poll();
+    setInterval(poll, POLL_MS);
+  })();
+
   // --- bandcamp nudge tooltip ---
   // Until the user clicks the artist's bandcamp link (persisted in localStorage), a tooltip to
   // the right of the artist name (arrow pointing left at it) shows up once in a while: hidden

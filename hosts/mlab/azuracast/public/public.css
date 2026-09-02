@@ -2046,3 +2046,13 @@ html.az-calm .az-bg-pop-title {
     font-size: 12px;
   }
 }
+
+.az-webcam {
+  display: block;
+  width: 100%;
+  max-height: 50vh;
+  border-radius: 8px;
+  background: #000;
+  margin-bottom: 0.75rem;
+  object-fit: contain;
+}

@@ -129,6 +129,11 @@
             policy = "two_factor";
             subject = ["group:admins"];
           }
+          {
+            domain = "streamcam.marcel.cool";
+            policy = "two_factor";
+            subject = ["group:admins"];
+          }
         ];
       };
 

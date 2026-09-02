@@ -59,6 +59,11 @@
       href = "https://livedj.marcel.cool";
       protected = true;
     };
+    streamcam = {
+      port = 8291;
+      href = "https://streamcam.marcel.cool";
+      protected = true;
+    };
     miniflux = {
       port = 8085;
       href = "https://rss.marcel.cool";
@@ -430,6 +435,17 @@ in {
                     proxy_set_header X-Real-IP $remote_addr;
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     proxy_set_header X-Forwarded-Proto https;
+                  '';
+                };
+                # Public, unauthenticated: whether the admin has toggled the webcam visible on
+                # this page (streamcam.marcel.cool, Authelia-gated - see webcam-control.py).
+                # Exact match so it isn't swallowed by base "/".
+                "= /webcam-status" = {
+                  proxyPass = "http://127.0.0.1:${toString services.streamcam.port}/status";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_connect_timeout 3s;
+                    proxy_read_timeout 10s;
                   '';
                 };
                 # Centrifugo-backed SSE (now-playing live updates). Base "/" location has no
