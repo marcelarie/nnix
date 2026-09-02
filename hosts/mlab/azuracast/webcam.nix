@@ -15,23 +15,12 @@
       rtmp = false;
       webrtcAdditionalHosts = ["radio.marcel.cool"];
       webrtcAddress = "127.0.0.1:8889";
-      authInternalUsers = [
-        {
-          user = "any";
-          ips = ["127.0.0.1" "::1"];
-          permissions = [
-            {action = "publish";}
-            {action = "read";}
-          ];
-        }
-        {
-          user = "any";
-          ips = [];
-          permissions = [
-            {action = "read";}
-          ];
-        }
-      ];
+
+      # HTTP auth, not IP-based rules: the toggle in webcam-control.py needs to gate the actual
+      # stream, not just whether the public page's JS bothers to show it. Every read/publish
+      # attempt asks /authcheck; see webcam-control.py for the logic.
+      authMethod = "http";
+      authHTTPAddress = "http://127.0.0.1:${toString services.streamcam.port}/authcheck";
 
       paths.webcam = {
         # -c:v libx264 is required, not cosmetic: ffmpeg's RTSP default encoder is MPEG-4 Part 2,
@@ -59,6 +48,12 @@
     group = "webcam-control";
   };
   users.groups.webcam-control = {};
+
+  # mediamtx calls webcam-control-web for every read/publish auth check, so it must be up first.
+  systemd.services.mediamtx = {
+    after = ["webcam-control-web.service"];
+    wants = ["webcam-control-web.service"];
+  };
 
   systemd.services.webcam-control-web = {
     description = "Webcam preview + public-visibility toggle";

@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 import json
+import secrets
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs
 
 PORT = int(sys.argv[1])
 STATE_FILE = Path(sys.argv[2])
-WHEP_URL = "https://radio.marcel.cool/webcam/whep"
+TOKEN_FILE = STATE_FILE.parent / "preview-token"
+WHEP_PATH = "/webcam/whep"
 
 PAGE = """<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -49,14 +52,21 @@ def is_live() -> bool:
     return STATE_FILE.exists()
 
 
+def preview_token() -> str:
+    if not TOKEN_FILE.exists():
+        TOKEN_FILE.write_text(secrets.token_urlsafe(24))
+    return TOKEN_FILE.read_text().strip()
+
+
 class Handler(BaseHTTPRequestHandler):
     def render(self):
         live = is_live()
+        whep_url = f"https://radio.marcel.cool{WHEP_PATH}?preview={preview_token()}"
         html = PAGE.format(
             badge_class="live" if live else "offline",
             status="LIVE" if live else "hidden",
             action="Stop showing on public page" if live else "Show on public page",
-            whep_url=WHEP_URL,
+            whep_url=whep_url,
         )
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -81,8 +91,30 @@ class Handler(BaseHTTPRequestHandler):
                 STATE_FILE.unlink(missing_ok=True)
             else:
                 STATE_FILE.touch()
-        self.send_response(303)
-        self.send_header("Location", "/")
+            self.send_response(303)
+            self.send_header("Location", "/")
+            self.end_headers()
+            return
+
+        if self.path == "/authcheck":
+            length = int(self.headers.get("Content-Length", 0))
+            try:
+                req = json.loads(self.rfile.read(length) or b"{}")
+            except ValueError:
+                req = {}
+            action = req.get("action")
+            allowed = False
+            if action == "publish":
+                allowed = req.get("ip") in ("127.0.0.1", "::1")
+            elif action == "read":
+                query = parse_qs(req.get("query") or "")
+                given_token = (query.get("preview") or [None])[0]
+                allowed = is_live() or (given_token == preview_token())
+            self.send_response(200 if allowed else 401)
+            self.end_headers()
+            return
+
+        self.send_response(404)
         self.end_headers()
 
     def log_message(self, *args):

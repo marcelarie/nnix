@@ -256,6 +256,11 @@ in {
     enable = true;
     clientMaxBodySize = "0";
 
+    appendHttpConfig = ''
+      limit_req_zone $binary_remote_addr zone=webcam:10m rate=10r/m;
+      limit_conn_zone $binary_remote_addr zone=webcam_conn:10m;
+    '';
+
     virtualHosts =
       (builtins.removeAttrs serviceVirtualHosts ["auth" "jellyfin" "seafile" "azuracast"])
       // {
@@ -431,6 +436,8 @@ in {
                 "/webcam/" = {
                   proxyPass = "http://127.0.0.1:8889/webcam/";
                   extraConfig = ''
+                    limit_req zone=webcam burst=5 nodelay;
+                    limit_conn webcam_conn 10;
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
