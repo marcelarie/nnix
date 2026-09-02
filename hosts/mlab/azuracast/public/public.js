@@ -1864,6 +1864,79 @@
       preloaded[url] = new Image();
       preloaded[url].src = url;
     }
+    // AzuraCast's own player (Player.vue) only ever binds the art <img> to
+    // now_playing.song.art - np.live.art (the streamer's uploaded broadcast image, set in
+    // Station -> Streamers/DJs) is real data the API sends but the stock player never reads it.
+    // .now-playing-art is Vue's v-if on song.art, so during a live set with no song metadata
+    // that whole container doesn't exist - we build the same markup AlbumArt.vue would (div >
+    // a.album-art > img.album_art) so relocate()'s overlay/zoom and attachImgWatch's push
+    // transition pick it up exactly like a Vue-rendered one. If a real song.art node already
+    // exists (stale AutoDJ art), its <img> src is swapped instead of duplicating the container.
+    function applyLiveArt(live, songArt) {
+      var details = document.querySelector(".radio-player-widget .now-playing-details");
+      if (!details) return;
+      var isLive = !!(live && live.is_live && live.art);
+      var art = details.querySelector(".now-playing-art");
+      if (isLive) {
+        if (!art) {
+          art = document.createElement("div");
+          art.className = "now-playing-art";
+          art._azLiveSynthetic = true;
+          var mainCol = details.querySelector(".now-playing-main");
+          if (mainCol) details.insertBefore(art, mainCol);
+          else details.appendChild(art);
+          var link = document.createElement("a");
+          link.className = "album-art";
+          link.target = "_blank";
+          link.href = live.art;
+          var img = document.createElement("img");
+          img.className = "album_art";
+          img.alt = "";
+          img.src = live.art;
+          link.appendChild(img);
+          art.appendChild(link);
+        } else {
+          if (!art._azLiveSynthetic) art._azLiveOverridden = true; // was Vue's node - remember to restore it
+          var existingImg = art.querySelector("img");
+          var existingLink = art.querySelector("a.album-art");
+          if (existingImg && existingImg.src !== live.art) existingImg.src = live.art;
+          if (existingLink && existingLink.href !== live.art) existingLink.href = live.art;
+        }
+      } else if (art) {
+        if (art._azLiveSynthetic) {
+          art.remove();
+        } else if (art._azLiveOverridden) {
+          art._azLiveOverridden = false;
+          var restoreImg = art.querySelector("img");
+          var restoreLink = art.querySelector("a.album-art");
+          if (restoreImg && songArt) restoreImg.src = songArt;
+          if (restoreLink && songArt) restoreLink.href = songArt;
+        }
+      }
+    }
+    // Same gap as the art: now_playing.song.title/artist stay frozen on the last AutoDJ track
+    // for the whole live broadcast (AzuraCast never rewrites them), so the big title/artist text
+    // just sits on stale/finished-track info next to the "Live" badge. Swap it to the streamer's
+    // name while live; idempotent (always sets the value the current poll says is correct, live
+    // or not), so no create/restore bookkeeping needed like the art container.
+    function applyLiveText(live, song) {
+      var titleEl = document.querySelector(".radio-player-widget .now-playing-title");
+      var artistEl = document.querySelector(".radio-player-widget .now-playing-artist");
+      if (!titleEl) return;
+      if (live && live.is_live) {
+        var name = live.streamer_name || "Live Broadcast";
+        if (titleEl.textContent !== name) titleEl.textContent = name;
+        if (artistEl && artistEl.style.display !== "none") artistEl.style.display = "none";
+      } else {
+        var title = (song && song.title) || "";
+        var artist = (song && song.artist) || "";
+        if (titleEl.textContent !== title) titleEl.textContent = title;
+        if (artistEl) {
+          if (artistEl.style.display === "none") artistEl.style.display = "";
+          if (artistEl.textContent !== artist) artistEl.textContent = artist;
+        }
+      }
+    }
     function fetchSong() {
       fetch(apiUrl, { cache: "no-store" })
         .then(function (r) {
@@ -1873,6 +1946,8 @@
           if (data && data.playing_next && data.playing_next.song)
             preloadArt(data.playing_next.song.art);
           var song = data && data.now_playing && data.now_playing.song;
+          applyLiveArt(data && data.live, song && song.art);
+          applyLiveText(data && data.live, song);
           if (!song) return;
           lastSong = song;
           applyArtistLink();

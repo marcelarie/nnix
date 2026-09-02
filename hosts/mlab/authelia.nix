@@ -80,6 +80,11 @@
           # Every `protected` vhost in proxy.nix needs a rule here; without one
           # default_policy = "deny" returns 403 instead of the login page.
           {
+            domain = "home.marcel.cool";
+            policy = "two_factor";
+            subject = ["group:admins"];
+          }
+          {
             domain = "qbit.marcel.cool";
             policy = "two_factor";
             subject = ["group:admins"];

@@ -27,6 +27,9 @@
     # at runtime - never written into the nix store.
     # Input uses plughw, not hw: the Scarlett 2i2 doesn't support 16-bit natively over
     # raw hw, so ALSA's plugin layer has to do the conversion.
+    # mountPoint is intentionally blank: darkice's IceCast2 client always sends
+    # "SOURCE /" + mountPoint, so a mountPoint of "/" would send "SOURCE //" -
+    # a mismatch against AzuraCast's DJ mount point, which is "/" (backend_config.dj_mount_point).
     script = ''
       DJ_PASSWORD=$(cat ${config.sops.secrets.azuracast_dj_password.path})
       cat > /run/azuracast-live-capture/darkice.cfg <<EOF
@@ -48,7 +51,7 @@
       server = 127.0.0.1
       port = 8005
       password = $DJ_PASSWORD
-      mountPoint = /
+      mountPoint =
       name = Live DJ
       public = no
       EOF
