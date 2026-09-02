@@ -119,6 +119,11 @@
             policy = "two_factor";
             subject = ["group:admins"];
           }
+          {
+            domain = "livedj.marcel.cool";
+            policy = "two_factor";
+            subject = ["group:admins"];
+          }
         ];
       };
 

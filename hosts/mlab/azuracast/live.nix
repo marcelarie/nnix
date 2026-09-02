@@ -25,6 +25,8 @@
     # darkice's config is a plain file (no CLI password flag), so it's generated at
     # start into RuntimeDirectory (tmpfs, root-only) with the password read from sops
     # at runtime - never written into the nix store.
+    # Input uses plughw, not hw: the Scarlett 2i2 doesn't support 16-bit natively over
+    # raw hw, so ALSA's plugin layer has to do the conversion.
     script = ''
       DJ_PASSWORD=$(cat ${config.sops.secrets.azuracast_dj_password.path})
       cat > /run/azuracast-live-capture/darkice.cfg <<EOF
@@ -34,7 +36,7 @@
       reconnect = yes
 
       [input]
-      device = hw:CARD=USB
+      device = plughw:CARD=USB
       sampleRate = 44100
       bitsPerSample = 16
       channel = 2

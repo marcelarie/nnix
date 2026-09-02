@@ -140,6 +140,13 @@
               description = "AzuraCast Admin";
             };
           }
+          {
+            "Live DJ" = {
+              icon = "mdi-microphone";
+              href = services.livedj.href;
+              description = "Start/stop the live mixer stream";
+            };
+          }
         ];
       }
       {
