@@ -60,6 +60,9 @@
 
       session = {
         name = "authelia_session";
+        expiration = "1M";
+        inactivity = "1w";
+        remember_me_duration = "1M";
         cookies = [
           {
             domain = "marcel.cool";
