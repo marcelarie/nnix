@@ -54,6 +54,11 @@
       port = 8686;
       href = "https://lidarr.marcel.cool";
     };
+    livedj = {
+      port = 8290;
+      href = "https://livedj.marcel.cool";
+      protected = true;
+    };
     miniflux = {
       port = 8085;
       href = "https://rss.marcel.cool";

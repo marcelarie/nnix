@@ -9,7 +9,7 @@
   # allowedTCPPorts, and this port must stay loopback-only.
   listenTimePort = 8320;
 in {
-  imports = [./radio-bot];
+  imports = [./radio-bot ./live.nix];
 
   systemd.tmpfiles.rules = [
     "d /var/lib/azuracast 0755 1000 1000 -"
@@ -35,7 +35,9 @@ in {
       "/var/lib/azuracast/storage:/var/azuracast/storage"
       "/var/lib/media/music:/var/azuracast/media/music"
     ];
-    ports = ["${toString services.azuracast.port}:80"];
+    # 8005 = liquidsoap's DJ/streamer harbor (station backend_config.dj_port), loopback-only:
+    # only the local azuracast-live-capture service (live.nix) connects to it.
+    ports = ["${toString services.azuracast.port}:80" "127.0.0.1:8005:8005"];
     extraOptions = [
       "--group-add=986"
     ];
