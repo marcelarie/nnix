@@ -4,24 +4,20 @@
   services,
   ...
 }: {
-  sops.secrets."qbit_password_hash" = {};
-  sops.secrets."qbit_password_salt" = {};
+  # The live config is /var/lib/qBittorrent/qBittorrent/config/qBittorrent.conf
+  # (the service runs with --profile=/var/lib/qBittorrent). qBittorrent rewrites
+  # the whole file on exit, so it can't be nix-managed wholesale - but the WebUI
+  # password IS declarative: preStart injects the sops salt+hash into the conf
+  # while the service is down. Other settings: edit in the WebUI, they persist.
+  # Rotate: ~/scripts/qbit-pass.sh 'newpass' -> paste into secrets/mlab.yaml -> make mlab
 
-  sops.templates."qBittorrent.conf" = {
-    content = ''
-      [Preferences]
-      WebUI\Username=${config.sops.placeholder.web_user}
-      WebUI\Port=${toString services.qbit.port}
-      WebUI\LocalHostAuthentication=false
-      WebUI\AuthSubnetWhitelist=127.0.0.1/32,192.168.1.0/24
-      Connection\AddressFamily=Both
-      Connection\Interface=enp1s0
-      Downloads\SavePath=/var/lib/media/downloads/
-      Session\DefaultSavePath=/var/lib/media/downloads/
-      Session\TempPath=/var/lib/media/downloads/incomplete/
-    '';
+  sops.secrets."qbit_password_salt" = {
     owner = "qbittorrent";
-    group = "media";
+    restartUnits = ["qbittorrent.service"];
+  };
+  sops.secrets."qbit_password_hash" = {
+    owner = "qbittorrent";
+    restartUnits = ["qbittorrent.service"];
   };
 
   systemd.tmpfiles.rules = [
@@ -31,24 +27,31 @@
 
   services.qbittorrent = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
     webuiPort = services.qbit.port;
   };
 
   users.users.qbittorrent.extraGroups = ["media"];
 
   systemd.services.qbittorrent = {
-    preStart = ''
-      # The directory structure is guaranteed by systemd.tmpfiles.rules
-      cp -f ${
-        config.sops.templates."qBittorrent.conf".path
-      } /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
-      # Ensure correct permissions for the copied config
-      chmod 600 /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
-    '';
     serviceConfig = {
       ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
+    preStart = ''
+      conf=/var/lib/qBittorrent/qBittorrent/config/qBittorrent.conf
+      # runs as the qbittorrent user, which owns the conf; '.' matches the backslash
+      if [ -f "$conf" ] && grep -q "^WebUI.Password_PBKDF2=" "$conf"; then
+        sed -i "s|^\(WebUI.Password_PBKDF2=\).*|\1\"@ByteArray($(cat ${config.sops.secrets."qbit_password_salt".path}):$(cat ${config.sops.secrets."qbit_password_hash".path}))\"|" "$conf"
+      else
+        echo "qbittorrent preStart: $conf or its Password_PBKDF2 line missing; start once to create it" >&2
+      fi
+      # trust the local nginx proxy so bans/real IPs work; without this qbit bans
+      # 127.0.0.1 after failed logins = whole world locked out for BanDuration
+      grep -q "^WebUI.ReverseProxySupportEnabled=" "$conf" || \
+        sed -i "/^\[Preferences\]/a WebUI\\\\ReverseProxySupportEnabled=true" "$conf"
+      grep -q "^WebUI.TrustedReverseProxiesList=" "$conf" || \
+        sed -i "/^\[Preferences\]/a WebUI\\\\TrustedReverseProxiesList=127.0.0.1" "$conf"
+    '';
   };
 }

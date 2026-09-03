@@ -126,6 +126,27 @@
               description = "E-Book Library";
             };
           }
+          {
+            Radio = {
+              icon = "azuracast";
+              href = services.azuracast.href;
+              description = "Radio Marcel";
+            };
+          }
+          {
+            Studio = {
+              icon = "azuracast";
+              href = "https://studio.marcel.cool";
+              description = "AzuraCast Admin";
+            };
+          }
+          {
+            "Live DJ" = {
+              icon = "mdi-microphone";
+              href = services.livedj.href;
+              description = "Start/stop the live mixer stream";
+            };
+          }
         ];
       }
       {
@@ -209,6 +230,13 @@
               icon = "music";
               href = services.soulbeet.href;
               description = "Music Tagging";
+            };
+          }
+          {
+            Shoko = {
+              icon = "shoko";
+              href = services.shoko.href;
+              description = "Anime Metadata";
             };
           }
         ];
@@ -332,6 +360,41 @@
                 url = "http://127.0.0.1:${toString services.miniflux.port}";
                 key = "{{HOMEPAGE_VAR_MINIFLUX_API}}";
               };
+            };
+          }
+          {
+            Vaultwarden = {
+              icon = "vaultwarden";
+              href = services.vaultwarden.href;
+              description = "Password Manager";
+            };
+          }
+          {
+            Nitter = {
+              icon = "nitter";
+              href = services.nitter.href;
+              description = "Twitter Frontend";
+            };
+          }
+          {
+            SearXNG = {
+              icon = "searxng";
+              href = services.searxng.href;
+              description = "Metasearch Engine";
+            };
+          }
+          {
+            Attic = {
+              icon = "nixos";
+              href = services.attic.href;
+              description = "Nix Binary Cache";
+            };
+          }
+          {
+            Authelia = {
+              icon = "authelia";
+              href = services.auth.href;
+              description = "SSO & 2FA";
             };
           }
         ];

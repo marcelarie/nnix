@@ -3,7 +3,7 @@
 
   services.jellyfin = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
   };
   systemd.services.jellyfin.serviceConfig = {
     CPUQuota = "800%";

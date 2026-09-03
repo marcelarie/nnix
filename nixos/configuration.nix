@@ -64,6 +64,7 @@
     connect-timeout = 15;
     http-connections = 0;
     keep-derivations = true;
+    keep-going = true;
     keep-outputs = true;
     max-jobs = "auto";
     max-substitution-jobs = 128;
@@ -74,11 +75,13 @@
 
     substituters = [
       "https://cache.marcel.cool/system"
+      "https://psysonic.cachix.org"
       "https://cache.nixos.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "system:Ve/kZ+DnW135w7Z44yIxH0kOgIXoK6akWv282O2xmWM="
+      "psysonic.cachix.org-1:M9cQyQ7tgvUWOQ5Pyt8ozlMoPLtOZir6MfRuTH9/VYA="
     ];
   };
 
@@ -168,6 +171,8 @@
     nameservers = ["1.1.1.1" "8.8.8.8"];
     networkmanager = {
       enable = true;
+      wifi.macAddress = "random";
+      ethernet.macAddress = "random";
       plugins = with pkgs; [networkmanager-openvpn];
       insertNameservers = ["1.1.1.1" "8.8.8.8"];
     };

@@ -10,7 +10,7 @@
   services.radarr = {
     enable = true;
     group = "media";
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
   };
 
   users.users.radarr = {

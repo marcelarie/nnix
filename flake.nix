@@ -17,6 +17,7 @@
     #   inputs.crane.follows = "crane";
     # };
     nvim.url = "github:marcelmanz/nvim-lua";
+    psysonic.url = "github:Psysonic/psysonic?ref=release";
     cliflux.url = "git+https://codeberg.org/marcelmanz/cliflux?ref=personal";
     brave-origin-channels = {
       url = "git+https://codeberg.org/marcelmanz/brave-origin-channels";
@@ -99,6 +100,7 @@
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (import ./overlays/mautrix-whatsapp.nix)
         (import ./overlays/hyprland-glaze-fix.nix)
+        (import ./overlays/font-manager-vala-fix.nix)
         (import ./overlays/myna-font.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         pir.overlays.default
@@ -107,14 +109,21 @@
         (import ./overlays/rust.nix {inherit pkgs crane;})
         (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
         (final: prev: {discogs2xlsx = import ./packages/discogs2xlsx/package.nix {inherit pkgs;};})
+        (final: prev: {"nitter-session" = import ./packages/nitter-session/package.nix {inherit pkgs;};})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
         (final: prev: {cliflux = inputs.cliflux.packages.${system}.default;})
         (final: prev: {
           protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
         })
         (final: prev: {"brave-origin" = inputs.brave-origin-channels.packages.${system}.nightly;})
+        (final: prev: {psysonic = inputs.psysonic.packages.${system}.psysonic;})
+        (final: prev: {
+          offtiktok = pkgs.callPackage ./packages/offtiktok/frontend.nix {};
+          offtiktokapi = pkgs.callPackage ./packages/offtiktok/backend.nix {};
+        })
       ];
     };
+    pkgs_rust = pkgs;
     pkgsAndroid = import nixpkgs2405 {
       system = androidSystem;
       config.allowUnfree = true;
@@ -130,9 +139,12 @@
       rff = pkgs.rff;
       "pulseaudio-next-output" = pkgs."pulseaudio-next-output";
       "git-commit-search" = pkgs."git-commit-search";
+      "nitter-session" = pkgs."nitter-session";
       mautrix-whatsapp = pkgs.mautrix-whatsapp;
       # Commented out due to cycles
       # Commented out due to cycles
+      ruff = pkgs.ruff;
+      oxfmt = pkgs.oxfmt;
     };
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [

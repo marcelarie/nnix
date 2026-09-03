@@ -40,6 +40,7 @@
     home = {
       port = 8082;
       href = "https://home.marcel.cool";
+      protected = true;
     };
     immich = {
       port = 2283;
@@ -53,6 +54,16 @@
       port = 8686;
       href = "https://lidarr.marcel.cool";
     };
+    livedj = {
+      port = 8290;
+      href = "https://livedj.marcel.cool";
+      protected = true;
+    };
+    streamcam = {
+      port = 8291;
+      href = "https://streamcam.marcel.cool";
+      protected = true;
+    };
     miniflux = {
       port = 8085;
       href = "https://rss.marcel.cool";
@@ -60,6 +71,19 @@
     navidrome = {
       port = 4533;
       href = "https://music.marcel.cool";
+    };
+    nitter = {
+      port = 8087;
+      href = "https://nitter.marcel.cool";
+      protected = true;
+    };
+    offtiktok = {
+      port = 3010;
+      href = "https://offtiktok.marcel.cool";
+    };
+    offtiktokapi = {
+      port = 2000;
+      href = "https://api.offtiktok.marcel.cool";
     };
     openwebui = {
       port = 3000;
@@ -72,6 +96,8 @@
     qbit = {
       port = 8081;
       href = "https://qbit.marcel.cool";
+      # Arr stack talks to qbit on localhost, so this only gates browser access.
+      protected = true;
     };
     radarr = {
       port = 7878;
@@ -332,10 +358,12 @@ in {
             # AzuraCast sends `Permissions-Policy: autoplay=*, fullscreen=*, interest-cohort=()`.
             # interest-cohort is the dead FLoC token; Brave logs it as an unrecognized
             # directive. Drop the upstream header and re-issue a clean one without it.
-            extraConfig = base.extraConfig + ''
-              proxy_hide_header Permissions-Policy;
-              add_header Permissions-Policy "autoplay=*, fullscreen=*" always;
-            '';
+            extraConfig =
+              base.extraConfig
+              + ''
+                proxy_hide_header Permissions-Policy;
+                add_header Permissions-Policy "autoplay=*, fullscreen=*" always;
+              '';
             locations =
               base.locations
               // {
@@ -354,6 +382,21 @@ in {
                 };
                 "= /stream" = {
                   proxyPass = "http://127.0.0.1:${toString services.azuracast.port}/listen/radio_marcel/radio.mp3";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_request_buffering off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
+                # lossless twin of /stream; 404s until the FLAC mount /radio.flac exists
+                # (inserted declaratively by azuracast/default.nix, like the HLS rows).
+                "= /lossless-stream" = {
+                  proxyPass = "http://127.0.0.1:${toString services.azuracast.port}/listen/radio_marcel/radio.flac";
                   extraConfig = ''
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;
@@ -385,13 +428,33 @@ in {
                     proxy_send_timeout 1h;
                   '';
                 };
+                "/webcam/" = {
+                  proxyPass = "http://127.0.0.1:8889/webcam/";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                  '';
+                };
+                # Public, unauthenticated: whether the admin has toggled the webcam visible on
+                # this page (streamcam.marcel.cool, Authelia-gated - see webcam-control.py).
+                # Exact match so it isn't swallowed by base "/".
+                "= /webcam-status" = {
+                  proxyPass = "http://127.0.0.1:${toString services.streamcam.port}/status";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_connect_timeout 3s;
+                    proxy_read_timeout 10s;
+                  '';
+                };
                 # Centrifugo-backed SSE (now-playing live updates). Base "/" location has no
                 # proxy_buffering off, so nginx buffers the event stream instead of flushing it
                 # -> updates arrive up to ~15s late / look dead. SSE needs the same no-buffering
                 # treatment as /stream.
                 "/live/" = {
                   proxyPass = "http://127.0.0.1:${toString services.azuracast.port}";
-                  proxyWebsockets = true;   # Centrifugo can fall back to a websocket transport under this prefix
+                  proxyWebsockets = true; # Centrifugo can fall back to a websocket transport under this prefix
                   extraConfig = ''
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;
@@ -401,6 +464,30 @@ in {
                     proxy_cache off;
                     proxy_read_timeout 1h;
                     proxy_send_timeout 1h;
+                  '';
+                };
+                # Declarative default background for the public page (azuracast/public/)
+                # - served directly by nginx from the repo-tracked file below, not AzuraCast's
+                # own asset uploader (that names files with an opaque hash under
+                # /static/uploads/, so it isn't reproducible/declarative across fresh installs).
+                "= /party-bg.jpg" = {
+                  alias = "${./azuracast/public/background.jpg}";
+                  extraConfig = ''
+                    add_header Cache-Control "public, max-age=31536000, immutable";
+                  '';
+                };
+                # Per-IP listen-time counter for the public page. Proxied to the
+                # azuracast-listen-time service (azuracast.nix) on loopback; exact match so the
+                # base "/" location above doesn't swallow it. Port must match listenTimePort there.
+                "= /listen-time" = {
+                  proxyPass = "http://127.0.0.1:8320";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_connect_timeout 3s;
+                    proxy_read_timeout 10s;
                   '';
                 };
               };

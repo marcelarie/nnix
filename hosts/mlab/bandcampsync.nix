@@ -27,6 +27,12 @@ in {
       chmod 400 /run/bandcamp_cookies_filtered.txt
       # fetch real bandcamp album URLs (id -> item_url) from collection metadata
       pipx run --spec bandcampsync python3 ${reportPy} fetch-urls
+      # bandcampsync's collection checkpoint always advances to the newest item, and
+      # the checkpoint item itself is excluded from processing. So an unreleased
+      # preorder that gets skipped is never revisited once it releases. Clear the
+      # state each run to force a full re-scan; the bandcamp_item_id.txt index already
+      # prevents re-downloading synced albums, so the re-scan is cheap.
+      rm -f /var/lib/media/music/.bandcampsync-state.json /var/lib/media/dj/.bandcampsync-state.json
       pipx run bandcampsync -c /run/bandcamp_cookies_filtered.txt -d /var/lib/media/music -f flac --skip-hidden
       pipx run bandcampsync -c /run/bandcamp_cookies_filtered.txt -d /var/lib/media/dj -f aiff-lossless --skip-hidden
       rm /run/bandcamp_cookies_filtered.txt

@@ -23,6 +23,7 @@ in {
     gimagereader
     tesseract
     grayjay
+    psysonic
     simplex-chat-desktop
     strawberry
 
@@ -83,6 +84,8 @@ in {
     wl-clipboard
     wlr-layout-ui
     wofi-emoji
+    anki
+    gelly
     ydotool
     zathura
     penguin-subtitle-player

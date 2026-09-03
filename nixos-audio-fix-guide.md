@@ -13,7 +13,7 @@ This guide explains how to fix audio stuttering, xruns, and automatic Bluetooth 
 ## Root Causes Found
 
 1. **musnix enabled** - Causes conflicts with desktop audio usage
-2. **Small buffer sizes** - 128 samples too small for stable desktop use  
+2. **Small buffer sizes** - 128 samples too small for stable desktop use
 3. **combine-stream module** - Creates conflicts during device switching
 4. **Missing Bluetooth auto-switching** - No priority configuration for BT devices
 
@@ -26,7 +26,7 @@ Add this to your `configuration.nix`:
   # Disable PulseAudio in favor of PipeWire
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
-  
+
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -34,7 +34,7 @@ Add this to your `configuration.nix`:
     pulse.enable = true;
     jack.enable = true;
     wireplumber.enable = true;
-    
+
     # Custom PipeWire configuration for stability
     extraConfig.pipewire = {
       "99-custom-config" = {
@@ -44,17 +44,17 @@ Add this to your `configuration.nix`:
           "default.clock.quantum" = 1024;
           "default.clock.min-quantum" = 32;
           "default.clock.max-quantum" = 2048;
-          
+
           # CPU optimization
           "default.clock.power-of-two-quantum" = true;
-          
+
           # Memory settings
           "mem.warn-mlock" = false;
           "mem.allow-mlock" = true;
         };
       };
     };
-    
+
     # Better JACK buffer size for desktop use
     extraConfig.jack = {
       "99-buffer-size" = {
@@ -63,7 +63,7 @@ Add this to your `configuration.nix`:
         };
       };
     };
-    
+
     # PulseAudio compatibility layer config
     extraConfig.pipewire-pulse = {
       "99-pulse-config" = {
@@ -72,7 +72,7 @@ Add this to your `configuration.nix`:
           "pulse.default.req" = "2048/48000";
           "pulse.max.req" = "4096/48000";
           "pulse.min.frag" = "1024/48000";
-          "pulse.default.frag" = "2048/48000"; 
+          "pulse.default.frag" = "2048/48000";
           "pulse.max.frag" = "4096/48000";
           "pulse.default.tlength" = "4096/48000";
           "pulse.min.quantum" = "1024/48000";
@@ -88,7 +88,7 @@ Add this to your `configuration.nix`:
 
   # IMPORTANT: Disable musnix if you have it enabled
   # musnix.enable = false;  # Comment this out or set to false
-  
+
   # Audio performance limits
   security.pam.loginLimits = [
     { domain = "@audio"; item = "rtprio"; type = "-"; value = "95"; }
@@ -96,7 +96,7 @@ Add this to your `configuration.nix`:
     { domain = "mmanzanares"; item = "rtprio"; type = "-"; value = "95"; }
     { domain = "mmanzanares"; item = "memlock"; type = "-"; value = "unlimited"; }
   ];
-  
+
   # Bluetooth configuration
   hardware.bluetooth = {
     enable = true;
@@ -143,7 +143,7 @@ alsa_monitor.rules = {
       ["session.suspend-timeout-seconds"] = 5,
     },
   },
-  
+
   {
     matches = {
       { { "device.name", "matches", "*skl_hda_dsp*" } },
@@ -213,15 +213,15 @@ If using home-manager, add these configurations:
     ".config/wireplumber/wireplumber.conf.d/99-alsa-config.conf".text = ''
       # (content from above)
     '';
-    
+
     ".config/wireplumber/wireplumber.conf.d/99-bluetooth-auto-switch.conf".text = ''
-      # (content from above)  
+      # (content from above)
     '';
-    
+
     ".config/wireplumber/wireplumber.conf.d/99-disable-combine-stream.conf".text = ''
       # (content from above)
     '';
-    
+
     ".config/pipewire/pipewire.conf.d/99-custom-config.conf".text = ''
       context.properties = {
         default.clock.rate = 48000
@@ -250,7 +250,7 @@ environment.systemPackages = with pkgs; [
             pactl set-default-sink alsa_output.pci-0000_00_1f.3-platform-skl_hda_dsp_generic.HiFi__HDMI1__sink
             echo "Switched to HDMI output"
             ;;
-        "headphones") 
+        "headphones")
             pactl set-default-sink alsa_output.pci-0000_00_1f.3-platform-skl_hda_dsp_generic.HiFi__Headphones__sink
             echo "Switched to headphones output"
             ;;
@@ -285,7 +285,7 @@ environment.systemPackages = with pkgs; [
             pactl info | grep "Default Sink"
             ;;
     esac
-    
+
     # Move streams to new sink
     if [[ "$1" =~ ^(hdmi|headphones|bluetooth|auto)$ ]]; then
         pactl list short sink-inputs | while read stream; do
@@ -307,7 +307,7 @@ environment.systemPackages = with pkgs; [
       After = [ "pipewire.service" "bluetooth.service" ];
       Wants = [ "bluetooth.service" ];
     };
-    
+
     Service = {
       Type = "simple";
       ExecStart = "${pkgs.writeShellScript "bluetooth-monitor" ''
@@ -316,7 +316,7 @@ environment.systemPackages = with pkgs; [
       Restart = "always";
       RestartSec = 3;
     };
-    
+
     Install.WantedBy = [ "default.target" ];
   };
 }
@@ -325,7 +325,7 @@ environment.systemPackages = with pkgs; [
 ## Key Differences from Ubuntu Setup
 
 1. **System-level configs** go in `configuration.nix` instead of `/etc/`
-2. **User configs** can be managed through home-manager `home.file`  
+2. **User configs** can be managed through home-manager `home.file`
 3. **Scripts** can be added as `writeShellScriptBin` packages
 4. **Services** use `systemd.user.services` in home-manager
 5. **Security limits** use `security.pam.loginLimits` instead of `/etc/security/limits.d/`
@@ -335,7 +335,7 @@ environment.systemPackages = with pkgs; [
 After applying these changes:
 
 1. `sudo nixos-rebuild switch` (for system config)
-2. `home-manager switch` (for user config)  
+2. `home-manager switch` (for user config)
 3. `systemctl --user restart pipewire pipewire-pulse wireplumber`
 4. Test with `audio-switch list` and connect Bluetooth devices
 

@@ -11,7 +11,7 @@
   services.audiobookshelf = {
     enable = true;
     port = services.audiobooks.port;
-    openFirewall = true;
+    openFirewall = false; # nginx fronts this
   };
 
   users.users.audiobookshelf = {
