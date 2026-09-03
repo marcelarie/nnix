@@ -43,6 +43,16 @@
       IdentityFile /etc/nix/keys/mlab_key
       IdentitiesOnly yes
       AddressFamily inet
+      Compression yes
+      CompressionLevel 6
+      ServerAliveInterval 15
+      ServerAliveCountMax 2
+      TCPKeepAlive yes
+      ConnectTimeout 5
+      ExitOnForwardFailure yes
+      Ciphers aes128-gcm@openssh.com
+      IPQoS=throughput
+      # Toggle Compression: ssh -o Compression=no mlab
   '';
 
   nix.package = pkgs.lixPackageSets.stable.lix;
@@ -173,6 +183,11 @@
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
       PermitRootLogin = "no";
+
+      # SSH latency optimizations
+      ClientAliveInterval = 15;
+      ClientAliveCountMax = 2;
+      TCPKeepAlive = "yes";
     };
   };
 
