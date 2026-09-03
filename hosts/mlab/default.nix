@@ -328,6 +328,11 @@
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
       AllowAgentForwarding = true;
+
+      # SSH latency optimizations
+      ClientAliveInterval = 15;
+      ClientAliveCountMax = 2;
+      TCPKeepAlive = "yes";
     };
     extraConfig = ''
       Subsystem sftp internal-sftp -l INFO
