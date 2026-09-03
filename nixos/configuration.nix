@@ -37,8 +37,7 @@
   ];
 
   programs.ssh.extraConfig = ''
-    Host mlab
-      HostName ssh.marcel.cool
+    Host mlab ssh.marcel.cool
       User root
       IdentityFile /etc/nix/keys/mlab_key
       IdentitiesOnly yes
@@ -387,8 +386,10 @@
     age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
+      # owned by the interactive user so plain `ssh mlab` can read it;
+      # root (nix builder) reads it regardless of owner
       "mlab_builder_key" = {
-        owner = "root";
+        owner = username;
         group = "root";
         mode = "0600";
         path = "/etc/nix/keys/mlab_key";
