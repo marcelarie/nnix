@@ -46,6 +46,9 @@
       ServerAliveInterval 15
       ServerAliveCountMax 2
       TCPKeepAlive yes
+      ControlMaster auto
+      ControlPath /tmp/ssh-%r@%h:%p
+      ControlPersist 10m
       ConnectTimeout 5
       ExitOnForwardFailure yes
       Ciphers aes128-gcm@openssh.com
