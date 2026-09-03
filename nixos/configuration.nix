@@ -44,7 +44,6 @@
       IdentitiesOnly yes
       AddressFamily inet
       Compression yes
-      CompressionLevel 6
       ServerAliveInterval 15
       ServerAliveCountMax 2
       TCPKeepAlive yes
