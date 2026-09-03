@@ -54,7 +54,7 @@
 
   time.timeZone = "Europe/Madrid";
 
-  # programs.mosh.enable = true;
+  programs.mosh.enable = true;
 
   sops = {
     defaultSopsFile = ../../secrets/mlab.yaml;
