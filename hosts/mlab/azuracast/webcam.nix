@@ -27,13 +27,18 @@
         # which isn't in WebRTC's codec list (H264/H265/VP8/VP9/AV1). ultrafast/zerolatency keep
         # the encoder fast enough for real-time capture.
 
+        # -g/-keyint_min force a keyframe every 30 frames (~1s): this is a plain RTSP push, not
+        # a live WebRTC publish, so mediamtx has no PLI path back to ffmpeg to request a keyframe
+        # for a newly joining viewer - without a short GOP they wait for libx264's default
+        # (~250 frames, i.e. up to several seconds of black screen depending on join timing).
+
         # The -vf value is read fresh from effect file on every (re)start; webcam-control.py
         # writes the chosen filter there and restarts mediamtx to apply it.
         # Must be a script file, not an inline shell one-liner: mediamtx fork/execs runOnInit
         # directly (no shell), so "filter=$(...)" isn't parsed - it's treated as the program name.
         runOnInit = pkgs.writeShellScript "webcam-publish" ''
           filter="$(cat /var/lib/webcam-control/effect 2>/dev/null)"
-          exec ${lib.getExe pkgs.ffmpeg} -f v4l2 -i /dev/video0 -an -vf "''${filter:-null}" -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p -f rtsp rtsp://localhost:$RTSP_PORT/$RTSP_PATH
+          exec ${lib.getExe pkgs.ffmpeg} -f v4l2 -i /dev/video0 -an -vf "''${filter:-null}" -c:v libx264 -preset ultrafast -tune zerolatency -g 30 -keyint_min 30 -pix_fmt yuv420p -f rtsp rtsp://localhost:$RTSP_PORT/$RTSP_PATH
         '';
         runOnInitRestart = true;
       };
