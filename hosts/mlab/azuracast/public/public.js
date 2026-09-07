@@ -1994,7 +1994,7 @@
         encodeURIComponent(
           '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225">' +
             '<rect width="100%" height="100%" fill="#000"/>' +
-            '<text x="50%" y="50%" fill="#0ce5ff" font-family="monospace" font-size="16" text-anchor="middle" dominant-baseline="middle">Connecting to webcam…</text>' +
+            '<text x="50%" y="50%" fill="#0ce5ff" font-family="monospace" font-size="16" text-anchor="middle" dominant-baseline="middle">Connecting to live stream…</text>' +
             "</svg>"
         );
       videoEl.addEventListener("click", function () {
