@@ -24,6 +24,7 @@
     bazarr = {
       port = 6767;
       href = "https://bazarr.marcel.cool";
+      vpn = true;
     };
     calibre = {
       port = 8083;
@@ -32,6 +33,7 @@
     chaptarr = {
       port = 8789;
       href = "https://chaptarr.marcel.cool";
+      vpn = true;
     };
     grafana = {
       port = 3005;
@@ -53,6 +55,7 @@
     lidarr = {
       port = 8686;
       href = "https://lidarr.marcel.cool";
+      vpn = true;
     };
     livedj = {
       port = 8290;
@@ -92,16 +95,19 @@
     prowlarr = {
       port = 9696;
       href = "https://prowlarr.marcel.cool";
+      vpn = true;
     };
     qbit = {
       port = 8081;
       href = "https://qbit.marcel.cool";
       # Arr stack talks to qbit on localhost, so this only gates browser access.
       protected = true;
+      vpn = true;
     };
     radarr = {
       port = 7878;
       href = "https://radarr.marcel.cool";
+      vpn = true;
     };
     pinchflat = {
       port = 8945;
@@ -115,6 +121,7 @@
     sabnzbd = {
       port = 8080;
       href = "https://sabnzbd.marcel.cool";
+      vpn = true;
     };
     seafile = {
       port = 8008;
@@ -139,6 +146,7 @@
     sonarr = {
       port = 8989;
       href = "https://sonarr.marcel.cool";
+      vpn = true;
     };
     syncthing = {
       port = 8384;
@@ -166,6 +174,7 @@
       port = 9800;
       href = "https://yt.marcel.cool";
       protected = true;
+      vpn = true;
     };
     vaultwarden = {
       port = 8222;
@@ -173,13 +182,20 @@
     };
   };
 
+  # Must match vpnNamespaces.mullvad.namespaceAddress in vpn.nix (module default).
+  mullvadAddress = "192.168.15.1";
+
   mkProxyHost = name: service: {
     serverName = lib.removePrefix "https://" service.href;
     forceSSL = true;
     useACMEHost = "marcel.cool";
 
     locations."/" = {
-      proxyPass = "http://127.0.0.1:${toString service.port}";
+      proxyPass = "http://${
+        if service.vpn or false
+        then mullvadAddress
+        else "127.0.0.1"
+      }:${toString service.port}";
       proxyWebsockets = true;
       extraConfig = ''
         # Tell the app what the original URL and IP were
@@ -560,6 +576,13 @@ in {
           };
         };
       };
+  };
+
+  # nginx proxies some vhosts into the mullvad netns (vpn.nix) - wait for it so
+  # those don't 502 during the first seconds after boot.
+  systemd.services.nginx = {
+    after = ["mullvad.service"];
+    wants = ["mullvad.service"];
   };
 
   # /var/www/pages is the docroot for the catch-all *.marcel.cool vhost above.

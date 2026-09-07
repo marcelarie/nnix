@@ -50,6 +50,7 @@
     ./syncthing.nix
     ./uptime-kuma.nix
     ./vaultwarden.nix
+    ./vpn.nix
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -235,10 +236,9 @@
         53 # DNS (dnsmasq), LAN only - see local-service below
         80 # nginx catch-all / http to https redirects
         443 # Nginx HTTPS
-        23951 # qBittorrent torrent port
         50300 # Soulseek peer port
       ];
-      allowedUDPPorts = [53 23951];
+      allowedUDPPorts = [53];
       allowedUDPPortRanges = [
         {
           from = 60000;

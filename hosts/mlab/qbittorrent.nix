@@ -46,12 +46,17 @@
       else
         echo "qbittorrent preStart: $conf or its Password_PBKDF2 line missing; start once to create it" >&2
       fi
-      # trust the local nginx proxy so bans/real IPs work; without this qbit bans
-      # 127.0.0.1 after failed logins = whole world locked out for BanDuration
+      # trust the nginx proxy so bans/real IPs work; without this qbit bans the
+      # proxy's source IP after failed logins = whole world locked out for
+      # BanDuration. qbit is vpn-confined (vpn.nix), so nginx reaches it via
+      # the netns bridge address, not loopback - trust that address instead.
       grep -q "^WebUI.ReverseProxySupportEnabled=" "$conf" || \
         sed -i "/^\[Preferences\]/a WebUI\\\\ReverseProxySupportEnabled=true" "$conf"
-      grep -q "^WebUI.TrustedReverseProxiesList=" "$conf" || \
-        sed -i "/^\[Preferences\]/a WebUI\\\\TrustedReverseProxiesList=127.0.0.1" "$conf"
+      if grep -q "^WebUI.TrustedReverseProxiesList=" "$conf"; then
+        sed -i "s|^\(WebUI.TrustedReverseProxiesList=\).*|\1${config.vpnNamespaces.mullvad.bridgeAddress}|" "$conf"
+      else
+        sed -i "/^\[Preferences\]/a WebUI\\\\TrustedReverseProxiesList=${config.vpnNamespaces.mullvad.bridgeAddress}" "$conf"
+      fi
     '';
   };
 }
