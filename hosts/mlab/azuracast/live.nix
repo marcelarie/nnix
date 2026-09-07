@@ -6,12 +6,41 @@
 }: {
   sops.secrets."azuracast_dj_password" = {};
 
-  # Captures the Scarlett 2i2 and pushes it into AzuraCast's DJ harbor (127.0.0.1:8005,
-  # published from the container in ./default.nix). Not started at boot: an idle mixer would
-  # push dead air over the auto-DJ. Toggle via https://livedj.marcel.cool or systemctl.
+  # snd-aloop: a virtual sound card whose device 0 and device 1 are cross-wired - whatever's
+  # played into device 0's playback appears on device 1's capture. Used below to hand darkice a
+  # single "device" that's actually the mix of the Scarlett 2i2 + the USB mic, without touching
+  # darkice's (already-secure) Icecast leg at all.
+  boot.kernelModules = ["snd-aloop"];
+
+  # Mixes the Scarlett 2i2 (card USB) and the Amazon USB mic (card Mic) and plays the result into
+  # the loopback card's device 0 - azuracast-live-capture below reads it back from device 1.
+  # aresample=async=1 on each leg: the two USB interfaces free-run on independent clocks, so
+  # without it they'd slowly drift apart; this lets ffmpeg stretch/compress each leg a little to
+  # stay in sync instead of glitching.
+  systemd.services.azuracast-live-mix = {
+    description = "Mix Scarlett 2i2 + USB mic into the loopback device darkice reads from";
+    after = ["sound.target"];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = pkgs.writeShellScript "azuracast-live-mix" ''
+        exec ${pkgs.ffmpeg}/bin/ffmpeg -f alsa -ar 44100 -ac 2 -i plughw:CARD=USB \
+          -f alsa -ar 44100 -ac 2 -i plughw:CARD=Mic \
+          -filter_complex '[0:a]aresample=async=1:first_pts=0[a0];[1:a]aresample=async=1:first_pts=0[a1];[a0][a1]amix=inputs=2:duration=first:dropout_transition=0[aout]' \
+          -map '[aout]' -f alsa plughw:CARD=Loopback,DEV=0
+      '';
+      Restart = "on-failure";
+      RestartSec = "5s";
+    };
+  };
+
+  # Captures the Scarlett 2i2 + USB mic mix (via the loopback, see azuracast-live-mix above) and
+  # pushes it into AzuraCast's DJ harbor (127.0.0.1:8005, published from the container in
+  # ./default.nix). Not started at boot: an idle mixer would push dead air over the auto-DJ.
+  # Toggle via https://livedj.marcel.cool or systemctl.
   systemd.services.azuracast-live-capture = {
-    description = "Capture Scarlett 2i2 input and stream it live to AzuraCast";
-    after = ["sound.target" "podman-azuracast.service"];
+    description = "Capture the live mix and stream it to AzuraCast";
+    after = ["sound.target" "podman-azuracast.service" "azuracast-live-mix.service"];
+    bindsTo = ["azuracast-live-mix.service"]; # no point encoding silence if the mixer died
     serviceConfig = {
       Type = "simple";
       RuntimeDirectory = "azuracast-live-capture";
@@ -21,9 +50,9 @@
     };
     # darkice's config is a plain file, so it's generated at start into RuntimeDirectory
     # (tmpfs, root-only) with the password read from sops at runtime - never written to the
-    # nix store. plughw (not hw): the Scarlett 2i2 needs ALSA's plugin layer for format
-    # conversion. mountPoint is blank: darkice always sends "SOURCE /" + mountPoint, so "/"
-    # would send "SOURCE //", which doesn't match AzuraCast's DJ mount point ("/").
+    # nix store. plughw (not hw): needed for ALSA's plugin layer for format conversion.
+    # mountPoint is blank: darkice always sends "SOURCE /" + mountPoint, so "/" would send
+    # "SOURCE //", which doesn't match AzuraCast's DJ mount point ("/").
     script = ''
       DJ_PASSWORD=$(cat ${config.sops.secrets.azuracast_dj_password.path})
       cat > /run/azuracast-live-capture/darkice.cfg <<EOF
@@ -33,7 +62,7 @@
       reconnect = yes
 
       [input]
-      device = plughw:CARD=USB
+      device = plughw:CARD=Loopback,DEV=1
       sampleRate = 44100
       bitsPerSample = 16
       channel = 2
@@ -55,10 +84,13 @@
 
   # Tiny status/start-stop page for the capture service above, sat behind Authelia via
   # the `livedj` entry in proxy.nix's `services` set. Runs unprivileged; the only thing
-  # it can do as root is start/stop this one unit (security.sudo.extraRules below).
+  # it can do as root is start/stop this one unit (security.sudo.extraRules below). `audio`
+  # group membership (same as /dev/snd's own group) lets it flip the mic's hardware mute
+  # switch and record a test clip directly - no sudo needed for either.
   users.users.azuracast-live-web = {
     isSystemUser = true;
     group = "azuracast-live-web";
+    extraGroups = ["audio"];
   };
   users.groups.azuracast-live-web = {};
 
@@ -69,7 +101,8 @@
     serviceConfig = {
       Type = "simple";
       User = "azuracast-live-web";
-      ExecStart = "${pkgs.python3}/bin/python3 ${./live-toggle.py} ${toString services.livedj.port}";
+      StateDirectory = "azuracast-live-web"; # holds the last test-mic.mp3 recording
+      ExecStart = "${pkgs.python3}/bin/python3 ${./live-toggle.py} ${toString services.livedj.port} ${pkgs.alsa-utils}/bin/amixer ${pkgs.ffmpeg}/bin/ffmpeg";
       Restart = "on-failure";
       RestartSec = "5s";
     };

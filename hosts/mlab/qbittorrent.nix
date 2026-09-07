@@ -48,14 +48,21 @@
       fi
       # trust the nginx proxy so bans/real IPs work; without this qbit bans the
       # proxy's source IP after failed logins = whole world locked out for
-      # BanDuration. qbit is vpn-confined (vpn.nix), so nginx reaches it via
-      # the netns bridge address, not loopback - trust that address instead.
+      # BanDuration. qbit is vpn-confined (vpn.nix), so nginx reaches it
+      # via the netns bridge address, not loopback - trust that address instead.
       grep -q "^WebUI.ReverseProxySupportEnabled=" "$conf" || \
         sed -i "/^\[Preferences\]/a WebUI\\\\ReverseProxySupportEnabled=true" "$conf"
       if grep -q "^WebUI.TrustedReverseProxiesList=" "$conf"; then
-        sed -i "s|^\(WebUI.TrustedReverseProxiesList=\).*|\1${config.vpnNamespaces.mullvad.bridgeAddress}|" "$conf"
+        sed -i "s|^\(WebUI.TrustedReverseProxiesList=\).*|\1${config.vpnNamespaces.pia.bridgeAddress}|" "$conf"
       else
-        sed -i "/^\[Preferences\]/a WebUI\\\\TrustedReverseProxiesList=${config.vpnNamespaces.mullvad.bridgeAddress}" "$conf"
+        sed -i "/^\[Preferences\]/a WebUI\\\\TrustedReverseProxiesList=${config.vpnNamespaces.pia.bridgeAddress}" "$conf"
+      fi
+      # bind all interfaces, not just loopback - nginx and anything else
+      # outside this netns reaches qbit via the bridge address, not 127.0.0.1
+      if grep -q "^WebUI.Address=" "$conf"; then
+        sed -i "s|^\(WebUI.Address=\).*|\10.0.0.0|" "$conf"
+      else
+        sed -i "/^\[Preferences\]/a WebUI\\\\Address=0.0.0.0" "$conf"
       fi
     '';
   };

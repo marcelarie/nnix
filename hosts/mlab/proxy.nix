@@ -24,7 +24,7 @@
     bazarr = {
       port = 6767;
       href = "https://bazarr.marcel.cool";
-      vpn = true;
+      vpn = "pia";
     };
     calibre = {
       port = 8083;
@@ -33,7 +33,7 @@
     chaptarr = {
       port = 8789;
       href = "https://chaptarr.marcel.cool";
-      vpn = true;
+      vpn = "pia";
     };
     grafana = {
       port = 3005;
@@ -55,7 +55,7 @@
     lidarr = {
       port = 8686;
       href = "https://lidarr.marcel.cool";
-      vpn = true;
+      vpn = "pia";
     };
     livedj = {
       port = 8290;
@@ -95,19 +95,19 @@
     prowlarr = {
       port = 9696;
       href = "https://prowlarr.marcel.cool";
-      vpn = true;
+      vpn = "pia";
     };
     qbit = {
       port = 8081;
       href = "https://qbit.marcel.cool";
       # Arr stack talks to qbit on localhost, so this only gates browser access.
       protected = true;
-      vpn = true;
+      vpn = "pia";
     };
     radarr = {
       port = 7878;
       href = "https://radarr.marcel.cool";
-      vpn = true;
+      vpn = "pia";
     };
     pinchflat = {
       port = 8945;
@@ -121,7 +121,7 @@
     sabnzbd = {
       port = 8080;
       href = "https://sabnzbd.marcel.cool";
-      vpn = true;
+      vpn = "pia";
     };
     seafile = {
       port = 8008;
@@ -146,7 +146,7 @@
     sonarr = {
       port = 8989;
       href = "https://sonarr.marcel.cool";
-      vpn = true;
+      vpn = "pia";
     };
     syncthing = {
       port = 8384;
@@ -174,7 +174,7 @@
       port = 9800;
       href = "https://yt.marcel.cool";
       protected = true;
-      vpn = true;
+      vpn = "pia";
     };
     vaultwarden = {
       port = 8222;
@@ -182,8 +182,10 @@
     };
   };
 
-  # Must match vpnNamespaces.mullvad.namespaceAddress in vpn.nix (module default).
-  mullvadAddress = "192.168.15.1";
+  # Must match vpnNamespaces.pia.namespaceAddress in vpn.nix.
+  vpnAddresses = {
+    pia = "192.168.16.1";
+  };
 
   mkProxyHost = name: service: {
     serverName = lib.removePrefix "https://" service.href;
@@ -192,8 +194,8 @@
 
     locations."/" = {
       proxyPass = "http://${
-        if service.vpn or false
-        then mullvadAddress
+        if service ? vpn
+        then vpnAddresses.${service.vpn}
         else "127.0.0.1"
       }:${toString service.port}";
       proxyWebsockets = true;
@@ -489,6 +491,21 @@ in {
                     proxy_send_timeout 1h;
                   '';
                 };
+                # Live chat for the public page (chat.py). SSE stream, same no-buffering
+                # treatment as /live/ above so messages arrive immediately instead of batched.
+                # Port must match chatPort in azuracast/default.nix.
+                "/chat/" = {
+                  proxyPass = "http://127.0.0.1:8321";
+                  extraConfig = ''
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_buffering off;
+                    proxy_read_timeout 1h;
+                    proxy_send_timeout 1h;
+                  '';
+                };
                 # Declarative default background for the public page (azuracast/public/)
                 # - served directly by nginx from the repo-tracked file below, not AzuraCast's
                 # own asset uploader (that names files with an opaque hash under
@@ -578,11 +595,11 @@ in {
       };
   };
 
-  # nginx proxies some vhosts into the mullvad netns (vpn.nix) - wait for it so
+  # nginx proxies some vhosts into the pia netns (vpn.nix) - wait for it so
   # those don't 502 during the first seconds after boot.
   systemd.services.nginx = {
-    after = ["mullvad.service"];
-    wants = ["mullvad.service"];
+    after = ["pia.service"];
+    wants = ["pia.service"];
   };
 
   # /var/www/pages is the docroot for the catch-all *.marcel.cool vhost above.

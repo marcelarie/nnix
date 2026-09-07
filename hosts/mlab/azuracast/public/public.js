@@ -1778,6 +1778,15 @@
     var art = document.querySelector(".radio-player-widget .now-playing-art");
     var img = art && art.querySelector("img");
     if (!art || !img) return;
+    // playArtPush defers this call behind an async preload (up to PUSH_WAIT_MS), and preloads
+    // don't resolve in call order - a second, faster track change can call startArtPush before
+    // an earlier, slower one's preload finishes. When that earlier call's callback finally
+    // fires, img.src has already moved past newSrc: running it anyway would layer a stale cover
+    // over the current one, which is the "photo gets duplicated" bug. Skip it.
+    if (img.getAttribute("src") !== newSrc) {
+      DBG("playArtPush: stale (img already moved on) - skipped");
+      return;
+    }
 
     DBG("playArtPush", art._azPushTimer ? "RESTART (previous push still in flight)" : "start");
     if (art._azPushTimer) clearTimeout(art._azPushTimer); // a transition was already mid-flight -> its cleanup must not fire late and cut this one short
@@ -2027,6 +2036,9 @@
           return r.ok ? r.json() : { live: false };
         })
         .then(function (data) {
+          // Read by the mobile live layout below - it needs to know this without polling
+          // /webcam-status itself a second time.
+          window.azWebcamLive = !!(data && data.live);
           if (data && data.live) mount();
           else unmount();
         })
@@ -2785,5 +2797,118 @@
       }
       return false;
     };
+  })();
+
+  // --- live chat ---
+  // Random per-visitor name assigned server-side (chat.py); see proxy.nix's "/chat/" location.
+  // Always open, docked to the right of the player (hidden below that width - see CSS media
+  // query, there's no room beside the player on narrow viewports).
+  // EventSource reconnects on its own after a drop - no retry logic needed here.
+  (function () {
+    var panel = document.createElement("div");
+    panel.className = "az-chat-panel";
+    panel.innerHTML =
+      '<div class="az-chat-header"><span class="az-chat-you"></span></div>' +
+      '<div class="az-chat-messages"></div>' +
+      '<form class="az-chat-form"><input class="az-chat-input" maxlength="300" autocomplete="off" placeholder="Say something…">' +
+      '<button type="submit" class="az-chat-send">Send</button></form>';
+
+    var youEl = panel.querySelector(".az-chat-you");
+    var messagesEl = panel.querySelector(".az-chat-messages");
+    var formEl = panel.querySelector(".az-chat-form");
+    var inputEl = panel.querySelector(".az-chat-input");
+
+    function addMessage(msg) {
+      var row = document.createElement("p");
+      row.className = "az-chat-msg";
+      var nameEl = document.createElement("span");
+      nameEl.className = "az-chat-msg-name";
+      nameEl.textContent = msg.name + ":";
+      row.appendChild(nameEl);
+      row.appendChild(document.createTextNode(msg.text));
+      messagesEl.appendChild(row);
+      while (messagesEl.children.length > 100) messagesEl.removeChild(messagesEl.firstChild);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    formEl.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var text = inputEl.value.trim();
+      if (!text) return;
+      inputEl.value = "";
+      fetch("/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      }).catch(function () {});
+    });
+
+    var es = new EventSource("/chat/events");
+    es.addEventListener("name", function (e) {
+      youEl.textContent = "You: " + JSON.parse(e.data).name;
+    });
+    es.addEventListener("message", function (e) {
+      addMessage(JSON.parse(e.data));
+    });
+
+    if (document.body) document.body.appendChild(panel);
+    else document.addEventListener("DOMContentLoaded", function () {
+      document.body.appendChild(panel);
+    });
+  })();
+
+  // --- mobile live layout ---
+  // A fixed sidebar chat + inline webcam don't fit on a phone. When there's a live webcam feed
+  // (window.azWebcamLive, set by the live-webcam IIFE above) on a narrow screen, take over the
+  // screen instead: webcam on top, track info in the middle, chat filling the rest. Reparents
+  // the real webcam <video> and chat panel rather than cloning them, so nothing needs to be
+  // kept in sync - and moves them back to their normal homes if the screen widens or the
+  // webcam goes offline while this is up.
+  (function () {
+    var MOBILE_QUERY = "(max-width: 767px)";
+    var hero = document.createElement("div");
+    hero.className = "az-live-mobile";
+    hero.innerHTML =
+      '<div class="az-live-mobile-webcam"></div>' +
+      '<div class="az-live-mobile-track"><p class="az-live-mobile-title"></p><p class="az-live-mobile-artist"></p></div>' +
+      '<div class="az-live-mobile-chat"></div>';
+    var webcamSlot = hero.querySelector(".az-live-mobile-webcam");
+    var chatSlot = hero.querySelector(".az-live-mobile-chat");
+    var titleEl = hero.querySelector(".az-live-mobile-title");
+    var artistEl = hero.querySelector(".az-live-mobile-artist");
+
+    function syncTrackText() {
+      var t = document.querySelector(".radio-player-widget .now-playing-title");
+      var a = document.querySelector(".radio-player-widget .now-playing-artist");
+      titleEl.textContent = (t && t.textContent) || "";
+      artistEl.textContent = (a && a.textContent) || "";
+    }
+
+    function update() {
+      var on = window.matchMedia(MOBILE_QUERY).matches && !!window.azWebcamLive;
+      hero.classList.toggle("az-open", on);
+      var video = document.querySelector(".az-webcam");
+      var chat = document.querySelector(".az-chat-panel");
+      if (on) {
+        if (video && video.parentElement !== webcamSlot) webcamSlot.appendChild(video);
+        if (chat && chat.parentElement !== chatSlot) chatSlot.appendChild(chat);
+        syncTrackText();
+      } else {
+        var playerHost = document.querySelector(".radio-player-widget");
+        if (video && playerHost && video.parentElement !== playerHost) {
+          playerHost.insertBefore(video, playerHost.firstChild);
+        }
+        if (chat && chat.parentElement !== document.body) document.body.appendChild(chat);
+      }
+    }
+
+    function mount() {
+      document.body.appendChild(hero);
+      update();
+      setInterval(update, 500);
+      window.addEventListener("resize", update);
+    }
+    if (document.body) mount();
+    else document.addEventListener("DOMContentLoaded", mount);
   })();
 })();

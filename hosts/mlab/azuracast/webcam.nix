@@ -26,7 +26,15 @@
         # -c:v libx264 is required, not cosmetic: ffmpeg's RTSP default encoder is MPEG-4 Part 2,
         # which isn't in WebRTC's codec list (H264/H265/VP8/VP9/AV1). ultrafast/zerolatency keep
         # the encoder fast enough for real-time capture.
-        runOnInit = "${lib.getExe pkgs.ffmpeg} -f v4l2 -i /dev/video0 -an -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p -f rtsp rtsp://localhost:$RTSP_PORT/$RTSP_PATH";
+
+        # The -vf value is read fresh from effect file on every (re)start; webcam-control.py
+        # writes the chosen filter there and restarts mediamtx to apply it.
+        # Must be a script file, not an inline shell one-liner: mediamtx fork/execs runOnInit
+        # directly (no shell), so "filter=$(...)" isn't parsed - it's treated as the program name.
+        runOnInit = pkgs.writeShellScript "webcam-publish" ''
+          filter="$(cat /var/lib/webcam-control/effect 2>/dev/null)"
+          exec ${lib.getExe pkgs.ffmpeg} -f v4l2 -i /dev/video0 -an -vf "''${filter:-null}" -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p -f rtsp rtsp://localhost:$RTSP_PORT/$RTSP_PATH
+        '';
         runOnInitRestart = true;
       };
     };
@@ -48,6 +56,19 @@
     group = "webcam-control";
   };
   users.groups.webcam-control = {};
+
+  # lets the control page apply a new -vf effect by restarting mediamtx (see webcam-control.py).
+  security.sudo.extraRules = [
+    {
+      users = ["webcam-control"];
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/systemctl restart mediamtx";
+          options = ["NOPASSWD"];
+        }
+      ];
+    }
+  ];
 
   # mediamtx calls webcam-control-web for every read/publish auth check, so it must be up first.
   systemd.services.mediamtx = {

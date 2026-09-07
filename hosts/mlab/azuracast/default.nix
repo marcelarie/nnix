@@ -8,6 +8,9 @@
   # Kept OUT of the shared `services` attrset on purpose: that attrset feeds the firewall's
   # allowedTCPPorts, and this port must stay loopback-only.
   listenTimePort = 8320;
+  # loopback-only; referenced by the "/chat/" nginx location in proxy.nix. Same reasoning as
+  # listenTimePort above - kept out of the shared `services` attrset.
+  chatPort = 8321;
 in {
   imports = [./radio-bot ./live.nix ./webcam.nix];
 
@@ -273,6 +276,25 @@ in {
       Environment = [
         "MYSQL_PASSWORD=${config.virtualisation.oci-containers.containers.azuracast.environment.MYSQL_PASSWORD}"
       ];
+      Restart = "on-failure";
+      RestartSec = "5s";
+    };
+  };
+
+  # Live chat for the public radio page: random per-visitor name, in-memory only, no accounts.
+  # Nginx fronts it as same-origin /chat/ (proxy.nix) with proxy_buffering off for the SSE
+  # stream. See chat.py for the protocol.
+  systemd.services.azuracast-chat = {
+    description = "Live chat for the radio public page";
+    after = ["network.target"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "simple";
+      DynamicUser = true;
+      ExecStart = "${pkgs.python3}/bin/python3 ${./chat.py} ${toString chatPort}";
+      # IPs (as nginx's X-Forwarded-For sees them) that always get the "Marcelus Wallace" name
+      # instead of a random one - comma-separated, see chat.py's OWNER_IPS.
+      Environment = ["CHAT_OWNER_IPS=REPLACE_WITH_YOUR_IP"];
       Restart = "on-failure";
       RestartSec = "5s";
     };
