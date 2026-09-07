@@ -64,6 +64,14 @@
       else
         sed -i "/^\[Preferences\]/a WebUI\\\\Address=0.0.0.0" "$conf"
       fi
+      # BT listen socket must bind to "any interface" - a leftover
+      # Session\Interface(Name|Address) pinned to the host's real NIC
+      # (enp1s0) doesn't exist inside the pia netns, so the listen port never
+      # actually opens and qbit is unreachable for peers/trackers even though
+      # pia-portfwd reports a bound port.
+      sed -i "s|^Session\\\\Interface=.*|Session\\\\Interface=|" "$conf"
+      sed -i "s|^Session\\\\InterfaceAddress=.*|Session\\\\InterfaceAddress=|" "$conf"
+      sed -i "s|^Session\\\\InterfaceName=.*|Session\\\\InterfaceName=|" "$conf"
     '';
   };
 }

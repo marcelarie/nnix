@@ -1,5 +1,5 @@
 # PIA WireGuard tunnel with port forwarding, covering the whole
-# download/arr stack plus invidious. PIA is the only VPN provider - Mullvad
+# download/arr stack. PIA is the only VPN provider - Mullvad
 # doesn't offer port forwarding any more, and qbittorrent needs an actually
 # reachable inbound port for seeding to work well, so everything moved here
 # rather than splitting providers.
@@ -262,8 +262,6 @@ in {
   systemd.services.prowlarr.vpnConfinement = piaConfined;
   systemd.services."podman-chaptarr".vpnConfinement = piaConfined;
   systemd.services."podman-buildarr".vpnConfinement = piaConfined;
-  systemd.services.invidious.vpnConfinement = piaConfined;
-  systemd.services."podman-invidious-companion".vpnConfinement = piaConfined;
 
   systemd.services.pia = {
     after = ["pia-wg-config.service"];
