@@ -222,7 +222,17 @@
     autoplayPollId,
     autoplayOk = null; // null = probe pending; true/false once resolved
 
+  // Phones get no muted-autoplay-then-restore-unmute dance at all, regardless of what the probe
+  // below would say: treating them like an autoplay-blocked browser (e.g. Brave) reuses that
+  // already-working fallback - stay paused, flashing PLAY overlay, start on the first real tap,
+  // which always lands inside a genuine user gesture instead of racing a synthetic one.
+  var IS_MOBILE = window.matchMedia("(max-width: 767px)").matches;
+
   (function probeAutoplay() {
+    if (IS_MOBILE) {
+      autoplayOk = false;
+      return;
+    }
     try {
       var probe = new Audio();
       probe.muted = true;
@@ -1927,7 +1937,7 @@
       var artistEl = document.querySelector(".radio-player-widget .now-playing-artist");
       if (!titleEl) return;
       if (live && live.is_live) {
-        var name = live.streamer_name || "Live Broadcast";
+        var name = window.azLiveTextOverride || live.streamer_name || "Live Broadcast";
         if (titleEl.textContent !== name) titleEl.textContent = name;
         if (artistEl && artistEl.style.display !== "none") artistEl.style.display = "none";
       } else {
@@ -2865,6 +2875,11 @@
     });
     es.addEventListener("message", function (e) {
       addMessage(JSON.parse(e.data));
+    });
+    // Owner-only "!t <text>" chat command (chat.py); overrides the on-air title normally read
+    // from live.streamer_name - see applyLiveText() above.
+    es.addEventListener("livetext", function (e) {
+      window.azLiveTextOverride = JSON.parse(e.data).text || "";
     });
 
     if (document.body) document.body.appendChild(panel);

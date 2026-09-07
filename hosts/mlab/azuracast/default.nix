@@ -292,9 +292,12 @@ in {
       Type = "simple";
       DynamicUser = true;
       ExecStart = "${pkgs.python3}/bin/python3 ${./chat.py} ${toString chatPort}";
-      # IPs (as nginx's X-Forwarded-For sees them) that always get the "Marcelus Wallace" name
-      # instead of a random one - comma-separated, see chat.py's OWNER_IPS.
-      Environment = ["CHAT_OWNER_IPS=REPLACE_WITH_YOUR_IP"];
+      # Owner recognition goes through Authelia (auth.marcel.cool, see authelia.nix) instead of an
+      # IP allowlist - see chat.py's is_owner().
+      Environment = [
+        "AUTH_VERIFY_URL=http://127.0.0.1:${toString services.auth.port}/api/verify"
+        "AUTH_CHECK_DOMAIN=home.marcel.cool"
+      ];
       Restart = "on-failure";
       RestartSec = "5s";
     };

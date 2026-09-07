@@ -5,6 +5,13 @@ protect), then streams a short backlog plus every new message as Server-Sent Eve
 /chat/send broadcasts a message to all connected clients. Everything is in-memory only - a
 service restart clears history and drops connections, which is fine for ephemeral live chat.
 
+The owner is recognized by Authelia session, not IP: any request carrying a valid
+authelia_session cookie (shared across *.marcel.cool, so logging into any protected subdomain is
+enough) is verified against Authelia's /api/verify - no IP to keep in sync across networks. The
+owner can also drive the on-air title from chat with "!t <text>" (or bare "!t" to clear it back
+to the streamer name); this both broadcasts a "livetext" SSE event and posts a regular
+"Track Name: <text>" chat message so the change shows up in the chat log too.
+
 ponytail: run via python3, not shebang
 """
 
@@ -16,6 +23,8 @@ import re
 import sys
 import threading
 import time
+import urllib.error
+import urllib.request
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -27,9 +36,10 @@ MAX_MESSAGE_LEN = 300
 THROTTLE_S = 1.5
 
 OWNER_NAME = "Marcelus Wallace"
-# comma-separated IPs (as seen by nginx's X-Forwarded-For) that always get OWNER_NAME instead of
-# a random one - set via CHAT_OWNER_IPS in default.nix's systemd service.
-OWNER_IPS = set(filter(None, os.environ.get("CHAT_OWNER_IPS", "").split(",")))
+# Authelia's forward-auth verify endpoint and a domain from its access_control rules (authelia.nix)
+# to check the session against - any admins-group domain works, this doesn't grant access to it.
+AUTH_VERIFY_URL = os.environ["AUTH_VERIFY_URL"]
+AUTH_CHECK_DOMAIN = os.environ.get("AUTH_CHECK_DOMAIN", "home.marcel.cool")
 
 ADJECTIVES = [
     "Sneaky", "Groovy", "Chill", "Rowdy", "Fuzzy", "Cosmic", "Sleepy", "Jazzy",
@@ -46,6 +56,42 @@ clients = set()
 clients_lock = threading.Lock()
 throttle = {}
 throttle_lock = threading.Lock()
+live_text = ""
+live_text_lock = threading.Lock()
+
+
+def is_owner(cookie_header, client_ip):
+    if "authelia_session" not in cookie_header:
+        return False
+    req = urllib.request.Request(
+        AUTH_VERIFY_URL,
+        headers={
+            "Cookie": cookie_header,
+            "X-Original-URL": f"https://{AUTH_CHECK_DOMAIN}/",
+            "X-Forwarded-Method": "GET",
+            "X-Forwarded-Proto": "https",
+            "X-Forwarded-Host": AUTH_CHECK_DOMAIN,
+            "X-Forwarded-Uri": "/",
+            "X-Forwarded-For": client_ip,
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=2) as r:
+            return r.status == 200
+    except (urllib.error.HTTPError, OSError):
+        return False
+
+
+def send_to_clients(event, data):
+    with clients_lock:
+        dead = []
+        for q in clients:
+            try:
+                q.put_nowait((event, data))
+            except queue.Full:
+                dead.append(q)
+        for q in dead:
+            clients.discard(q)
 
 
 def random_name():
@@ -55,15 +101,14 @@ def random_name():
 def broadcast(msg):
     with history_lock:
         history.append(msg)
-    with clients_lock:
-        dead = []
-        for q in clients:
-            try:
-                q.put_nowait(msg)
-            except queue.Full:
-                dead.append(q)
-        for q in dead:
-            clients.discard(q)
+    send_to_clients("message", msg)
+
+
+def set_live_text(text):
+    global live_text
+    with live_text_lock:
+        live_text = text
+    send_to_clients("livetext", {"text": text})
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -75,7 +120,7 @@ class Handler(BaseHTTPRequestHandler):
         return xff.split(",")[0].strip() or self.client_address[0]
 
     def client_name(self):
-        if self.client_ip() in OWNER_IPS:
+        if is_owner(self.headers.get("Cookie", ""), self.client_ip()):
             self.new_cookie = False
             return OWNER_NAME
         m = COOKIE_RE.search(self.headers.get("Cookie", ""))
@@ -110,14 +155,18 @@ class Handler(BaseHTTPRequestHandler):
             clients.add(q)
         try:
             self.write_event("name", {"name": name})
+            with live_text_lock:
+                text = live_text
+            if text:
+                self.write_event("livetext", {"text": text})
             with history_lock:
                 backlog = list(history)
             for msg in backlog:
                 self.write_event("message", msg)
             while True:
                 try:
-                    msg = q.get(timeout=15)
-                    self.write_event("message", msg)
+                    event, data = q.get(timeout=15)
+                    self.write_event(event, data)
                 except queue.Empty:
                     self.wfile.write(b": ping\n\n")
                     self.wfile.flush()
@@ -150,6 +199,14 @@ class Handler(BaseHTTPRequestHandler):
         text = str(body.get("message", "")).strip()[:MAX_MESSAGE_LEN]
         if not text:
             self.send_response(400)
+            self.end_headers()
+            return
+
+        if name == OWNER_NAME and (text == "!t" or text.startswith("!t ")):
+            new_text = text[2:].strip()
+            set_live_text(new_text)
+            broadcast({"name": name, "text": f"Track Name: {new_text or 'cleared'}", "ts": time.time()})
+            self.send_response(204)
             self.end_headers()
             return
 
