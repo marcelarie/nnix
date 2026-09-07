@@ -2183,6 +2183,39 @@ html.az-calm .az-bg-pop-title {
   flex: 1 1 auto;
   min-height: 0;
 }
+.az-live-mobile-tap {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above the webcam/track/chat stack, which has no z-index of its own (auto) */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+.az-live-mobile-tap.az-open {
+  display: flex;
+}
+.az-live-mobile-tap-badge {
+  padding: 0.8rem 1.6rem;
+  border: 2px solid rgb(var(--hud-accent-rgb));
+  border-radius: 2rem;
+  background: var(--hud-bg-strong);
+  color: rgb(var(--hud-accent-rgb));
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(var(--hud-accent-rgb), 0.4);
+  animation: az-tap-pulse 1.6s ease-in-out infinite;
+}
+@keyframes az-tap-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
 /* Overrides the standalone (desktop sidebar) .az-chat-panel rules - higher specificity wins
    regardless of source order, including over the max-width:1099px { display:none } rule. */
 .az-live-mobile-chat .az-chat-panel {

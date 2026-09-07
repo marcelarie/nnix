@@ -2864,6 +2864,13 @@
   // the real webcam <video> and chat panel rather than cloning them, so nothing needs to be
   // kept in sync - and moves them back to their normal homes if the screen widens or the
   // webcam goes offline while this is up.
+  //
+  // This hero sits ABOVE the real play button (it's a full-screen overlay), so the "tap
+  // anywhere to unlock autoplay" hint that button normally gives is now invisible - without a
+  // "tap to listen" prompt, muted autoplay just looks like a black screen with no sound. A tap
+  // on the prompt is itself the gesture: the page's own global gesture listener (see unmute()
+  // near the top of this file) already starts/unmutes playback for ANY tap, so this only needs
+  // to show/hide the hint - not trigger playback itself.
   (function () {
     var MOBILE_QUERY = "(max-width: 767px)";
     var hero = document.createElement("div");
@@ -2871,11 +2878,24 @@
     hero.innerHTML =
       '<div class="az-live-mobile-webcam"></div>' +
       '<div class="az-live-mobile-track"><p class="az-live-mobile-title"></p><p class="az-live-mobile-artist"></p></div>' +
-      '<div class="az-live-mobile-chat"></div>';
+      '<div class="az-live-mobile-chat"></div>' +
+      '<div class="az-live-mobile-tap"><div class="az-live-mobile-tap-badge">&#9654; Tap to listen</div></div>';
     var webcamSlot = hero.querySelector(".az-live-mobile-webcam");
     var chatSlot = hero.querySelector(".az-live-mobile-chat");
     var titleEl = hero.querySelector(".az-live-mobile-title");
     var artistEl = hero.querySelector(".az-live-mobile-artist");
+    var tapEl = hero.querySelector(".az-live-mobile-tap");
+    var tapDismissed = false;
+    tapEl.addEventListener("click", function () {
+      // Don't just rely on the page's global gesture listener (unmute() near the top of this
+      // file) to also catch this tap - it only fires ONCE and this hero hides the real play
+      // button, which is otherwise the always-available fallback if that first gesture got
+      // consumed early (e.g. by an incidental touch before the stream was ready) with no
+      // effect. Calling it here directly, inside this trusted click, works regardless.
+      ensurePlaying();
+      tapDismissed = true;
+      tapEl.classList.remove("az-open");
+    });
 
     function syncTrackText() {
       var t = document.querySelector(".radio-player-widget .now-playing-title");
@@ -2893,6 +2913,8 @@
         if (video && video.parentElement !== webcamSlot) webcamSlot.appendChild(video);
         if (chat && chat.parentElement !== chatSlot) chatSlot.appendChild(chat);
         syncTrackText();
+        if (!tapDismissed && isPlaying() && !isMuted()) tapDismissed = true; // started some other way (e.g. muted autoplay succeeded and got unmuted) - no need to prompt
+        tapEl.classList.toggle("az-open", !tapDismissed);
       } else {
         var playerHost = document.querySelector(".radio-player-widget");
         if (video && playerHost && video.parentElement !== playerHost) {
