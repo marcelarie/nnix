@@ -174,7 +174,6 @@
       port = 9800;
       href = "https://yt.marcel.cool";
       protected = true;
-      vpn = "pia";
     };
     vaultwarden = {
       port = 8222;
