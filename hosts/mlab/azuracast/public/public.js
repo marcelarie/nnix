@@ -1989,6 +1989,22 @@
       videoEl.autoplay = true;
       videoEl.muted = true;
       videoEl.playsInline = true;
+      videoEl.poster =
+        "data:image/svg+xml," +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225">' +
+            '<rect width="100%" height="100%" fill="#000"/>' +
+            '<text x="50%" y="50%" fill="#0ce5ff" font-family="monospace" font-size="16" text-anchor="middle" dominant-baseline="middle">Connecting to webcam…</text>' +
+            "</svg>"
+        );
+      videoEl.addEventListener("click", function () {
+        if (videoEl.paused) {
+          videoEl.muted = false;
+          videoEl.play();
+        } else {
+          videoEl.pause();
+        }
+      });
       host.insertBefore(videoEl, host.firstChild);
 
       pc = new RTCPeerConnection();

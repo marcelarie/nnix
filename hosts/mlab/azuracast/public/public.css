@@ -2055,6 +2055,7 @@ html.az-calm .az-bg-pop-title {
   background: #000;
   margin-bottom: 0.75rem;
   object-fit: contain;
+  cursor: pointer;
 }
 
 .az-chat-panel {
@@ -2140,6 +2141,7 @@ html.az-calm .az-bg-pop-title {
   display: none;
   position: fixed;
   inset: 0;
+  height: 100svh;
   z-index: 1500;
   flex-direction: column;
   background: #000;
