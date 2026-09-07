@@ -281,9 +281,10 @@ in {
     };
   };
 
-  # Live chat for the public radio page: random per-visitor name, in-memory only, no accounts.
-  # Nginx fronts it as same-origin /chat/ (proxy.nix) with proxy_buffering off for the SSE
-  # stream. See chat.py for the protocol.
+  # Live chat for the public radio page: random per-visitor name, no accounts. History and the
+  # live-text override persist to StateDirectory across restarts/deploys (connections and
+  # per-IP throttle state don't - see chat.py). Nginx fronts it as same-origin /chat/ (proxy.nix)
+  # with proxy_buffering off for the SSE stream. See chat.py for the protocol.
   systemd.services.azuracast-chat = {
     description = "Live chat for the radio public page";
     after = ["network.target"];
@@ -291,6 +292,7 @@ in {
     serviceConfig = {
       Type = "simple";
       DynamicUser = true;
+      StateDirectory = "azuracast-chat";
       ExecStart = "${pkgs.python3}/bin/python3 ${./chat.py} ${toString chatPort}";
       # Owner recognition goes through Authelia (auth.marcel.cool, see authelia.nix) instead of an
       # IP allowlist - see chat.py's is_owner().

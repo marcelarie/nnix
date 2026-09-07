@@ -2058,6 +2058,21 @@ html.az-calm .az-bg-pop-title {
   cursor: pointer;
 }
 
+.az-webcam-offline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  background: #000;
+  color: rgb(var(--hud-accent-rgb));
+  font-family: "Courier New", ui-monospace, monospace;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  padding: 0 1rem;
+}
+
 .az-chat-panel {
   position: fixed;
   right: 16px;

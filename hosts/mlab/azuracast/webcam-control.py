@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import html
 import json
 import secrets
 import subprocess
@@ -11,6 +12,9 @@ PORT = int(sys.argv[1])
 STATE_FILE = Path(sys.argv[2])
 TOKEN_FILE = STATE_FILE.parent / "preview-token"
 EFFECT_FILE = STATE_FILE.parent / "effect"
+OFFLINE_TEXT_FILE = STATE_FILE.parent / "offline-text"
+DEFAULT_OFFLINE_TEXT = "Off air"
+MAX_OFFLINE_TEXT_LEN = 100
 WHEP_PATH = "/webcam/whep"
 
 # ffmpeg -vf filter per effect name; webcam.nix's runOnInit reads EFFECT_FILE's
@@ -42,6 +46,10 @@ button {{ font-size: 1.25rem; padding: 0.8rem 1.6rem; border-radius: 0.5rem; bor
 <form method="post" action="/toggle"><button>{action}</button></form>
 <form method="post" action="/effect">
   <select name="effect" onchange="this.form.submit()">{effect_options}</select>
+</form>
+<form method="post" action="/offline-text">
+  <input type="text" name="text" placeholder="{default_offline_text}" maxlength="{max_offline_text_len}" value="{offline_text}">
+  <button>Save offline text</button>
 </form>
 <script>
 (async function () {{
@@ -79,6 +87,14 @@ def current_effect() -> str:
     return next((name for name, filt in EFFECTS.items() if filt == value), "none")
 
 
+def current_offline_text() -> str:
+    if OFFLINE_TEXT_FILE.exists():
+        text = OFFLINE_TEXT_FILE.read_text().strip()
+        if text:
+            return text
+    return DEFAULT_OFFLINE_TEXT
+
+
 class Handler(BaseHTTPRequestHandler):
     def render(self):
         live = is_live()
@@ -88,21 +104,25 @@ class Handler(BaseHTTPRequestHandler):
             for name in EFFECTS
         )
         whep_url = f"https://radio.marcel.cool{WHEP_PATH}?preview={preview_token()}"
-        html = PAGE.format(
+        stored_offline_text = OFFLINE_TEXT_FILE.read_text().strip() if OFFLINE_TEXT_FILE.exists() else ""
+        page = PAGE.format(
             badge_class="live" if live else "offline",
             status="LIVE" if live else "hidden",
             action="Stop showing on public page" if live else "Show on public page",
             effect_options=options,
             whep_url=whep_url,
+            default_offline_text=html.escape(DEFAULT_OFFLINE_TEXT),
+            max_offline_text_len=MAX_OFFLINE_TEXT_LEN,
+            offline_text=html.escape(stored_offline_text),
         )
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
-        self.wfile.write(html.encode())
+        self.wfile.write(page.encode())
 
     def do_GET(self):
         if self.path == "/status":
-            body = json.dumps({"live": is_live()}).encode()
+            body = json.dumps({"live": is_live(), "offline_text": current_offline_text()}).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
@@ -134,6 +154,19 @@ class Handler(BaseHTTPRequestHandler):
                 # if that drop ever becomes annoying.
                 # /run/wrappers/bin: service PATH lacks it, bare "sudo" is FileNotFoundError.
                 subprocess.run(["/run/wrappers/bin/sudo", "/run/current-system/sw/bin/systemctl", "restart", "mediamtx"])
+            self.send_response(303)
+            self.send_header("Location", "/")
+            self.end_headers()
+            return
+
+        if self.path == "/offline-text":
+            length = int(self.headers.get("Content-Length", 0))
+            body = parse_qs(self.rfile.read(length).decode())
+            text = (body.get("text") or [""])[0].strip()[:MAX_OFFLINE_TEXT_LEN]
+            if text:
+                OFFLINE_TEXT_FILE.write_text(text)
+            else:
+                OFFLINE_TEXT_FILE.unlink(missing_ok=True)
             self.send_response(303)
             self.send_header("Location", "/")
             self.end_headers()

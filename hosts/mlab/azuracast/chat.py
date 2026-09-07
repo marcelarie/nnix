@@ -2,8 +2,10 @@
 default.nix). No accounts: GET /chat/events assigns a random name via a cookie on first connect
 (kept for the browser session, forgeable client-side like the name itself - there's nothing to
 protect), then streams a short backlog plus every new message as Server-Sent Events. POST
-/chat/send broadcasts a message to all connected clients. Everything is in-memory only - a
-service restart clears history and drops connections, which is fine for ephemeral live chat.
+/chat/send broadcasts a message to all connected clients. History and the live-text override are
+mirrored to a JSON file in STATE_DIRECTORY (see default.nix's StateDirectory) and reloaded on
+start, so a deploy/restart doesn't wipe the chat - live clients (connections, per-IP throttle) are
+still dropped, that part really is ephemeral.
 
 The owner is recognized by Authelia session, not IP: any request carrying a valid
 authelia_session cookie (shared across *.marcel.cool, so logging into any protected subdomain is
@@ -27,6 +29,7 @@ import urllib.error
 import urllib.request
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 PORT = int(sys.argv[1])
 COOKIE_NAME = "chat_name"
@@ -34,6 +37,7 @@ COOKIE_RE = re.compile(rf"{COOKIE_NAME}=([^;]+)")
 HISTORY_LEN = 50
 MAX_MESSAGE_LEN = 300
 THROTTLE_S = 1.5
+STATE_FILE = Path(os.environ.get("STATE_DIRECTORY", "/var/lib/azuracast-chat")) / "state.json"
 
 OWNER_NAME = "Marcelus Wallace"
 # Authelia's forward-auth verify endpoint and a domain from its access_control rules (authelia.nix)
@@ -98,9 +102,29 @@ def random_name():
     return f"{random.choice(ADJECTIVES)} {random.choice(ANIMALS)}{random.randint(10, 99)}"
 
 
+def save_state():
+    with history_lock, live_text_lock:
+        data = {"history": list(history), "live_text": live_text}
+    try:
+        STATE_FILE.write_text(json.dumps(data))
+    except OSError:
+        pass
+
+
+def load_state():
+    global live_text
+    try:
+        data = json.loads(STATE_FILE.read_text())
+    except (OSError, ValueError):
+        return
+    history.extend(data.get("history", []))
+    live_text = data.get("live_text", "")
+
+
 def broadcast(msg):
     with history_lock:
         history.append(msg)
+    save_state()
     send_to_clients("message", msg)
 
 
@@ -108,6 +132,7 @@ def set_live_text(text):
     global live_text
     with live_text_lock:
         live_text = text
+    save_state()
     send_to_clients("livetext", {"text": text})
 
 
@@ -228,4 +253,5 @@ class Server(ThreadingHTTPServer):
     daemon_threads = True
 
 
+load_state()
 Server(("127.0.0.1", PORT), Handler).serve_forever()

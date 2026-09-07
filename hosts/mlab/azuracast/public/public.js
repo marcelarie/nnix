@@ -1984,7 +1984,8 @@
     var POLL_MS = 5000;
     var pc = null,
       videoEl = null,
-      mounted = false;
+      mounted = false,
+      offlineEl = null;
 
     function mount() {
       if (mounted) return;
@@ -2056,6 +2057,26 @@
       }
     }
 
+    // Shown in the video's place while the cam is off - text set at streamcam.marcel.cool
+    // (webcam-control.py), falls back to its own default when nothing's been set.
+    function showOffline(text) {
+      var host = document.querySelector(".radio-player-widget");
+      if (!host) return;
+      if (!offlineEl) {
+        offlineEl = document.createElement("div");
+        offlineEl.className = "az-webcam-offline";
+        host.insertBefore(offlineEl, host.firstChild);
+      }
+      if (offlineEl.textContent !== text) offlineEl.textContent = text;
+    }
+
+    function hideOffline() {
+      if (offlineEl) {
+        offlineEl.remove();
+        offlineEl = null;
+      }
+    }
+
     function poll() {
       fetch(STATUS_URL, { cache: "no-store" })
         .then(function (r) {
@@ -2065,8 +2086,13 @@
           // Read by the mobile live layout below - it needs to know this without polling
           // /webcam-status itself a second time.
           window.azWebcamLive = !!(data && data.live);
-          if (data && data.live) mount();
-          else unmount();
+          if (data && data.live) {
+            hideOffline();
+            mount();
+          } else {
+            unmount();
+            showOffline((data && data.offline_text) || "");
+          }
         })
         .catch(function () {});
     }
